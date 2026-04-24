@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+/* ─── VARIABLES ─────────────────────────────────────────── */
+:root {
+  --bg-start:     #EDE8E0;
+  --bg-end:       #F7F3EE;
+  --glass-bg:     rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px rgba(60, 40, 20, 0.10);
+  --primary:      #1B4F8A;
+  --primary-dark: #133A6B;
+  --primary-soft: rgba(27, 79, 138, 0.10);
+  --accent:       #C8973A;
+  --success:      #2E7D52;
+  --danger:       #C0392B;
+  --danger-soft:  rgba(192, 57, 43, 0.10);
+  --text-main:    #1A1A2E;
+  --text-soft:    #6B7280;
+  --text-light:   #9CA3AF;
+  --radius:       16px;
+  --radius-sm:    10px;
+  --transition:   all 0.22s ease;
+}
+
+/* ─── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── GLASS CARD ─────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  min-height: 48px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-danger  { background: var(--danger-soft); color: var(--danger); }
+.btn-danger:hover   { background: var(--danger); color: #fff; }
+.btn-ghost   { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-ghost:hover    { background: var(--primary-soft); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ─── FORM ELEMENTS ──────────────────────────────────────── */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.form-group input, .form-group select {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(27, 79, 138, 0.18);
+  background: rgba(255,255,255,0.7);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  color: var(--text-main);
+  transition: var(--transition);
+  min-height: 50px;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* ─── BADGES ─────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.badge-active  { background: rgba(46,125,82,0.12); color: var(--success); }
+.badge-inactive{ background: var(--danger-soft); color: var(--danger); }
+.badge-role    { background: var(--primary-soft); color: var(--primary); }
+
+/* ─── PAGE TITLE ─────────────────────────────────────────── */
+.page-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.page-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  margin-bottom: 24px;
+}
+
+/* ─── MODAL OVERLAY ──────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.modal-box {
+  width: 100%; max-width: 480px;
+  padding: 28px;
+  animation: fadeUp 0.22s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(27,79,138,0.2); border-radius: 99px; }
