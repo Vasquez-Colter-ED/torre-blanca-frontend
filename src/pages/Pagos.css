@@ -1,0 +1,167 @@
+.pagos-page { max-width: 900px; }
+
+/* Tabs */
+.pagos-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.pagos-tab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(27,79,138,0.18);
+  background: #fff;
+  color: var(--text-soft);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.pagos-tab:hover { border-color: var(--primary); color: var(--primary); }
+.pagos-tab-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Selector mes */
+.mes-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mes-select {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(27,79,138,0.18);
+  background: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+/* Tarjetas resumen */
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.resumen-card {
+  padding: 18px 20px;
+  border-radius: 12px;
+}
+.rc-blue   { background: #E6F1FB; }
+.rc-green  { background: #EAF3DE; }
+.rc-red    { background: #FCEBEB; }
+.rc-neutral{ background: #F1EFE8; }
+.rc-value  { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+.rc-label  { font-size: 0.82rem; color: var(--text-soft); font-weight: 600; margin-top: 2px; }
+
+/* Lista cuotas */
+.cuotas-lista { display: flex; flex-direction: column; gap: 8px; }
+.cuota-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.cuota-depto { min-width: 60px; }
+.depto-num  { display: block; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.depto-piso { display: block; font-size: 0.78rem; color: var(--text-soft); }
+.cuota-info { flex: 1; min-width: 120px; }
+.cuota-responsable { font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+.cuota-email       { font-size: 0.78rem; color: var(--text-soft); }
+.cuota-monto { font-size: 1rem; font-weight: 800; color: var(--text-main); min-width: 90px; text-align: right; }
+
+/* Pendientes */
+.pendientes-lista { display: flex; flex-direction: column; gap: 10px; }
+.pendiente-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.pendiente-info { flex: 1; min-width: 160px; }
+.pendiente-pagador { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+.pendiente-meta    { font-size: 0.82rem; color: var(--text-soft); margin-top: 2px; }
+.pendiente-obs     { font-size: 0.82rem; color: var(--text-soft); font-style: italic; }
+.voucher-link {
+  font-size: 0.82rem; color: var(--primary); font-weight: 700;
+  text-decoration: none; display: inline-block; margin-top: 4px;
+}
+.voucher-link:hover { text-decoration: underline; }
+.pendiente-monto { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+.pendiente-actions { display: flex; gap: 8px; }
+
+/* Configuraciones */
+.configs-lista { display: flex; flex-direction: column; gap: 8px; }
+.config-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: 10px;
+}
+.config-periodo { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+.config-costo   { font-size: 0.85rem; color: var(--text-soft); }
+.config-obs     { font-size: 0.82rem; color: var(--text-soft); font-style: italic; }
+
+/* Pills */
+.pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 0.78rem; font-weight: 700; }
+.pill-success { background: #EAF3DE; color: #3B6D11; }
+.pill-danger  { background: #FCEBEB; color: #A32D2D; }
+.pill-warning { background: #FAEEDA; color: #854F0B; }
+.pill-neutral { background: #F1EFE8; color: #5F5E5A; }
+
+/* Historial pagos residente */
+.pagos-historial { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.pago-item {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.85rem; color: var(--text-soft);
+  padding: 4px 0;
+  border-top: 0.5px solid #E5E0D8;
+}
+
+/* Alertas y estados */
+.alert-error {
+  background: #FCEBEB; color: #A32D2D;
+  padding: 12px 16px; border-radius: 8px;
+  font-weight: 600; margin-bottom: 16px;
+}
+.empty-state {
+  padding: 40px; text-align: center;
+  background: #fff; border: 1px solid #E5E0D8;
+  border-radius: 10px; color: var(--text-soft); font-weight: 600;
+}
+.loading-msg { padding: 32px; text-align: center; color: var(--text-soft); }
+
+/* Modales */
+.modal-title   { font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+.modal-sub     { font-size: 0.9rem; color: var(--text-soft); margin-bottom: 4px; }
+.modal-form    { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.modal-success { background: #EAF3DE; color: #3B6D11; padding: 10px 14px; border-radius: 8px; font-weight: 600; margin-top: 10px; }
+.modal-error   { background: #FCEBEB; color: #A32D2D; padding: 10px 14px; border-radius: 8px; font-weight: 600; margin-top: 10px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.label-hint    { font-size: 0.78rem; color: var(--text-light); font-weight: 400; }
+.btn-sm        { padding: 7px 12px; font-size: 0.85rem; min-height: 36px; }
+
+@media (max-width: 600px) {
+  .cuota-card, .pendiente-card { flex-direction: column; align-items: flex-start; }
+  .cuota-monto { text-align: left; }
+  .resumen-grid { grid-template-columns: 1fr 1fr; }
+  .pagos-tabs { flex-direction: column; }
+  .pagos-tab { text-align: center; }
+}
