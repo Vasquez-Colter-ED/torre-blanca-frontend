@@ -4,19 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import './Login.css'
 
-function BuildingIcon() {
-  return (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
-      stroke="#1B4F8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="1"/>
-      <path d="M3 9h18"/>
-      <path d="M3 15h18"/>
-      <path d="M9 3v18"/>
-      <path d="M15 3v18"/>
-    </svg>
-  )
-}
-
 export default function Login() {
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -63,7 +50,6 @@ export default function Login() {
         {/* Panel derecho — formulario */}
         <div className="login-form-panel">
           <div className="login-brand">
-            <BuildingIcon />
             <h1 className="login-title">Torre Blanca</h1>
             <p className="login-subtitle">Sistema de Administración</p>
           </div>
