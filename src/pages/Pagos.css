@@ -165,3 +165,14 @@
   .pagos-tabs { flex-direction: column; }
   .pagos-tab { text-align: center; }
 }
+
+.config-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+.modal-scroll {
+  overflow-y: auto;
+  max-height: 55vh;
+  padding-right: 4px;
+  margin: 8px 0;
+}
+.modal-scroll::-webkit-scrollbar { width: 4px; }
+.modal-scroll::-webkit-scrollbar-thumb { background: rgba(27,79,138,0.2); border-radius: 99px; }
