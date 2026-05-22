@@ -176,3 +176,32 @@
 }
 .modal-scroll::-webkit-scrollbar { width: 4px; }
 .modal-scroll::-webkit-scrollbar-thumb { background: rgba(27,79,138,0.2); border-radius: 99px; }
+
+/* Depto en pendientes */
+.pendiente-depto {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 52px; flex-shrink: 0;
+}
+
+/* Sin residentes */
+.sin-residente { color: var(--text-light) !important; font-style: italic; font-weight: 400 !important; }
+
+/* Selector dinámico de método de pago */
+.metodos-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.metodo-btn {
+  padding: 7px 12px; border-radius: 8px; font-size: 0.82rem;
+  font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif;
+  border: 1.5px solid rgba(27,79,138,0.2);
+  background: #fff; color: var(--text-soft);
+  transition: all 0.15s ease;
+}
+.metodo-btn:hover { border-color: var(--primary); color: var(--primary); }
+.metodo-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.modal-scroll {
+  overflow-y: auto; max-height: 55vh; padding-right: 4px; margin: 8px 0;
+}
+.modal-scroll::-webkit-scrollbar { width: 4px; }
+.modal-scroll::-webkit-scrollbar-thumb { background: rgba(27,79,138,0.2); border-radius: 99px; }

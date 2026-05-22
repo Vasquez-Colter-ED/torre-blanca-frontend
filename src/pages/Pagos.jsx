@@ -5,7 +5,32 @@ import './Pagos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
-const METODOS = ['TRANSFERENCIA','DEPOSITO','YAPE','PLIN','EFECTIVO','OTRO']
+const METODOS = ['TRANSFERENCIA','DEPOSITO','PLIN','EFECTIVO','OTRO']
+
+const CAMPOS_METODO = {
+  TRANSFERENCIA: [
+    { key:'numeroOperacion', label:'N° de operación', placeholder:'Ej: 123456789', required:true },
+    { key:'bancoOrigen',     label:'Banco de origen', placeholder:'Ej: BCP, Interbank, BBVA...', required:false },
+    { key:'voucherUrl',      label:'URL del voucher', placeholder:'https://... (opcional)', required:false },
+  ],
+  DEPOSITO: [
+    { key:'numeroOperacion', label:'N° de operación', placeholder:'Ej: 123456789', required:true },
+    { key:'bancoOrigen',     label:'Banco donde depositó', placeholder:'Ej: Scotiabank, BCP...', required:false },
+    { key:'voucherUrl',      label:'URL del voucher', placeholder:'https://... (opcional)', required:false },
+  ],
+  PLIN: [
+    { key:'numeroOperacion', label:'N° de operación Plin', placeholder:'Código de la transacción', required:true },
+    { key:'voucherUrl',      label:'URL del voucher', placeholder:'https://... (opcional)', required:false },
+  ],
+  EFECTIVO: [
+    { key:'observaciones', label:'Observaciones', placeholder:'Ej: Entregado al tesorero Roberto Huanca', required:false },
+  ],
+  OTRO: [
+    { key:'numeroOperacion', label:'N° de operación', placeholder:'Opcional', required:false },
+    { key:'observaciones',   label:'Observaciones',   placeholder:'Describe el método de pago', required:false },
+    { key:'voucherUrl',      label:'URL del voucher', placeholder:'https://... (opcional)', required:false },
+  ],
+}
 
 export default function Pagos() {
   const { user } = useAuth()
@@ -31,34 +56,38 @@ export default function Pagos() {
     setLoading(true); setError('')
     try {
       if (esDirectivo) {
-        if (tab === 'resumen') { const res = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(res.data) }
-        else if (tab === 'pendientes') { const res = await api.get('/api/pagos/pendientes'); setPendientes(res.data) }
-        else if (tab === 'configurar') { const res = await api.get('/api/pagos/configuraciones'); setConfigs(res.data) }
+        if (tab === 'resumen') { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
+        else if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
+        else if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
       } else {
-        const res = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(res.data)
+        const r = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(r.data)
       }
     } catch (e) {
-      if (e.response?.status === 400) setError(e.response.data)
-      else setError('Error al cargar datos')
+      setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos')
     } finally { setLoading(false) }
   }
 
   const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError('') }
 
-  const abrirRegistrarPago = (cuota) => {
+  const abrirPago = (cuota) => {
     setSelected(cuota)
-    setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion: '', voucherUrl: '', observaciones: '' })
+    setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'' })
     setModal('pago'); setMsg(''); setError('')
   }
 
+  const cambiarMetodo = (m) => setForm(f => ({ ...f, metodoPago:m, numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'' }))
+
   const guardarPago = async () => {
     try {
-      const res = await api.post('/api/pagos/registrar', {
+      const obs = form.bancoOrigen
+        ? 'Banco: ' + form.bancoOrigen + (form.observaciones ? ' | ' + form.observaciones : '')
+        : form.observaciones
+      await api.post('/api/pagos/registrar', {
         cuotaId: selected.cuotaId, monto: Number(form.monto),
-        metodoPago: form.metodoPago, numeroOperacion: form.numeroOperacion,
-        voucherUrl: form.voucherUrl, observaciones: form.observaciones
+        metodoPago: form.metodoPago, numeroOperacion: form.numeroOperacion || null,
+        voucherUrl: form.voucherUrl || null, observaciones: obs || null
       })
-      setMsg(res.data.mensaje); cargarDatos(); setTimeout(cerrar, 1500)
+      setMsg('Pago registrado. Pendiente de verificación.'); cargarDatos(); setTimeout(cerrar, 1500)
     } catch (e) { setError(e.response?.data || 'Error al registrar pago') }
   }
 
@@ -68,57 +97,39 @@ export default function Pagos() {
     catch (e) { alert(e.response?.data || 'Error') }
   }
 
-  const abrirCrearConfig = () => {
-    setForm({ mes: ahora.getMonth() + 1, anio: ahora.getFullYear(), costoPorM2: '', totalGastosEstimados: '', observaciones: '' })
-    setModal('configurar'); setMsg(''); setError('')
-  }
-
-  const abrirEditarConfig = (c) => {
-    setSelected(c)
-    setForm({ costoPorM2: c.costoPorM2, totalGastosEstimados: c.totalGastosEstimados || '', observaciones: c.observaciones || '' })
-    setModal('editarConfig'); setMsg(''); setError('')
-  }
-
   const guardarConfiguracion = async () => {
     try {
       const res = await api.post('/api/pagos/configurar-mes', {
         mes: Number(form.mes), anio: Number(form.anio),
         costoPorM2: Number(form.costoPorM2),
-        totalGastosEstimados: Number(form.totalGastosEstimados),
-        observaciones: form.observaciones
+        totalGastosEstimados: form.totalGastosEstimados ? Number(form.totalGastosEstimados) : null,
+        observaciones: form.observaciones || null
       })
       setMsg(res.data.mensaje); cargarDatos(); setTimeout(cerrar, 1500)
-    } catch (e) { setError(e.response?.data || 'Error al configurar') }
+    } catch (e) { setError(e.response?.data || 'Error') }
   }
 
   const guardarEdicionConfig = async () => {
     try {
       const res = await api.put(`/api/pagos/configuraciones/${selected.id}`, {
         costoPorM2: Number(form.costoPorM2),
-        totalGastosEstimados: Number(form.totalGastosEstimados),
-        observaciones: form.observaciones
+        totalGastosEstimados: form.totalGastosEstimados ? Number(form.totalGastosEstimados) : null,
+        observaciones: form.observaciones || null
       })
       setMsg(res.data.mensaje); cargarDatos(); setTimeout(cerrar, 1500)
-    } catch (e) { setError(e.response?.data || 'Error al editar') }
+    } catch (e) { setError(e.response?.data || 'Error') }
   }
 
   const eliminarConfig = async (c) => {
-    if (!confirm(`¿Eliminar configuración de ${MESES[c.mes-1]} ${c.anio}? Se eliminarán todas las cuotas y pagos asociados.`)) return
-    try { await api.delete(`/api/pagos/configuraciones/${c.id}`); cargarDatos() }
+    if (!confirm('¿Eliminar configuración de ' + MESES[c.mes-1] + ' ' + c.anio + '? Se eliminarán todas las cuotas y pagos.')) return
+    try { await api.delete('/api/pagos/configuraciones/' + c.id); cargarDatos() }
     catch (e) { alert(e.response?.data || 'Error') }
   }
 
-  const estadoColor = (e) => {
-    if (e === 'PAGADO' || e === 'VERIFICADO') return 'pill-success'
-    if (e === 'VENCIDO' || e === 'RECHAZADO') return 'pill-danger'
-    if (e === 'PENDIENTE_VERIFICACION') return 'pill-warning'
-    return 'pill-neutral'
-  }
+  const estadoColor = (e) => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
+  const estadoLabel = (e) => ({ PENDIENTE:'Pendiente', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
 
-  const estadoLabel = (e) => ({
-    PENDIENTE:'Pendiente', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado',
-    PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado'
-  }[e] || e)
+  const camposActuales = CAMPOS_METODO[form.metodoPago] || []
 
   return (
     <div className="pagos-page">
@@ -128,12 +139,11 @@ export default function Pagos() {
       {esDirectivo && (
         <div className="pagos-tabs">
           {[['resumen','Resumen del mes'],['pendientes','Pendientes de verificación'],['configurar','Configurar mes']].map(([k,l]) => (
-            <button key={k} className={`pagos-tab ${tab === k ? 'pagos-tab-active' : ''}`} onClick={() => setTab(k)}>{l}</button>
+            <button key={k} className={'pagos-tab ' + (tab===k?'pagos-tab-active':'')} onClick={() => setTab(k)}>{l}</button>
           ))}
         </div>
       )}
 
-      {/* TAB RESUMEN */}
       {tab === 'resumen' && esDirectivo && (
         <div>
           <div className="mes-selector">
@@ -157,21 +167,16 @@ export default function Pagos() {
               <div className="cuotas-lista">
                 {resumen.cuotas?.map(c => (
                   <div key={c.cuotaId} className="cuota-card">
-                    <div className="cuota-depto">
-                      <span className="depto-num">{c.numeroDepartamento}</span>
-                      <span className="depto-piso">Piso {c.piso}</span>
-                    </div>
+                    <div className="cuota-depto"><span className="depto-num">{c.numeroDepartamento}</span><span className="depto-piso">Piso {c.piso}</span></div>
                     <div className="cuota-info">
                       {c.residentesNombres?.length > 0
                         ? c.residentesNombres.map((n,i) => <p key={i} className="cuota-responsable">{n}</p>)
-                        : <p className="cuota-responsable" style={{color:'var(--text-light)',fontStyle:'italic'}}>Sin residentes asignados</p>
+                        : <p className="cuota-responsable sin-residente">Sin residentes asignados</p>
                       }
                     </div>
                     <div className="cuota-monto">S/ {c.montoCalculado?.toFixed(2)}</div>
-                    <span className={`pill ${estadoColor(c.estadoCuota)}`}>{estadoLabel(c.estadoCuota)}</span>
-                    {c.estadoCuota !== 'PAGADO' && (
-                      <button className="btn btn-ghost btn-sm" onClick={() => abrirRegistrarPago(c)}>Registrar pago</button>
-                    )}
+                    <span className={'pill ' + estadoColor(c.estadoCuota)}>{estadoLabel(c.estadoCuota)}</span>
+                    {c.estadoCuota !== 'PAGADO' && <button className="btn btn-ghost btn-sm" onClick={() => abrirPago(c)}>Registrar pago</button>}
                   </div>
                 ))}
               </div>
@@ -180,7 +185,6 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* TAB PENDIENTES */}
       {tab === 'pendientes' && esDirectivo && (
         <div>
           {loading && <div className="loading-msg">Cargando...</div>}
@@ -188,16 +192,17 @@ export default function Pagos() {
           <div className="pendientes-lista">
             {pendientes.map(p => (
               <div key={p.pagoId} className="pendiente-card">
+                <div className="pendiente-depto"><span className="depto-num">{p.numeroDepartamento}</span><span className="depto-piso">Piso {p.piso}</span></div>
                 <div className="pendiente-info">
                   <p className="pendiente-pagador">{p.pagadorNombre}</p>
-                  <p className="pendiente-meta">{p.metodoPago} · {p.numeroOperacion || 'Sin N° operación'}</p>
+                  <p className="pendiente-meta">{p.metodoPago}{p.numeroOperacion ? ' · Op: ' + p.numeroOperacion : ''}</p>
                   {p.observaciones && <p className="pendiente-obs">{p.observaciones}</p>}
                   {p.voucherUrl && <a href={p.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver voucher</a>}
                 </div>
                 <div className="pendiente-monto">S/ {p.monto?.toFixed(2)}</div>
                 <div className="pendiente-actions">
-                  <button className="btn btn-primary btn-sm" onClick={() => verificarPago(p.pagoId, 'APROBAR')}>Aprobar</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => verificarPago(p.pagoId, 'RECHAZAR')}>Rechazar</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => verificarPago(p.pagoId,'APROBAR')}>Aprobar</button>
+                  <button className="btn btn-danger btn-sm"  onClick={() => verificarPago(p.pagoId,'RECHAZAR')}>Rechazar</button>
                 </div>
               </div>
             ))}
@@ -205,23 +210,21 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* TAB CONFIGURAR */}
       {tab === 'configurar' && esDirectivo && (
         <div>
-          <div style={{ marginBottom: 16 }}>
-            <button className="btn btn-primary" onClick={abrirCrearConfig}>Configurar nuevo mes</button>
+          <div style={{marginBottom:16}}>
+            <button className="btn btn-primary" onClick={() => {
+              setForm({ mes:ahora.getMonth()+1, anio:ahora.getFullYear(), costoPorM2:'', totalGastosEstimados:'', observaciones:'' })
+              setModal('configurar'); setMsg(''); setError('')
+            }}>Configurar nuevo mes</button>
           </div>
           <div className="configs-lista">
             {configs.length === 0 && <div className="empty-state">No hay configuraciones registradas.</div>}
             {configs.map(c => (
               <div key={c.id} className="config-card">
-                <div>
-                  <p className="config-periodo">{MESES[c.mes - 1]} {c.anio}</p>
-                  <p className="config-costo">S/ {c.costoPorM2} por m²</p>
-                  {c.observaciones && <p className="config-obs">{c.observaciones}</p>}
-                </div>
+                <div><p className="config-periodo">{MESES[c.mes-1]} {c.anio}</p><p className="config-costo">S/ {c.costoPorM2} por m²</p>{c.observaciones && <p className="config-obs">{c.observaciones}</p>}</div>
                 <div className="config-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => abrirEditarConfig(c)}>Editar</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(c); setForm({ costoPorM2:c.costoPorM2, totalGastosEstimados:c.totalGastosEstimados||'', observaciones:c.observaciones||'' }); setModal('editarConfig'); setMsg(''); setError('') }}>Editar</button>
                   <button className="btn btn-danger btn-sm" onClick={() => eliminarConfig(c)}>Eliminar</button>
                 </div>
               </div>
@@ -230,7 +233,6 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* VISTA RESIDENTE */}
       {!esDirectivo && (
         <div>
           {loading && <div className="loading-msg">Cargando...</div>}
@@ -239,21 +241,16 @@ export default function Pagos() {
           <div className="cuotas-lista">
             {misCuotas.map(c => (
               <div key={c.cuotaId} className="cuota-card">
-                <div className="cuota-depto">
-                  <span className="depto-num">{c.numeroDepartamento}</span>
-                  <span className="depto-piso">Piso {c.piso}</span>
-                </div>
+                <div className="cuota-depto"><span className="depto-num">{c.numeroDepartamento}</span><span className="depto-piso">Piso {c.piso}</span></div>
                 <div className="cuota-monto">S/ {c.montoCalculado?.toFixed(2)}</div>
-                <span className={`pill ${estadoColor(c.estadoCuota)}`}>{estadoLabel(c.estadoCuota)}</span>
-                {c.estadoCuota === 'PENDIENTE' && (
-                  <button className="btn btn-primary btn-sm" onClick={() => abrirRegistrarPago(c)}>Pagar</button>
-                )}
+                <span className={'pill ' + estadoColor(c.estadoCuota)}>{estadoLabel(c.estadoCuota)}</span>
+                {c.estadoCuota === 'PENDIENTE' && <button className="btn btn-primary btn-sm" onClick={() => abrirPago(c)}>Registrar pago</button>}
                 {c.pagos?.length > 0 && (
                   <div className="pagos-historial">
                     {c.pagos.map(p => (
                       <div key={p.pagoId} className="pago-item">
                         <span>{p.metodoPago} · S/ {p.monto?.toFixed(2)}</span>
-                        <span className={`pill ${estadoColor(p.estado)}`}>{estadoLabel(p.estado)}</span>
+                        <span className={'pill ' + estadoColor(p.estado)}>{estadoLabel(p.estado)}</span>
                       </div>
                     ))}
                   </div>
@@ -264,7 +261,6 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* MODAL REGISTRAR PAGO */}
       {modal === 'pago' && (
         <div className="modal-overlay">
           <div className="modal-box glass">
@@ -272,11 +268,21 @@ export default function Pagos() {
             <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
             <div className="modal-scroll">
               <div className="modal-form">
-                <div className="form-group"><label>Monto pagado</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
-                <div className="form-group"><label>Método de pago</label><select value={form.metodoPago} onChange={e => setForm({...form,metodoPago:e.target.value})}>{METODOS.map(m=><option key={m} value={m}>{m}</option>)}</select></div>
-                <div className="form-group"><label>N° de operación</label><input value={form.numeroOperacion||''} onChange={e => setForm({...form,numeroOperacion:e.target.value})} placeholder="Número de transacción" /></div>
-                <div className="form-group"><label>URL del voucher <span className="label-hint">(opcional)</span></label><input value={form.voucherUrl||''} onChange={e => setForm({...form,voucherUrl:e.target.value})} placeholder="https://..." /></div>
-                <div className="form-group"><label>Observaciones <span className="label-hint">(opcional)</span></label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:e.target.value})} /></div>
+                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
+                <div className="form-group">
+                  <label>Método de pago</label>
+                  <div className="metodos-grid">
+                    {METODOS.map(m => (
+                      <button key={m} type="button" className={'metodo-btn ' + (form.metodoPago===m?'metodo-active':'')} onClick={() => cambiarMetodo(m)}>{m}</button>
+                    ))}
+                  </div>
+                </div>
+                {camposActuales.map(campo => (
+                  <div className="form-group" key={campo.key}>
+                    <label>{campo.label}</label>
+                    <input value={form[campo.key]||''} onChange={e => setForm({...form,[campo.key]:e.target.value})} placeholder={campo.placeholder} />
+                  </div>
+                ))}
               </div>
             </div>
             {msg && <p className="modal-success">{msg}</p>}
@@ -289,7 +295,6 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* MODAL CREAR CONFIG */}
       {modal === 'configurar' && (
         <div className="modal-overlay">
           <div className="modal-box glass">
@@ -314,7 +319,6 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* MODAL EDITAR CONFIG */}
       {modal === 'editarConfig' && (
         <div className="modal-overlay">
           <div className="modal-box glass">
