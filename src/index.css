@@ -134,6 +134,10 @@ body {
 .modal-box {
   width: 100%; max-width: 480px;
   padding: 28px;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
   animation: fadeUp 0.22s ease;
 }
 @keyframes fadeUp {
