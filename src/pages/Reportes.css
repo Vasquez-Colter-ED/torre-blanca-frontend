@@ -1,0 +1,60 @@
+.reportes-page { max-width: 960px; }
+
+.reportes-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+
+.btn-export {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 8px; border: none;
+  background: #2E7D52; color: #fff;
+  font-family: 'Nunito', sans-serif; font-size: 0.9rem;
+  font-weight: 700; cursor: pointer; transition: all 0.18s ease;
+}
+.btn-export:hover { background: #256644; }
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pagos-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.pagos-tab { padding: 8px 18px; border-radius: 8px; border: 1.5px solid rgba(27,79,138,0.18); background: #fff; color: var(--text-soft); font-family: 'Nunito',sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+.pagos-tab:hover { border-color: var(--primary); color: var(--primary); }
+.pagos-tab-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.mes-selector { display: flex; gap: 10px; }
+.mes-select { padding: 8px 14px; border-radius: 8px; border: 1.5px solid rgba(27,79,138,0.18); background: #fff; font-family: 'Nunito',sans-serif; font-size: 0.95rem; color: var(--text-main); }
+
+.alert-error { background: #FCEBEB; color: #A32D2D; padding: 12px 16px; border-radius: 8px; font-weight: 600; margin-bottom: 16px; }
+.loading-msg { padding: 40px; text-align: center; color: var(--text-soft); }
+
+/* Stats */
+.rep-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.rep-stat { padding: 16px 18px; border-radius: 12px; }
+.rc-blue   { background: #E6F1FB; }
+.rc-green  { background: #EAF3DE; }
+.rc-orange { background: #FEF0E0; }
+.rc-red    { background: #FCEBEB; }
+.rc-neutral{ background: #F1EFE8; }
+.rep-stat-label { font-size: 0.78rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.rep-stat-valor { font-size: 1.3rem; font-weight: 800; color: var(--text-main); }
+
+/* Charts */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-card { background: #fff; border: 1px solid #E5E0D8; border-radius: 12px; padding: 18px; }
+.chart-full { grid-column: 1 / -1; margin-bottom: 16px; }
+.chart-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; }
+
+.chart-tooltip { background: #fff; border: 1px solid #E5E0D8; border-radius: 8px; padding: 10px 14px; font-family: 'Nunito',sans-serif; }
+.tooltip-label { font-weight: 700; color: var(--text-main); margin-bottom: 4px; font-size: 0.85rem; }
+
+/* Deudores */
+.deudores-section { background: #fff; border: 1px solid #E5E0D8; border-radius: 12px; padding: 18px; }
+.deudores-tabla { margin-top: 10px; }
+.tabla-header { display: grid; grid-template-columns: 80px 80px 1fr 120px; gap: 12px; padding: 8px 12px; background: #F4F0EB; border-radius: 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; }
+.tabla-row { display: grid; grid-template-columns: 80px 80px 1fr 120px; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #F4F0EB; align-items: center; font-size: 0.88rem; }
+.tabla-row:last-child { border-bottom: none; }
+.depto-num { font-weight: 800; color: var(--primary); }
+.deudor-nombre { color: var(--text-soft); }
+.deudor-monto { font-weight: 700; color: #A32D2D; text-align: right; }
+
+@media (max-width: 700px) {
+  .charts-row { grid-template-columns: 1fr; }
+  .tabla-header, .tabla-row { grid-template-columns: 60px 60px 1fr; }
+  .tabla-header span:last-child, .tabla-row span:last-child { display: none; }
+}
