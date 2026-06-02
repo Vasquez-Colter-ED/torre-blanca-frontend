@@ -6,7 +6,6 @@ import './Pagos.css'
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const METODOS = ['TRANSFERENCIA','DEPOSITO','PLIN','EFECTIVO','OTRO']
-const [usuarios, setUsuarios] = useState([])
 
 const CAMPOS_METODO = {
   TRANSFERENCIA: [
@@ -39,6 +38,7 @@ export default function Pagos() {
   const ahora = new Date()
   const [mes,  setMes]  = useState(ahora.getMonth() + 1)
   const [anio, setAnio] = useState(ahora.getFullYear())
+  const [usuarios, setUsuarios] = useState([])
   const [resumen,    setResumen]    = useState(null)
   const [pendientes, setPendientes] = useState([])
   const [misCuotas,  setMisCuotas]  = useState([])
