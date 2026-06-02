@@ -6,6 +6,7 @@ import './Pagos.css'
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const METODOS = ['TRANSFERENCIA','DEPOSITO','PLIN','EFECTIVO','OTRO']
+const [usuarios, setUsuarios] = useState([])
 
 const CAMPOS_METODO = {
   TRANSFERENCIA: [
@@ -52,29 +53,31 @@ export default function Pagos() {
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
-  const cargarDatos = async () => {
-    setLoading(true); setError('')
-    try {
-      if (esDirectivo) {
-        if (tab === 'resumen') { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
-        else if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
-        else if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
-      } else {
-        const r = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(r.data)
-      }
-    } catch (e) {
-      setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos')
-    } finally { setLoading(false) }
-  }
+const cargarDatos = async () => {
+  setLoading(true); setError('')
+  try {
+    if (esDirectivo) {
+      if (tab === 'resumen') { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
+      else if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
+      else if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
+      // Carga usuarios para el selector del modal de pago
+      const u = await api.get('/api/usuarios')
+      setUsuarios(u.data.filter(u => u.estado === 'ACTIVO'))
+    } else {
+      const r = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(r.data)
+    }
+  } catch (e) {
+    setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos')
+  } finally { setLoading(false) }
+}
 
   const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError('') }
 
-  const abrirPago = (cuota) => {
-    setSelected(cuota)
-    setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'' })
-    setModal('pago'); setMsg(''); setError('')
-  }
-
+const abrirPago = (cuota) => {
+  setSelected(cuota)
+  setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
+  setModal('pago'); setMsg(''); setError('')
+}
   const cambiarMetodo = (m) => setForm(f => ({ ...f, metodoPago:m, numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'' }))
 
   const guardarPago = async () => {
@@ -262,38 +265,49 @@ export default function Pagos() {
       )}
 
       {modal === 'pago' && (
-        <div className="modal-overlay">
-          <div className="modal-box glass">
-            <h3 className="modal-title">Registrar pago</h3>
-            <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
-            <div className="modal-scroll">
-              <div className="modal-form">
-                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
-                <div className="form-group">
-                  <label>Método de pago</label>
-                  <div className="metodos-grid">
-                    {METODOS.map(m => (
-                      <button key={m} type="button" className={'metodo-btn ' + (form.metodoPago===m?'metodo-active':'')} onClick={() => cambiarMetodo(m)}>{m}</button>
-                    ))}
-                  </div>
-                </div>
-                {camposActuales.map(campo => (
-                  <div className="form-group" key={campo.key}>
-                    <label>{campo.label}</label>
-                    <input value={form[campo.key]||''} onChange={e => setForm({...form,[campo.key]:e.target.value})} placeholder={campo.placeholder} />
-                  </div>
+  <div className="modal-overlay">
+    <div className="modal-box glass">
+      <h3 className="modal-title">Registrar pago</h3>
+      <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
+      <div className="modal-scroll">
+        <div className="modal-form">
+          <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
+          {esDirectivo && (
+            <div className="form-group">
+              <label>Registrado a nombre de <span className="label-hint">(quién realizó el pago)</span></label>
+              <select value={form.pagadorId||''} onChange={e => setForm({...form, pagadorId: e.target.value})}>
+                <option value="">-- Selecciona el residente --</option>
+                {usuarios.map(u => (
+                  <option key={u.id} value={u.id}>{u.nombre} {u.apellido} — {u.email}</option>
                 ))}
-              </div>
+              </select>
             </div>
-            {msg && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarPago}>Registrar pago</button>
+          )}
+          <div className="form-group">
+            <label>Método de pago</label>
+            <div className="metodos-grid">
+              {METODOS.map(m => (
+                <button key={m} type="button" className={'metodo-btn ' + (form.metodoPago===m?'metodo-active':'')} onClick={() => cambiarMetodo(m)}>{m}</button>
+              ))}
             </div>
           </div>
+          {camposActuales.map(campo => (
+            <div className="form-group" key={campo.key}>
+              <label>{campo.label}</label>
+              <input value={form[campo.key]||''} onChange={e => setForm({...form,[campo.key]:e.target.value})} placeholder={campo.placeholder} />
+            </div>
+          ))}
         </div>
-      )}
+      </div>
+      {msg && <p className="modal-success">{msg}</p>}
+      {error && <p className="modal-error">{error}</p>}
+      <div className="modal-actions">
+        <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
+        <button className="btn btn-primary" onClick={guardarPago}>Registrar pago</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {modal === 'configurar' && (
         <div className="modal-overlay">
