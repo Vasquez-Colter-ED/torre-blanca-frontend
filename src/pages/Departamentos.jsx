@@ -4,6 +4,7 @@ import api from '../services/api'
 import './Departamentos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
+const MAX_INQUILINOS = 5
 
 export default function Departamentos() {
   const { user } = useAuth()
@@ -78,41 +79,50 @@ export default function Departamentos() {
           <div key={piso} className="piso-section">
             <div className="piso-header">Piso {piso}</div>
             <div className="deptos-grid">
-              {deptosPiso.map(d => (
-                <div key={d.id} className={`depto-card ${d.propietarioNombre ? '' : 'depto-vacio'}`}>
-                  <div className="depto-top">
-                    <span className="depto-numero">{d.numero}</span>
-                    <span className="depto-m2">{d.metrosCuadrados} m²</span>
-                  </div>
-                  {d.propietarioNombre
-                    ? <div className="residente-item"><span className="residente-tipo">Propietario</span><span className="residente-nombre">{d.propietarioNombre}</span></div>
-                    : <div className="sin-propietario">Sin propietario</div>
-                  }
-                  {d.inquilinos?.map(inq => (
-                    <div key={inq.asignacionId} className="residente-item residente-inq">
-                      <div className="residente-inq-info">
-                        <span className="residente-tipo">Inquilino</span>
-                        <span className="residente-nombre">{inq.nombre}</span>
+              {deptosPiso.map(d => {
+                const numInquilinos = d.inquilinos?.length || 0
+                const llegoAlLimite = numInquilinos >= MAX_INQUILINOS
+                return (
+                  <div key={d.id} className={`depto-card ${d.propietarioNombre ? '' : 'depto-vacio'}`}>
+                    <div className="depto-top">
+                      <span className="depto-numero">{d.numero}</span>
+                      <span className="depto-m2">{d.metrosCuadrados} m²</span>
+                    </div>
+                    {d.propietarioNombre
+                      ? <div className="residente-item"><span className="residente-tipo">Propietario</span><span className="residente-nombre">{d.propietarioNombre}</span></div>
+                      : <div className="sin-propietario">Sin propietario</div>
+                    }
+                    {d.inquilinos?.map(inq => (
+                      <div key={inq.asignacionId} className="residente-item residente-inq">
+                        <div className="residente-inq-info">
+                          <span className="residente-tipo">Inquilino</span>
+                          <span className="residente-nombre">{inq.nombre}</span>
+                        </div>
+                        {esDirectivo && (
+                          <button className="btn-quitar-inq" onClick={() => quitarInquilino(inq.asignacionId, inq.nombre)} title="Quitar inquilino">✕</button>
+                        )}
                       </div>
-                      {esDirectivo && (
-                        <button className="btn-quitar-inq" onClick={() => quitarInquilino(inq.asignacionId, inq.nombre)} title="Quitar inquilino">✕</button>
-                      )}
-                    </div>
-                  ))}
-                  {esDirectivo && (
-                    <div className="depto-actions">
-                      <button className="btn btn-ghost btn-xs" onClick={() => { setSelected(d); setForm({ usuarioId: '' }); setModal('propietario'); setMsg(''); setError('') }}>
-                        {d.propietarioNombre ? 'Cambiar propietario' : 'Asignar propietario'}
-                      </button>
-                      {d.propietarioId && (
-                        <button className="btn btn-ghost btn-xs" onClick={() => { setSelected(d); setForm({ usuarioId: '', propietarioId: d.propietarioId || '' }); setModal('inquilino'); setMsg(''); setError('') }}>
-                          + Inquilino
+                    ))}
+                    {esDirectivo && (
+                      <div className="depto-actions">
+                        <button className="btn btn-ghost btn-xs" onClick={() => { setSelected(d); setForm({ usuarioId: '' }); setModal('propietario'); setMsg(''); setError('') }}>
+                          {d.propietarioNombre ? 'Cambiar propietario' : 'Asignar propietario'}
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        {d.propietarioId && (
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            onClick={() => { setSelected(d); setForm({ usuarioId: '', propietarioId: d.propietarioId || '' }); setModal('inquilino'); setMsg(''); setError('') }}
+                            disabled={llegoAlLimite}
+                            title={llegoAlLimite ? `Máximo de ${MAX_INQUILINOS} inquilinos alcanzado` : ''}
+                          >
+                            + Inquilino ({numInquilinos}/{MAX_INQUILINOS})
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )
@@ -120,7 +130,7 @@ export default function Departamentos() {
 
       {modal === 'propietario' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Asignar propietario</h3>
             <p className="modal-sub">Departamento <strong>{selected?.numero}</strong></p>
             {selected?.propietarioNombre && <p className="modal-warning">Propietario actual: {selected.propietarioNombre}. Será reemplazado.</p>}
@@ -145,9 +155,9 @@ export default function Departamentos() {
 
       {modal === 'inquilino' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Agregar inquilino</h3>
-            <p className="modal-sub">Departamento <strong>{selected?.numero}</strong></p>
+            <p className="modal-sub">Departamento <strong>{selected?.numero}</strong> · {selected?.inquilinos?.length || 0}/{MAX_INQUILINOS} inquilinos actuales</p>
             <div className="form-group" style={{ marginTop: 16 }}>
               <label>Selecciona el inquilino</label>
               <select value={form.usuarioId} onChange={e => setForm({...form, usuarioId: e.target.value})}>

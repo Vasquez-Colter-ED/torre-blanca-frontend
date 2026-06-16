@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { textoLibreEstricto } from '../utils/validaciones'
 import './Pagos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -38,49 +39,62 @@ export default function Pagos() {
   const ahora = new Date()
   const [mes,  setMes]  = useState(ahora.getMonth() + 1)
   const [anio, setAnio] = useState(ahora.getFullYear())
-  const [usuarios, setUsuarios] = useState([])
-  const [resumen,    setResumen]    = useState(null)
-  const [pendientes, setPendientes] = useState([])
-  const [misCuotas,  setMisCuotas]  = useState([])
-  const [configs,    setConfigs]    = useState([])
-  const [loading,    setLoading]    = useState(false)
-  const [tab,        setTab]        = useState(esDirectivo ? 'resumen' : 'mis-cuotas')
-  const [modal,      setModal]      = useState(null)
-  const [selected,   setSelected]   = useState(null)
-  const [form,       setForm]       = useState({})
-  const [msg,        setMsg]        = useState('')
-  const [error,      setError]      = useState('')
+  const [resumen,        setResumen]        = useState(null)
+  const [pendientes,     setPendientes]     = useState([])
+  const [misCuotas,      setMisCuotas]      = useState([])
+  const [configs,        setConfigs]        = useState([])
+  const [residentesDepto,setResidentesDepto]= useState([])
+  const [loading,        setLoading]        = useState(false)
+  const [tab,            setTab]            = useState(esDirectivo ? 'resumen' : 'mis-cuotas')
+  const [modal,          setModal]          = useState(null)
+  const [selected,       setSelected]       = useState(null)
+  const [form,           setForm]           = useState({})
+  const [msg,            setMsg]            = useState('')
+  const [error,          setError]          = useState('')
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
-const cargarDatos = async () => {
-  setLoading(true); setError('')
-  try {
-    if (esDirectivo) {
-      if (tab === 'resumen') { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
-      else if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
-      else if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
-      // Carga usuarios para el selector del modal de pago
-      const u = await api.get('/api/usuarios')
-      setUsuarios(u.data.filter(u => u.estado === 'ACTIVO'))
+  const cargarDatos = async () => {
+    setLoading(true); setError('')
+    try {
+      if (esDirectivo) {
+        if (tab === 'resumen') { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
+        else if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
+        else if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
+      } else {
+        const r = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(r.data)
+      }
+    } catch (e) {
+      setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos')
+    } finally { setLoading(false) }
+  }
+
+  const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError(''); setResidentesDepto([]) }
+
+  // Al abrir el modal de pago, si es directivo, carga SOLO los residentes
+  // de ese departamento específico (no la lista completa de usuarios)
+  const abrirPago = async (cuota) => {
+    setSelected(cuota)
+    setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
+    setModal('pago'); setMsg(''); setError('')
+
+    if (esDirectivo && cuota.departamentoId) {
+      try {
+        const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`)
+        setResidentesDepto(r.data)
+      } catch { setResidentesDepto([]) }
     } else {
-      const r = await api.get('/api/pagos/mis-cuotas'); setMisCuotas(r.data)
+      setResidentesDepto([])
     }
-  } catch (e) {
-    setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos')
-  } finally { setLoading(false) }
-}
+  }
 
-  const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError('') }
-
-const abrirPago = (cuota) => {
-  setSelected(cuota)
-  setForm({ monto: cuota.montoCalculado, metodoPago: 'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
-  setModal('pago'); setMsg(''); setError('')
-}
   const cambiarMetodo = (m) => setForm(f => ({ ...f, metodoPago:m, numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'' }))
 
   const guardarPago = async () => {
+    if (esDirectivo && !form.pagadorId) {
+      setError('Debes seleccionar quién realizó el pago')
+      return
+    }
     try {
       const obs = form.bancoOrigen
         ? 'Banco: ' + form.bancoOrigen + (form.observaciones ? ' | ' + form.observaciones : '')
@@ -88,7 +102,8 @@ const abrirPago = (cuota) => {
       await api.post('/api/pagos/registrar', {
         cuotaId: selected.cuotaId, monto: Number(form.monto),
         metodoPago: form.metodoPago, numeroOperacion: form.numeroOperacion || null,
-        voucherUrl: form.voucherUrl || null, observaciones: obs || null
+        voucherUrl: form.voucherUrl || null, observaciones: obs || null,
+        pagadorId: esDirectivo ? Number(form.pagadorId) : null
       })
       setMsg('Pago registrado. Pendiente de verificación.'); cargarDatos(); setTimeout(cerrar, 1500)
     } catch (e) { setError(e.response?.data || 'Error al registrar pago') }
@@ -170,7 +185,10 @@ const abrirPago = (cuota) => {
               <div className="cuotas-lista">
                 {resumen.cuotas?.map(c => (
                   <div key={c.cuotaId} className="cuota-card">
-                    <div className="cuota-depto"><span className="depto-num">{c.numeroDepartamento}</span><span className="depto-piso">Piso {c.piso}</span></div>
+                    <div className="cuota-depto">
+                      <span className="depto-num">{c.numeroDepartamento}</span>
+                      <span className="depto-piso">Piso {c.piso}</span>
+                    </div>
                     <div className="cuota-info">
                       {c.residentesNombres?.length > 0
                         ? c.residentesNombres.map((n,i) => <p key={i} className="cuota-responsable">{n}</p>)
@@ -265,53 +283,65 @@ const abrirPago = (cuota) => {
       )}
 
       {modal === 'pago' && (
-  <div className="modal-overlay">
-    <div className="modal-box glass">
-      <h3 className="modal-title">Registrar pago</h3>
-      <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
-      <div className="modal-scroll">
-        <div className="modal-form">
-          <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
-          {esDirectivo && (
-            <div className="form-group">
-              <label>Registrado a nombre de <span className="label-hint">(quién realizó el pago)</span></label>
-              <select value={form.pagadorId||''} onChange={e => setForm({...form, pagadorId: e.target.value})}>
-                <option value="">-- Selecciona el residente --</option>
-                {usuarios.map(u => (
-                  <option key={u.id} value={u.id}>{u.nombre} {u.apellido} — {u.email}</option>
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3 className="modal-title">Registrar pago</h3>
+            <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
+            <div className="modal-scroll">
+              <div className="modal-form">
+                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
+
+                {esDirectivo && (
+                  <div className="form-group">
+                    <label>Registrado a nombre de <span className="label-hint">(quién realizó el pago)</span></label>
+                    <select value={form.pagadorId||''} onChange={e => setForm({...form, pagadorId: e.target.value})}>
+                      <option value="">-- Selecciona el residente --</option>
+                      {residentesDepto.map(r => (
+                        <option key={r.id} value={r.id}>{r.nombre} ({r.tipo === 'PROPIETARIO' ? 'Propietario' : 'Inquilino'})</option>
+                      ))}
+                    </select>
+                    {residentesDepto.length === 0 && (
+                      <p className="label-hint" style={{marginTop:4}}>Este departamento no tiene residentes registrados.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>Método de pago</label>
+                  <div className="metodos-grid">
+                    {METODOS.map(m => (
+                      <button key={m} type="button" className={'metodo-btn ' + (form.metodoPago===m?'metodo-active':'')} onClick={() => cambiarMetodo(m)}>{m}</button>
+                    ))}
+                  </div>
+                </div>
+                {camposActuales.map(campo => (
+                  <div className="form-group" key={campo.key}>
+                    <label>{campo.label}</label>
+                    <input
+                      value={form[campo.key]||''}
+                      onChange={e => {
+                        const valor = campo.key === 'voucherUrl' ? e.target.value : textoLibreEstricto(e.target.value)
+                        setForm({...form,[campo.key]: valor})
+                      }}
+                      placeholder={campo.placeholder}
+                    />
+                  </div>
                 ))}
-              </select>
+              </div>
             </div>
-          )}
-          <div className="form-group">
-            <label>Método de pago</label>
-            <div className="metodos-grid">
-              {METODOS.map(m => (
-                <button key={m} type="button" className={'metodo-btn ' + (form.metodoPago===m?'metodo-active':'')} onClick={() => cambiarMetodo(m)}>{m}</button>
-              ))}
+            {msg && <p className="modal-success">{msg}</p>}
+            {error && <p className="modal-error">{error}</p>}
+            <div className="modal-actions">
+              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
+              <button className="btn btn-primary" onClick={guardarPago}>Registrar pago</button>
             </div>
           </div>
-          {camposActuales.map(campo => (
-            <div className="form-group" key={campo.key}>
-              <label>{campo.label}</label>
-              <input value={form[campo.key]||''} onChange={e => setForm({...form,[campo.key]:e.target.value})} placeholder={campo.placeholder} />
-            </div>
-          ))}
         </div>
-      </div>
-      {msg && <p className="modal-success">{msg}</p>}
-      {error && <p className="modal-error">{error}</p>}
-      <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-        <button className="btn btn-primary" onClick={guardarPago}>Registrar pago</button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {modal === 'configurar' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Configurar mes</h3>
             <p className="modal-sub">Se generarán cuotas automáticamente para los 32 departamentos.</p>
             <div className="modal-scroll">
@@ -320,7 +350,7 @@ const abrirPago = (cuota) => {
                 <div className="form-group"><label>Año</label><select value={form.anio} onChange={e => setForm({...form,anio:e.target.value})}>{[2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}</select></div>
                 <div className="form-group"><label>Costo por m²</label><input type="number" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:e.target.value})} placeholder="Ej: 4.50" /></div>
                 <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:e.target.value})} /></div>
-                <div className="form-group"><label>Observaciones <span className="label-hint">(opcional)</span></label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:e.target.value})} /></div>
+                <div className="form-group"><label>Observaciones <span className="label-hint">(opcional, sin caracteres especiales)</span></label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
               </div>
             </div>
             {msg && <p className="modal-success">{msg}</p>}
@@ -335,13 +365,13 @@ const abrirPago = (cuota) => {
 
       {modal === 'editarConfig' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Editar configuración</h3>
             <p className="modal-sub">{MESES[selected?.mes-1]} {selected?.anio}</p>
             <div className="modal-form" style={{marginTop:14}}>
               <div className="form-group"><label>Costo por m²</label><input type="number" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:e.target.value})} /></div>
               <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:e.target.value})} /></div>
-              <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:e.target.value})} /></div>
+              <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
             </div>
             {msg && <p className="modal-success">{msg}</p>}
             {error && <p className="modal-error">{error}</p>}

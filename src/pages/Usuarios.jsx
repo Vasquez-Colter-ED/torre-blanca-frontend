@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { soloLetras, soloNumeros, esEmailValido } from '../utils/validaciones'
 import './Usuarios.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -50,6 +51,14 @@ export default function Usuarios() {
 
   const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError('') }
 
+  // Filtra el valor según el tipo de campo, mientras el usuario escribe
+  const filtrarCampo = (key, valor) => {
+    if (key === 'nombre' || key === 'apellido') return soloLetras(valor)
+    if (key === 'dni') return soloNumeros(valor).slice(0, 8)
+    if (key === 'telefono') return soloNumeros(valor).slice(0, 9)
+    return valor // email se valida en formato al enviar, password queda libre
+  }
+
   const abrirEditar = (u) => {
     if (!esDirectivo && u.id !== user?.id) return
     setSelected(u)
@@ -58,6 +67,7 @@ export default function Usuarios() {
   }
 
   const guardarEdicion = async () => {
+    if (form.email && !esEmailValido(form.email)) { setError('El formato del email no es válido'); return }
     try {
       const payload = { ...form }
       if (!payload.nuevaPassword) delete payload.nuevaPassword
@@ -69,6 +79,7 @@ export default function Usuarios() {
   }
 
   const guardarNuevo = async () => {
+    if (!esEmailValido(form.email)) { setError('El formato del email no es válido'); return }
     try {
       await api.post('/api/usuarios', { ...form, rolId: form.rolId || null, departamentoId: form.departamentoId || null })
       setMsg('Usuario creado correctamente')
@@ -207,14 +218,18 @@ export default function Usuarios() {
       {/* MODAL EDITAR */}
       {modal === 'editar' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Editar usuario</h3>
             <div className="modal-scroll">
               <div className="modal-form">
                 {[['nombre','Nombre'],['apellido','Apellido'],['dni','DNI'],['telefono','Teléfono'],['email','Email']].map(([k,l]) => (
                   <div className="form-group" key={k}>
                     <label>{l}</label>
-                    <input value={form[k]||''} onChange={e => setForm({...form,[k]:e.target.value})} />
+                    <input
+                      value={form[k]||''}
+                      onChange={e => setForm({...form,[k]: filtrarCampo(k, e.target.value)})}
+                      inputMode={(k==='dni'||k==='telefono') ? 'numeric' : 'text'}
+                    />
                   </div>
                 ))}
                 <div className="form-group">
@@ -236,14 +251,18 @@ export default function Usuarios() {
       {/* MODAL CREAR */}
       {modal === 'crear' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Nuevo usuario</h3>
             <div className="modal-scroll">
               <div className="modal-form">
                 {[['nombre','Nombre'],['apellido','Apellido'],['dni','DNI'],['email','Email'],['telefono','Teléfono']].map(([k,l]) => (
                   <div className="form-group" key={k}>
                     <label>{l}</label>
-                    <input value={form[k]||''} onChange={e => setForm({...form,[k]:e.target.value})} />
+                    <input
+                      value={form[k]||''}
+                      onChange={e => setForm({...form,[k]: filtrarCampo(k, e.target.value)})}
+                      inputMode={(k==='dni'||k==='telefono') ? 'numeric' : 'text'}
+                    />
                   </div>
                 ))}
                 <div className="form-group">
@@ -283,7 +302,7 @@ export default function Usuarios() {
       {/* MODAL ROL */}
       {modal === 'rol' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Asignar rol</h3>
             <p className="modal-sub">Usuario: <strong>{selected?.nombre} {selected?.apellido}</strong></p>
             <p className="modal-warning">Al asignar un rol se eliminarán los permisos extra actuales.</p>
@@ -307,7 +326,7 @@ export default function Usuarios() {
       {/* MODAL PERMISO */}
       {modal === 'permiso' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">Dar permiso extra</h3>
             <p className="modal-sub">Usuario: <strong>{selected?.nombre} {selected?.apellido}</strong></p>
             <div className="modal-form" style={{marginTop:16}}>

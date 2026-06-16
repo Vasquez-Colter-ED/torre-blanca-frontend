@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { textoLibreEstricto } from '../utils/validaciones'
 import './Gastos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -125,7 +126,7 @@ export default function Gastos() {
 
       {modal === 'form' && (
         <div className="modal-overlay">
-          <div className="modal-box glass">
+          <div className="modal-box">
             <h3 className="modal-title">{selected ? 'Editar gasto' : 'Registrar gasto'}</h3>
             <div className="modal-scroll">
               <div className="modal-form">
@@ -137,8 +138,8 @@ export default function Gastos() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Descripción</label>
-                  <input value={form.descripcion||''} onChange={e => setForm({...form,descripcion:e.target.value})} placeholder="Ej: Pago de luz de mayo" />
+                  <label>Descripción <span className="label-hint">(sin caracteres especiales)</span></label>
+                  <input value={form.descripcion||''} onChange={e => setForm({...form,descripcion: textoLibreEstricto(e.target.value)})} placeholder="Ej: Pago de luz de mayo" />
                 </div>
                 <div className="form-group">
                   <label>Monto (S/)</label>
