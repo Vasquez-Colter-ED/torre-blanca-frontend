@@ -54,13 +54,24 @@ export default function EscanerVoucher({ onDatosDetectados }) {
     e.target.value = ''
   }
 
+  // Conecta la cámara al elemento <video> justo cuando ya existe en el DOM
+  // (en vez de un setTimeout poco confiable), y reproduce explícitamente.
+  useEffect(() => {
+    if (camaraAbierta && videoRef.current && streamRef.current) {
+      const video = videoRef.current
+      video.srcObject = streamRef.current
+      video.play().catch(() => {
+        setErrorCamara('No se pudo iniciar la vista de la cámara. Intenta de nuevo o usa "Elegir de galería".')
+      })
+    }
+  }, [camaraAbierta])
+
   const abrirCamara = async () => {
     setErrorCamara('')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       streamRef.current = stream
       setCamaraAbierta(true)
-      setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream }, 0)
     } catch {
       setErrorCamara('No se pudo acceder a la cámara. Revisa los permisos del navegador o usa "Elegir de galería".')
     }
