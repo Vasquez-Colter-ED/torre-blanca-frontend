@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import { textoLibreEstricto, sinNegativos } from '../utils/validaciones'
+import EscanerVoucher from '../components/EscanerVoucher'
 import './Pagos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -301,7 +302,21 @@ export default function Pagos() {
             <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
             <div className="modal-scroll">
               <div className="modal-form">
-                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto: sinNegativos(e.target.value)})} /></div>
+                {['TRANSFERENCIA','DEPOSITO','PLIN'].includes(form.metodoPago) && (
+                  <EscanerVoucher onDatosDetectados={(datos) => {
+                    setForm(f => ({
+                      ...f,
+                      monto: datos.monto || f.monto,
+                      numeroOperacion: datos.numeroOperacion || f.numeroOperacion,
+                      bancoOrigen: datos.banco || f.bancoOrigen,
+                    }))
+                  }} />
+                )}
+
+                <div className="form-group">
+                  <label>Monto pagado (S/)</label>
+                  <input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto: sinNegativos(e.target.value)})} />
+                </div>
 
                 {esDirectivo && (
                   <div className="form-group">
