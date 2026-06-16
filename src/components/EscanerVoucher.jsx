@@ -2,16 +2,16 @@ import { useState, useRef } from 'react'
 import { leerVoucher } from '../utils/voucherOCR'
 import './EscanerVoucher.css'
 
-// Botón que abre la cámara (o galería) del dispositivo, lee la foto del
-// voucher con OCR y devuelve los datos detectados mediante onDatosDetectados.
-// La foto se procesa solo en el navegador y se descarta de inmediato.
+// Dos formas de obtener la foto del voucher: tomarla directo con la cámara
+// o elegirla de la galería/explorador de archivos. La imagen se procesa
+// solo en el navegador con OCR y se descarta de inmediato, nunca se sube.
 export default function EscanerVoucher({ onDatosDetectados }) {
   const [procesando, setProcesando] = useState(false)
   const [mensaje, setMensaje] = useState('')
-  const inputRef = useRef(null)
+  const inputCamaraRef = useRef(null)
+  const inputGaleriaRef = useRef(null)
 
-  const manejarArchivo = async (e) => {
-    const archivo = e.target.files[0]
+  const procesarArchivo = async (archivo) => {
     if (!archivo) return
     setProcesando(true)
     setMensaje('')
@@ -31,28 +31,54 @@ export default function EscanerVoucher({ onDatosDetectados }) {
       setMensaje('No se pudo leer la imagen. Completa los datos manualmente.')
     } finally {
       setProcesando(false)
-      e.target.value = '' // permite volver a intentar con la misma foto si hace falta
     }
+  }
+
+  const manejarCambio = (e) => {
+    const archivo = e.target.files[0]
+    procesarArchivo(archivo)
+    e.target.value = '' // permite volver a elegir la misma foto si hace falta
   }
 
   return (
     <div className="escaner-voucher">
+      {/* capture="environment" obliga a abrir la cámara directamente en celulares */}
       <input
-        ref={inputRef}
+        ref={inputCamaraRef}
         type="file"
         accept="image/*"
         capture="environment"
-        onChange={manejarArchivo}
+        onChange={manejarCambio}
         style={{ display: 'none' }}
       />
-      <button
-        type="button"
-        className="btn-escanear"
-        onClick={() => inputRef.current.click()}
-        disabled={procesando}
-      >
-        {procesando ? 'Leyendo voucher...' : '📷 Leer voucher con foto'}
-      </button>
+      {/* sin "capture" abre siempre la galería / explorador de archivos */}
+      <input
+        ref={inputGaleriaRef}
+        type="file"
+        accept="image/*"
+        onChange={manejarCambio}
+        style={{ display: 'none' }}
+      />
+
+      <div className="escaner-botones">
+        <button
+          type="button"
+          className="btn-escanear"
+          onClick={() => inputCamaraRef.current.click()}
+          disabled={procesando}
+        >
+          {procesando ? 'Leyendo...' : '📷 Tomar foto'}
+        </button>
+        <button
+          type="button"
+          className="btn-escanear"
+          onClick={() => inputGaleriaRef.current.click()}
+          disabled={procesando}
+        >
+          {procesando ? 'Leyendo...' : '🖼️ Elegir de galería'}
+        </button>
+      </div>
+
       {mensaje && <p className="escaner-mensaje">{mensaje}</p>}
     </div>
   )

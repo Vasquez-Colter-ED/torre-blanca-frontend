@@ -2,15 +2,20 @@
   margin-bottom: 16px;
 }
 
+.escaner-botones {
+  display: flex;
+  gap: 10px;
+}
+
 .btn-escanear {
-  width: 100%;
-  padding: 12px;
+  flex: 1;
+  padding: 12px 8px;
   border-radius: 10px;
   border: 1.5px dashed #C8973A;
   background: #FFFBF2;
   color: #1B2F5A;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
