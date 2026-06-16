@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
-import { textoLibreEstricto } from '../utils/validaciones'
+import { textoLibreEstricto, sinNegativos } from '../utils/validaciones'
 import './Pagos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -95,6 +95,10 @@ export default function Pagos() {
       setError('Debes seleccionar quién realizó el pago')
       return
     }
+    if (!form.monto || Number(form.monto) <= 0) {
+      setError('El monto debe ser mayor a cero')
+      return
+    }
     try {
       const obs = form.bancoOrigen
         ? 'Banco: ' + form.bancoOrigen + (form.observaciones ? ' | ' + form.observaciones : '')
@@ -116,6 +120,10 @@ export default function Pagos() {
   }
 
   const guardarConfiguracion = async () => {
+    if (!form.costoPorM2 || Number(form.costoPorM2) <= 0) {
+      setError('El costo por m² debe ser mayor a cero')
+      return
+    }
     try {
       const res = await api.post('/api/pagos/configurar-mes', {
         mes: Number(form.mes), anio: Number(form.anio),
@@ -128,6 +136,10 @@ export default function Pagos() {
   }
 
   const guardarEdicionConfig = async () => {
+    if (!form.costoPorM2 || Number(form.costoPorM2) <= 0) {
+      setError('El costo por m² debe ser mayor a cero')
+      return
+    }
     try {
       const res = await api.put(`/api/pagos/configuraciones/${selected.id}`, {
         costoPorM2: Number(form.costoPorM2),
@@ -289,7 +301,7 @@ export default function Pagos() {
             <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
             <div className="modal-scroll">
               <div className="modal-form">
-                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} /></div>
+                <div className="form-group"><label>Monto pagado (S/)</label><input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto: sinNegativos(e.target.value)})} /></div>
 
                 {esDirectivo && (
                   <div className="form-group">
@@ -348,8 +360,8 @@ export default function Pagos() {
               <div className="modal-form">
                 <div className="form-group"><label>Mes</label><select value={form.mes} onChange={e => setForm({...form,mes:e.target.value})}>{MESES.map((m,i)=><option key={i} value={i+1}>{m}</option>)}</select></div>
                 <div className="form-group"><label>Año</label><select value={form.anio} onChange={e => setForm({...form,anio:e.target.value})}>{[2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}</select></div>
-                <div className="form-group"><label>Costo por m²</label><input type="number" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:e.target.value})} placeholder="Ej: 4.50" /></div>
-                <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:e.target.value})} /></div>
+                <div className="form-group"><label>Costo por m²</label><input type="number" min="0" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2: sinNegativos(e.target.value)})} placeholder="Ej: 4.50" /></div>
+                <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" min="0" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados: sinNegativos(e.target.value)})} /></div>
                 <div className="form-group"><label>Observaciones <span className="label-hint">(opcional, sin caracteres especiales)</span></label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
               </div>
             </div>
@@ -369,8 +381,8 @@ export default function Pagos() {
             <h3 className="modal-title">Editar configuración</h3>
             <p className="modal-sub">{MESES[selected?.mes-1]} {selected?.anio}</p>
             <div className="modal-form" style={{marginTop:14}}>
-              <div className="form-group"><label>Costo por m²</label><input type="number" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:e.target.value})} /></div>
-              <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:e.target.value})} /></div>
+              <div className="form-group"><label>Costo por m²</label><input type="number" min="0" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2: sinNegativos(e.target.value)})} /></div>
+              <div className="form-group"><label>Total gastos estimados <span className="label-hint">(opcional)</span></label><input type="number" min="0" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados: sinNegativos(e.target.value)})} /></div>
               <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
             </div>
             {msg && <p className="modal-success">{msg}</p>}

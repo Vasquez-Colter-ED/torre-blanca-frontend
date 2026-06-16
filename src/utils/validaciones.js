@@ -14,3 +14,6 @@ export const textoLibreEstricto = (valor) => valor.replace(/[^A-Za-zÁÉÍÓÚá
 // Validación de formato de email (no se filtra mientras escribe porque
 // el @ y el punto son necesarios, se valida recién al enviar el formulario)
 export const esEmailValido = (valor) => /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(valor)
+
+// Quita el signo "-" para que no se puedan escribir montos negativos
+export const sinNegativos = (valor) => valor.replace(/-/g, '')

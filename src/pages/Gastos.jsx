@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
-import { textoLibreEstricto } from '../utils/validaciones'
+import { textoLibreEstricto, sinNegativos } from '../utils/validaciones'
 import './Gastos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -48,6 +48,7 @@ export default function Gastos() {
   }
 
   const guardar = async () => {
+    if (!form.monto || Number(form.monto) <= 0) { setError('El monto debe ser mayor a cero'); return }
     try {
       if (selected) await api.put('/api/gastos/' + selected.id, form)
       else await api.post('/api/gastos', form)
@@ -143,7 +144,7 @@ export default function Gastos() {
                 </div>
                 <div className="form-group">
                   <label>Monto (S/)</label>
-                  <input type="number" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:e.target.value})} placeholder="0.00" />
+                  <input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto: sinNegativos(e.target.value)})} placeholder="0.00" />
                 </div>
                 <div className="form-group">
                   <label>Fecha del gasto</label>
