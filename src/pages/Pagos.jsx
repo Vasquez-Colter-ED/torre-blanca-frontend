@@ -102,7 +102,7 @@ export default function Pagos() {
     }
     try {
       const obs = form.bancoOrigen
-        ? 'Banco: ' + form.bancoOrigen + (form.observaciones ? ' | ' + form.observaciones : '')
+        ? 'Banco ' + form.bancoOrigen + (form.observaciones ? ' ' + form.observaciones : '')
         : form.observaciones
       await api.post('/api/pagos/registrar', {
         cuotaId: selected.cuotaId, monto: Number(form.monto),
