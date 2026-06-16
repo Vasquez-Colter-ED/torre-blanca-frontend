@@ -1,4 +1,166 @@
+.deptos-page {
+  padding-bottom: 40px;
+}
+
+.deptos-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.deptos-count {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.piso-section {
+  margin-bottom: 28px;
+}
+
+.piso-header {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1B2F5A;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #C8973A;
+}
+
+.deptos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.depto-card {
+  background: #ffffff;
+  border: 1px solid #eef0f3;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(27, 47, 90, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.depto-card:hover {
+  box-shadow: 0 6px 18px rgba(27, 47, 90, 0.1);
+  transform: translateY(-1px);
+}
+
+.depto-vacio {
+  border: 1.5px dashed #C8973A;
+  background: #FFFBF2;
+}
+
+.depto-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.depto-numero {
+  font-size: 19px;
+  font-weight: 800;
+  color: #1B2F5A;
+}
+
+.depto-m2 {
+  font-size: 12px;
+  color: #9aa1ad;
+  font-weight: 600;
+}
+
+.residente-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: #F6F7F9;
+  border-radius: 9px;
+}
+
+.residente-tipo {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #C8973A;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.residente-nombre {
+  font-size: 13.5px;
+  color: #222936;
+  font-weight: 700;
+}
+
+.sin-propietario {
+  font-size: 13px;
+  color: #9aa1ad;
+  font-style: italic;
+  padding: 8px 10px;
+}
+
+.residente-inq {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: #EEF2FB;
+}
+
+.residente-inq-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.btn-quitar-inq {
+  background: none;
+  border: none;
+  color: #C0392B;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-quitar-inq:hover {
+  background: #FDEDEC;
+}
+
+.depto-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f1f4;
+}
+
+.btn-xs {
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-align: center;
+}
 
 /* Botón deshabilitado al llegar al límite de inquilinos */
-.btn-xs:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-xs:disabled:hover { background: transparent; }
+.btn-xs:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-xs:disabled:hover {
+  background: transparent;
+}
