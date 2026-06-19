@@ -4,25 +4,37 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import './Login.css'
 
+function BuildingIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+      stroke="#1B4F8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="1"/>
+      <path d="M3 9h18"/><path d="M3 15h18"/>
+      <path d="M9 3v18"/><path d="M15 3v18"/>
+    </svg>
+  )
+}
+
 export default function Login() {
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login, sesionExpirada } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const res = await api.post('/api/auth/login', { email, password })
       login(res.data)
       navigate('/dashboard')
-    } catch {
-      setError('Correo o contraseña incorrectos. Intenta de nuevo.')
+    } catch (err) {
+      // Muestra el mensaje del backend (incluye el mensaje de rate limiter
+      // con el tiempo de espera, o "Credenciales incorrectas")
+      setError(err.response?.data || 'Correo o contraseña incorrectos. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -34,59 +46,44 @@ export default function Login() {
       <div className="login-orb login-orb-2" />
 
       <div className="login-wrapper glass">
-        {/* Panel izquierdo — imagen */}
         <div className="login-image-panel">
-          <img
-            src="/torre-blanca.jpg"
-            alt="Residencial Torre Blanca"
-            className="login-image"
-          />
+          <img src="/torre-blanca.jpg" alt="Residencial Torre Blanca" className="login-image" />
           <div className="login-image-overlay">
             <span className="login-image-text">Residencial Torre Blanca</span>
             <span className="login-image-sub">Chiclayo, Perú</span>
           </div>
         </div>
 
-        {/* Panel derecho — formulario */}
         <div className="login-form-panel">
           <div className="login-brand">
+            <BuildingIcon />
             <h1 className="login-title">Torre Blanca</h1>
             <p className="login-subtitle">Sistema de Administración</p>
           </div>
 
+          {/* Aviso cuando la sesión fue cerrada por otro login */}
+          {sesionExpirada && (
+            <div className="login-warning">
+              🔒 Tu sesión fue cerrada porque iniciaste sesión desde otro dispositivo.
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <label htmlFor="email">Correo electrónico</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
+              <input id="email" type="email" value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="correo@ejemplo.com"
-                autoComplete="email"
-                required
-              />
+                placeholder="correo@ejemplo.com" autoComplete="email" required />
             </div>
 
             <div className="form-group">
               <label htmlFor="password">Contraseña</label>
               <div className="input-password-wrap">
-                <input
-                  id="password"
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="btn-show-pass"
-                  onClick={() => setShowPass(!showPass)}
-                  tabIndex={-1}
-                  aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
+                <input id="password" type={showPass ? 'text' : 'password'}
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••" autoComplete="current-password" required />
+                <button type="button" className="btn-show-pass"
+                  onClick={() => setShowPass(!showPass)} tabIndex={-1}>
                   {showPass ? (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -103,15 +100,9 @@ export default function Login() {
               </div>
             </div>
 
-            {error && (
-              <div className="login-error">{error}</div>
-            )}
+            {error && <div className="login-error">{error}</div>}
 
-            <button
-              type="submit"
-              className="btn btn-primary login-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
               {loading ? 'Ingresando...' : 'Ingresar al sistema'}
             </button>
           </form>

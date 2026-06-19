@@ -181,3 +181,14 @@
   .login-wrapper     { max-width: 420px; }
   .login-title       { font-size: 1.6rem; }
 }
+.login-warning {
+  background: #FFF8E1;
+  border: 1.5px solid #F59E0B;
+  color: #92400E;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}

@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL ||
-  'https://torre-blanca-backend-production.up.railway.app'
+const API_URL = import.meta.env.VITE_API_URL || 'https://torre-blanca-backend.onrender.com'
 
 const api = axios.create({ baseURL: API_URL })
 
@@ -12,13 +11,16 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Si el token expiró, redirige al login
+// Si el backend responde 401 (token inválido o sesión invalidada por
+// otro login), dispara un evento global que AuthContext escucha para
+// mostrar el aviso y redirigir al login.
 api.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
       localStorage.removeItem('tb_token')
       localStorage.removeItem('tb_user')
+      window.dispatchEvent(new Event('tb:sesion-invalida'))
       window.location.href = '/login'
     }
     return Promise.reject(err)
