@@ -23,9 +23,10 @@
 
 /* ── Layout raíz ─────────────────────────────────────────────────── */
 .login-root {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   background: var(--white);
+  overflow: hidden;
 }
 
 /* ── Panel izquierdo — imagen ────────────────────────────────────── */
@@ -91,8 +92,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
+  padding: 32px 40px;
   background: var(--white);
+  overflow-y: auto;
 }
 
 .login-form-inner {
@@ -434,4 +436,14 @@
   .login-image-panel { display: none; }
   .login-form-panel  { padding: 36px 24px; }
   .login-form-inner  { max-width: 100%; }
+}
+
+/* Landscape en celular — pantalla muy baja */
+@media (max-height: 600px) {
+  .login-brand { margin-bottom: 16px; }
+  .login-brand-icon { width: 36px; height: 36px; font-size: 0.8rem; margin-bottom: 12px; }
+  .login-title { font-size: 1.35rem; }
+  .login-subtitle { display: none; }
+  .login-form { gap: 14px; }
+  .login-footer { margin-top: 16px; }
 }
