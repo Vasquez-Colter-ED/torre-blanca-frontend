@@ -4,6 +4,16 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import './Login.css'
 
+// Elige el logo según el mes actual
+const getLogoFestivo = () => {
+  const mes = new Date().getMonth() + 1
+  if (mes === 1)  return '/logo-añonuevo.png'
+  if (mes === 7)  return '/logo-fiestas-patrias.png'
+  if (mes === 10) return '/logo-halloween.png'
+  if (mes === 12) return '/logo-navidad.png'
+  return '/logo-base.png'
+}
+
 export default function Login() {
   const [email,        setEmail]        = useState('')
   const [password,     setPassword]     = useState('')
@@ -129,7 +139,7 @@ export default function Login() {
 
           {/* Marca */}
           <div className="login-brand">
-            <div className="login-brand-icon">TB</div>
+            <img src={getLogoFestivo()} alt="Torre Blanca" className="login-brand-logo" />
             <h1 className="login-title">
               {paso === 0 && 'Bienvenido'}
               {paso === 1 && 'Recuperar contraseña'}
