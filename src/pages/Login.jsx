@@ -182,10 +182,10 @@ export default function Login() {
           {paso === 0 && (
             <form onSubmit={handleLogin} className="login-form" noValidate>
               <div className="field-group">
-                <label htmlFor="email" className="field-label">Correo electrónico</label>
-                <input id="email" type="email" className="field-input"
+                <label htmlFor="email" className="field-label">Correo electrónico o DNI</label>
+                <input id="email" type="text" className="field-input"
                   value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com" autoComplete="email" required />
+                  placeholder="correo@ejemplo.com o 12345678" autoComplete="username" required />
               </div>
 
               <div className="field-group">
