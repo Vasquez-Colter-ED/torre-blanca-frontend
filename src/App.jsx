@@ -10,6 +10,7 @@ import Gastos      from './pages/Gastos'
 import Boletas     from './pages/Boletas'
 import Reportes    from './pages/Reportes'
 import Fondo       from './pages/Fondo'
+import Perfil      from './pages/Perfil'
 
 function PrivateRoute({ children }) {
   const { token } = useAuth()
@@ -32,6 +33,7 @@ function App() {
             <Route path="boletas"      element={<Boletas />} />
             <Route path="reportes"     element={<Reportes />} />
             <Route path="fondo"        element={<Fondo />} />
+            <Route path="perfil"       element={<Perfil />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

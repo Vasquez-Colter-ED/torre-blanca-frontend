@@ -1,0 +1,21 @@
+.pago-tarjeta { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 28px; max-width: 480px; margin: 0 auto; box-shadow: 0 4px 24px rgba(15,23,42,0.08); }
+.pago-tarjeta-header { margin-bottom: 24px; }
+.pago-tarjeta-titulo { font-size: 1.1rem; font-weight: 800; color: #0F172A; margin: 0 0 8px 0; }
+.pago-tarjeta-monto  { font-size: 0.9rem; color: #475569; margin: 0 0 4px 0; }
+.monto-fijo { color: #0F172A; font-size: 1rem; }
+.pago-tarjeta-hint { font-size: 0.78rem; color: #94A3B8; margin: 0; }
+.pago-tarjeta-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.pt-field { display: flex; flex-direction: column; gap: 5px; }
+.pt-full { grid-column: 1 / -1; }
+.pt-label { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; }
+.pt-input { padding: 11px 14px; border: 1.5px solid #E2E8F0; border-radius: 8px; font-size: 0.95rem; font-family: inherit; color: #0F172A; background: #fff; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.pt-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+.pt-numero { letter-spacing: 2px; font-family: monospace; font-size: 1rem; }
+.pago-tarjeta-error { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; margin-bottom: 14px; }
+.pago-tarjeta-acciones { display: flex; gap: 10px; margin-bottom: 12px; }
+.btn-pt-cancelar { flex: 1; padding: 13px; background: #F1F5F9; border: none; color: #475569; font-size: 0.9rem; font-weight: 600; font-family: inherit; border-radius: 8px; cursor: pointer; }
+.btn-pt-cancelar:hover { background: #E2E8F0; }
+.btn-pt-pagar { flex: 2; padding: 13px; background: #2563EB; border: none; color: #fff; font-size: 0.95rem; font-weight: 700; font-family: inherit; border-radius: 8px; cursor: pointer; }
+.btn-pt-pagar:hover:not(:disabled) { background: #1D4ED8; }
+.btn-pt-pagar:disabled { opacity: 0.6; cursor: not-allowed; }
+.pago-seguro-hint { text-align: center; font-size: 0.78rem; color: #94A3B8; margin: 0; }
