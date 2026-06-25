@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import './Layout.css'
 
@@ -40,7 +40,7 @@ export default function Layout() {
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-header">
-          <span className="sidebar-logo-emoji">🏢</span>
+          <img src="/logo-base.png" alt="Torre Blanca" className="sidebar-logo-img" />
           <span className="sidebar-name">Torre Blanca</span>
         </div>
 
@@ -86,18 +86,15 @@ export default function Layout() {
           </button>
           <span className="topbar-title">Torre Blanca</span>
 
-          <div className="topbar-user">
-            <div className="topbar-user-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
+          <button className="topbar-user topbar-user-btn" onClick={() => navigate('/perfil')}>
+            <div className="topbar-avatar">
+              {user?.nombre?.[0]?.toUpperCase()}{user?.apellido?.[0]?.toUpperCase()}
             </div>
             <div className="topbar-user-info">
               <span className="topbar-name">{user?.nombre} {user?.apellido}</span>
               <span className="topbar-role">{user?.rol}</span>
             </div>
-          </div>
+          </button>
         </header>
 
         <main className="main-content">
