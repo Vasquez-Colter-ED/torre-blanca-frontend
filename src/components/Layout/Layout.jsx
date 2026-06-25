@@ -3,68 +3,112 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import './Layout.css'
 
-const TODOS_LOS_MODULOS = [
-  { path: '/dashboard',     label: 'Dashboard',     nombre: 'Dashboard',         icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> },
-  { path: '/usuarios',      label: 'Usuarios',      nombre: 'Usuarios',          icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
-  { path: '/departamentos', label: 'Departamentos', nombre: 'Departamentos',     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-  { path: '/pagos',         label: 'Pagos',         nombre: 'Pagos',             icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
-  { path: '/gastos',        label: 'Gastos',        nombre: 'Gastos',            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
-  { path: '/boletas',       label: 'Boletas',       nombre: 'Boletas',           icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> },
-  { path: '/reportes',      label: 'Reportes',      nombre: 'Reportes',          icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> },
-  { path: '/fondo',         label: 'Fondo',         nombre: 'Fondo Contingencia',icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
+const NAV_ITEMS = [
+  {
+    path: '/dashboard', label: 'Dashboard',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  },
+  {
+    path: '/usuarios', label: 'Usuarios', nombre: 'Usuarios',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  },
+  {
+    path: '/departamentos', label: 'Departamentos', nombre: 'Departamentos',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  },
+  {
+    path: '/pagos', label: 'Pagos', nombre: 'Pagos',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+  },
+  {
+    path: '/gastos', label: 'Gastos', nombre: 'Gastos',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+  },
+  {
+    path: '/boletas', label: 'Boletas', nombre: 'Boletas',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+  },
+  {
+    path: '/reportes', label: 'Reportes', nombre: 'Reportes',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  },
+  {
+    path: '/fondo', label: 'Fondo', nombre: 'Fondo Contingencia',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  },
 ]
 
 const MODULOS_DIRECTIVO = ['Dashboard','Usuarios','Departamentos','Pagos','Gastos','Boletas','Reportes','Fondo Contingencia']
 const MODULOS_RESIDENTE = ['Dashboard','Pagos','Boletas']
 const ROLES_DIRECTIVOS  = ['PRESIDENTE','SECRETARIO','TESORERO']
 
+const PAGE_TITLES = {
+  '/dashboard': 'Dashboard', '/usuarios': 'Usuarios', '/departamentos': 'Departamentos',
+  '/pagos': 'Pagos', '/gastos': 'Gastos', '/boletas': 'Boletas',
+  '/reportes': 'Reportes', '/fondo': 'Fondo de Contingencia', '/perfil': 'Mi perfil',
+}
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { user, logout, permisosExtra } = useAuth()
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
 
-  const esDirectivo = ROLES_DIRECTIVOS.includes(user?.rol)
-  const modulosBase  = esDirectivo ? MODULOS_DIRECTIVO : MODULOS_RESIDENTE
-  const modulosExtra = permisosExtra.map(p => p.modulo)
-  const modulosVisibles = [...new Set([...modulosBase, ...modulosExtra])]
-  const navItems = TODOS_LOS_MODULOS.filter(m => modulosVisibles.includes(m.nombre))
+  const esDirectivo    = ROLES_DIRECTIVOS.includes(user?.rol)
+  const modulosBase    = esDirectivo ? MODULOS_DIRECTIVO : MODULOS_RESIDENTE
+  const modulosExtra   = permisosExtra.map(p => p.modulo)
+  const modulosVisible = [...new Set([...modulosBase, ...modulosExtra])]
+  const navItems       = NAV_ITEMS.filter(m => !m.nombre || modulosVisible.includes(m.nombre))
+
+  const paginaActual   = PAGE_TITLES[location.pathname] || 'Torre Blanca'
+  const iniciales      = user ? user.nombre?.[0]?.toUpperCase() + user.apellido?.[0]?.toUpperCase() : 'U'
 
   const handleLogout = () => { logout(); navigate('/login') }
 
   return (
     <div className="layout">
-      {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
+
         {/* Logo */}
-        <div className="sidebar-header">
-          <img src="/logo-base.png" alt="Torre Blanca" className="sidebar-logo-img" />
-          <span className="sidebar-name">Torre Blanca</span>
+        <div className="sidebar-brand">
+          <div className="sidebar-logo-wrap">
+            <img src="/logo-base.png" alt="Torre Blanca" className="sidebar-logo" />
+          </div>
+          <div className="sidebar-brand-text">
+            <span className="sidebar-brand-name">Torre Blanca</span>
+            <span className="sidebar-brand-sub">Administración</span>
+          </div>
         </div>
 
-        {/* Nav */}
+        {/* Navegación */}
         <nav className="sidebar-nav">
+          <p className="sidebar-nav-label">Módulos</p>
           {navItems.map(item => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`
-              }
+              className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
               onClick={() => setSidebarOpen(false)}
             >
-              <span className="sidebar-icon">{item.icon}</span>
-              <span className="sidebar-label">{item.label}</span>
+              <span className="sidebar-link-icon">{item.icon}</span>
+              <span className="sidebar-link-label">{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
-        {/* Cerrar sesión */}
+        {/* Footer */}
         <div className="sidebar-footer">
+          <div className="sidebar-user-mini" onClick={() => { navigate('/perfil'); setSidebarOpen(false) }}>
+            <div className="sidebar-user-avatar">{iniciales}</div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{user?.nombre} {user?.apellido}</span>
+              <span className="sidebar-user-role">{user?.rol}</span>
+            </div>
+          </div>
           <button className="btn-logout" onClick={handleLogout}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
@@ -75,26 +119,29 @@ export default function Layout() {
       </aside>
 
       <div className="main-wrapper">
+
         {/* Topbar */}
         <header className="topbar">
-          <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
+          <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Menú">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
           </button>
-          <span className="topbar-title">Torre Blanca</span>
 
-          <button className="topbar-user topbar-user-btn" onClick={() => navigate('/perfil')}>
-            <div className="topbar-avatar">
-              {user?.nombre?.[0]?.toUpperCase()}{user?.apellido?.[0]?.toUpperCase()}
-            </div>
-            <div className="topbar-user-info">
-              <span className="topbar-name">{user?.nombre} {user?.apellido}</span>
-              <span className="topbar-role">{user?.rol}</span>
-            </div>
-          </button>
+          <div className="topbar-page-title">{paginaActual}</div>
+
+          <div className="topbar-right">
+            <button className="topbar-user-btn" onClick={() => navigate('/perfil')}>
+              <div className="topbar-avatar">{iniciales}</div>
+              <div className="topbar-user-info">
+                <span className="topbar-user-name">{user?.nombre} {user?.apellido}</span>
+                <span className="topbar-user-role">{user?.rol}</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="topbar-chevron">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          </div>
         </header>
 
         <main className="main-content">
