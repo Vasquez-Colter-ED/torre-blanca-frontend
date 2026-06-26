@@ -33,7 +33,7 @@ export default function ReciboDetalle({ boleta, anio, onCerrar }) {
     pdf.save(`Recibo-TorreBlanca-${MESES[boleta.mes-1]}-${anio}.pdf`)
   }
 
-  const numeroRecibo = String(boleta.boletaId || boleta.pagoId || 0).padStart(6, '0')
+  const numeroRecibo = boleta.numeroBoleta || String(boleta.id || 0).padStart(6, '0')
   const fechaPago    = boleta.fechaPago ? new Date(boleta.fechaPago) : new Date()
   const fechaStr     = fechaPago.toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' })
 
