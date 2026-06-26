@@ -7,6 +7,8 @@ import './Dashboard.css'
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
+const etiquetaMes = (mes, anio) => mes && anio ? `${MESES[mes - 1]} ${anio}` : 'Mes no especificado'
+
 function IconCard() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
 }
@@ -150,6 +152,7 @@ export default function Dashboard() {
                 {cuotasPendientes.map(c => (
                   <div key={c.cuotaId} className={`db-cuota-card db-cuota-urgent ${c.estadoCuota === 'VENCIDO' ? 'db-cuota-vencida' : ''}`}>
                     <div className="db-cuota-info">
+                      <p className="db-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
                       <div className="db-cuota-depto">
                         <IconBuilding />
                         <span>Departamento {c.numeroDepartamento} · Piso {c.piso}</span>
@@ -180,6 +183,7 @@ export default function Dashboard() {
                 {cuotasEnVerificacion.map(c => (
                   <div key={c.cuotaId} className="db-cuota-card db-cuota-info-card">
                     <div className="db-cuota-info">
+                      <p className="db-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
                       <div className="db-cuota-depto">
                         <IconBuilding />
                         <span>Departamento {c.numeroDepartamento} · Piso {c.piso}</span>
@@ -224,8 +228,8 @@ export default function Dashboard() {
                 {cuotasPagadas.slice(0, 5).map(c => (
                   <div key={c.cuotaId} className="db-historial-row">
                     <div className="db-historial-depto">
-                      <span className="db-historial-num">Depto {c.numeroDepartamento}</span>
-                      <span className="db-historial-piso">Piso {c.piso}</span>
+                      <span className="db-historial-num">{etiquetaMes(c.mes, c.anio)}</span>
+                      <span className="db-historial-piso">Depto {c.numeroDepartamento} · Piso {c.piso}</span>
                     </div>
                     <span className="db-historial-monto">S/ {Number(c.montoCalculado).toFixed(2)}</span>
                     <StatusBadge estado={c.estadoCuota} />

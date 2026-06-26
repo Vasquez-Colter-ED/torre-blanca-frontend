@@ -144,6 +144,15 @@
 .db-cuota-vencida { border-left: 3px solid #DC2626 !important; }
 .db-cuota-info-card { border-left: 3px solid #2563EB; }
 
+.db-cuota-mes {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px 0;
+}
+
 .db-cuota-info { display: flex; flex-direction: column; gap: 6px; }
 
 .db-cuota-depto {
