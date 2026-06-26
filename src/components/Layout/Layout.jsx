@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import './Layout.css'
@@ -49,21 +49,35 @@ const PAGE_TITLES = {
 }
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen,  setSidebarOpen]  = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
   const { user, logout, permisosExtra } = useAuth()
   const navigate  = useNavigate()
   const location  = useLocation()
 
   const esDirectivo    = ROLES_DIRECTIVOS.includes(user?.rol)
   const modulosBase    = esDirectivo ? MODULOS_DIRECTIVO : MODULOS_RESIDENTE
-  const modulosExtra   = permisosExtra.map(p => p.modulo)
+  const modulosExtra   = permisosExtra?.map(p => p.modulo) || []
   const modulosVisible = [...new Set([...modulosBase, ...modulosExtra])]
   const navItems       = NAV_ITEMS.filter(m => !m.nombre || modulosVisible.includes(m.nombre))
 
-  const paginaActual   = PAGE_TITLES[location.pathname] || 'Torre Blanca'
-  const iniciales      = user ? user.nombre?.[0]?.toUpperCase() + user.apellido?.[0]?.toUpperCase() : 'U'
+  const paginaActual = PAGE_TITLES[location.pathname] || 'Torre Blanca'
+  const iniciales    = user ? user.nombre?.[0]?.toUpperCase() + user.apellido?.[0]?.toUpperCase() : 'U'
 
   const handleLogout = () => { logout(); navigate('/login') }
+
+  // Cierra el dropdown al hacer clic fuera
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   return (
     <div className="layout">
@@ -98,24 +112,6 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="sidebar-footer">
-          <div className="sidebar-user-mini" onClick={() => { navigate('/perfil'); setSidebarOpen(false) }}>
-            <div className="sidebar-user-avatar">{iniciales}</div>
-            <div className="sidebar-user-info">
-              <span className="sidebar-user-name">{user?.nombre} {user?.apellido}</span>
-              <span className="sidebar-user-role">{user?.rol}</span>
-            </div>
-          </div>
-          <button className="btn-logout" onClick={handleLogout}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            Cerrar sesión
-          </button>
-        </div>
       </aside>
 
       <div className="main-wrapper">
@@ -124,23 +120,66 @@ export default function Layout() {
         <header className="topbar">
           <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Menú">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
           </button>
 
           <div className="topbar-page-title">{paginaActual}</div>
 
-          <div className="topbar-right">
-            <button className="topbar-user-btn" onClick={() => navigate('/perfil')}>
+          {/* Usuario con dropdown */}
+          <div className="topbar-right" ref={dropdownRef}>
+            <button
+              className={`topbar-user-btn ${dropdownOpen ? 'topbar-user-btn-active' : ''}`}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
               <div className="topbar-avatar">{iniciales}</div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{user?.nombre} {user?.apellido}</span>
                 <span className="topbar-user-role">{user?.rol}</span>
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="topbar-chevron">
+              <svg
+                width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className={`topbar-chevron ${dropdownOpen ? 'topbar-chevron-open' : ''}`}
+              >
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </button>
+
+            {/* Dropdown */}
+            {dropdownOpen && (
+              <div className="topbar-dropdown">
+                <div className="topbar-dropdown-header">
+                  <p className="topbar-dd-nombre">{user?.nombre} {user?.apellido}</p>
+                  <p className="topbar-dd-email">{user?.email}</p>
+                </div>
+                <div className="topbar-dropdown-divider" />
+                <button
+                  className="topbar-dd-item"
+                  onClick={() => { setDropdownOpen(false); navigate('/perfil') }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  Mi perfil
+                </button>
+                <div className="topbar-dropdown-divider" />
+                <button
+                  className="topbar-dd-item topbar-dd-logout"
+                  onClick={() => { setDropdownOpen(false); handleLogout() }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
