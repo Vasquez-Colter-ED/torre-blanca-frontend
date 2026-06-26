@@ -57,6 +57,8 @@ export default function Dashboard() {
   const mesActual  = ahora.getMonth() + 1
   const anioActual = ahora.getFullYear()
 
+  const [verMasFuturas, setVerMasFuturas] = useState(false)
+
   useEffect(() => {
     if (!esDirectivo) cargarCuotas()
     else setLoading(false)
@@ -100,10 +102,15 @@ export default function Dashboard() {
     (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c)
   )
 
-  // Próximas: meses futuros con estado PENDIENTE
-  const cuotasFuturas = cuotas.filter(c =>
+  // Próximas: meses futuros con estado PENDIENTE ordenados cronológicamente
+  const todasCuotasFuturas = cuotas.filter(c =>
     c.estadoCuota === 'PENDIENTE' && esFuturo(c)
   ).sort((a, b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
+
+  // Por defecto solo los 3 próximos meses, expandible
+  const cuotasFuturas = verMasFuturas
+    ? todasCuotasFuturas
+    : todasCuotasFuturas.slice(0, 3)
 
   const totalPagado    = cuotasPagadas.reduce((s, c) => s + Number(c.montoCalculado), 0)
   const totalPendiente = cuotasUrgentes.reduce((s, c) => s + Number(c.montoCalculado), 0)
@@ -221,12 +228,18 @@ export default function Dashboard() {
           )}
 
           {/* ── Próximas cuotas ── */}
-          {cuotasFuturas.length > 0 && (
+          {todasCuotasFuturas.length > 0 && (
             <div className="db-section">
-              <h2 className="db-section-title">
-                <IconCalendar />
-                Próximas cuotas
-              </h2>
+              <div className="db-section-header">
+                <h2 className="db-section-title">
+                  <IconCalendar />
+                  Próximas cuotas
+                </h2>
+                <button className="btn-pagar-varios" onClick={() => navigate('/pagos')}>
+                  Pagar varios meses
+                  <IconArrow />
+                </button>
+              </div>
               <p className="db-futuras-hint">Estas cuotas aún no están vencidas. Puedes adelantar el pago si lo deseas.</p>
               <div className="db-cuotas-list">
                 {cuotasFuturas.map(c => (
@@ -242,13 +255,24 @@ export default function Dashboard() {
                     <div className="db-cuota-right">
                       <span className="db-badge badge-neutral">Próxima</span>
                       <button className="btn-adelantar" onClick={() => navigate('/pagos')}>
-                        Adelantar pago
+                        Adelantar
                         <IconArrow />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
+              {todasCuotasFuturas.length > 3 && (
+                <button
+                  className="btn-ver-mas"
+                  onClick={() => setVerMasFuturas(!verMasFuturas)}
+                >
+                  {verMasFuturas
+                    ? 'Ver menos'
+                    : `Ver ${todasCuotasFuturas.length - 3} cuota${todasCuotasFuturas.length - 3 > 1 ? 's' : ''} más`
+                  }
+                </button>
+              )}
             </div>
           )}
 

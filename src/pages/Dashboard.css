@@ -372,6 +372,50 @@
   transform: translateX(2px);
 }
 
+/* Botón pagar varios meses */
+.btn-pagar-varios {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0F172A;
+  color: #fff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-pagar-varios:hover {
+  background: #2563EB;
+  transform: translateX(2px);
+}
+
+/* Botón ver más */
+.btn-ver-mas {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: none;
+  border: 1.5px dashed #E2E8F0;
+  border-radius: 8px;
+  color: #64748B;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-ver-mas:hover {
+  border-color: #2563EB;
+  color: #2563EB;
+  background: #EFF6FF;
+}
+
 /* ── Directivo card ───────────────────────────────────────────── */
 .db-directivo-card {
   display: flex;
