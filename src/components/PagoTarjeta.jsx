@@ -89,7 +89,7 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
           <label className="pt-label">Nombre del titular</label>
           <input className="pt-input" value={form.nombre}
             onChange={e => setForm({...form, nombre: e.target.value.toUpperCase()})}
-            placeholder="COMO APARECE EN LA TARJETA" />
+            placeholder="" />
         </div>
         <div className="pt-field">
           <label className="pt-label">Tipo de documento</label>
@@ -117,7 +117,7 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
           <label className="pt-label">CVV</label>
           <input className="pt-input" value={form.cvv}
             onChange={e => setForm({...form, cvv: e.target.value.replace(/\D/g,'').slice(0,4)})}
-            placeholder="•••" maxLength={4} inputMode="numeric" type="password" />
+            placeholder="" maxLength={4} inputMode="numeric" type="password" />
         </div>
         <div className="pt-field pt-full">
           <label className="pt-label">Correo del titular</label>
