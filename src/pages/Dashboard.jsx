@@ -27,6 +27,9 @@ function IconBuilding() {
 function IconArrow() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
 }
+function IconCalendar() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+}
 
 function StatusBadge({ estado }) {
   const map = {
@@ -86,18 +89,24 @@ export default function Dashboard() {
   }
 
   // ── Clasificar cuotas ────────────────────────────────────────
-  const cuotaMesActual = cuotas.find(c => {
-    // la API no devuelve mes/anio directamente, lo inferimos del cuotaId o del estado
-    // usamos el orden: las cuotas más recientes primero
-    return c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PENDIENTE_VERIFICACION'
-  }) || null
+  const esFuturo = (c) =>
+    c.anio > anioActual || (c.anio === anioActual && c.mes > mesActual)
 
-  const cuotasPagadas  = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
-  const cuotasPendientes = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO')
+  const cuotasPagadas        = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
   const cuotasEnVerificacion = cuotas.filter(c => c.estadoCuota === 'PENDIENTE_VERIFICACION')
 
-  const totalPagado   = cuotasPagadas.reduce((s, c) => s + Number(c.montoCalculado), 0)
-  const totalPendiente = cuotasPendientes.reduce((s, c) => s + Number(c.montoCalculado), 0)
+  // Pendientes urgentes: vencidas O del mes actual/anterior
+  const cuotasUrgentes = cuotas.filter(c =>
+    (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c)
+  )
+
+  // Próximas: meses futuros con estado PENDIENTE
+  const cuotasFuturas = cuotas.filter(c =>
+    c.estadoCuota === 'PENDIENTE' && esFuturo(c)
+  ).sort((a, b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
+
+  const totalPagado    = cuotasPagadas.reduce((s, c) => s + Number(c.montoCalculado), 0)
+  const totalPendiente = cuotasUrgentes.reduce((s, c) => s + Number(c.montoCalculado), 0)
 
   return (
     <div className="db-page">
@@ -141,15 +150,15 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Cuota pendiente destacada ── */}
-          {cuotasPendientes.length > 0 && (
+          {/* ── Cuotas urgentes ── */}
+          {cuotasUrgentes.length > 0 && (
             <div className="db-section">
               <h2 className="db-section-title">
-                <IconCard />
-                Cuotas pendientes de pago
+                <IconAlert />
+                Pendientes de pago
               </h2>
               <div className="db-cuotas-list">
-                {cuotasPendientes.map(c => (
+                {cuotasUrgentes.map(c => (
                   <div key={c.cuotaId} className={`db-cuota-card db-cuota-urgent ${c.estadoCuota === 'VENCIDO' ? 'db-cuota-vencida' : ''}`}>
                     <div className="db-cuota-info">
                       <p className="db-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
@@ -200,13 +209,45 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── Sin deudas ── */}
-          {cuotasPendientes.length === 0 && cuotasEnVerificacion.length === 0 && (
+          {/* ── Sin deudas urgentes ── */}
+          {cuotasUrgentes.length === 0 && cuotasEnVerificacion.length === 0 && (
             <div className="db-al-dia">
               <div className="db-al-dia-icon"><IconCheck /></div>
               <div>
                 <p className="db-al-dia-titulo">Estás al día</p>
-                <p className="db-al-dia-sub">No tienes cuotas pendientes de pago en este momento.</p>
+                <p className="db-al-dia-sub">No tienes cuotas del mes actual pendientes de pago.</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Próximas cuotas ── */}
+          {cuotasFuturas.length > 0 && (
+            <div className="db-section">
+              <h2 className="db-section-title">
+                <IconCalendar />
+                Próximas cuotas
+              </h2>
+              <p className="db-futuras-hint">Estas cuotas aún no están vencidas. Puedes adelantar el pago si lo deseas.</p>
+              <div className="db-cuotas-list">
+                {cuotasFuturas.map(c => (
+                  <div key={c.cuotaId} className="db-cuota-card db-cuota-futura">
+                    <div className="db-cuota-info">
+                      <p className="db-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
+                      <div className="db-cuota-depto">
+                        <IconBuilding />
+                        <span>Departamento {c.numeroDepartamento} · Piso {c.piso}</span>
+                      </div>
+                      <p className="db-cuota-monto">S/ {Number(c.montoCalculado).toFixed(2)}</p>
+                    </div>
+                    <div className="db-cuota-right">
+                      <span className="db-badge badge-neutral">Próxima</span>
+                      <button className="btn-adelantar" onClick={() => navigate('/pagos')}>
+                        Adelantar pago
+                        <IconArrow />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
