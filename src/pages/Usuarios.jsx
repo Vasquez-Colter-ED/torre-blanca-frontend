@@ -1,27 +1,57 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
-import { soloLetras, soloNumeros, esEmailValido } from '../utils/validaciones'
 import './Usuarios.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
 
-export default function Usuarios() {
-  const { user } = useAuth()
-  const esDirectivo = ROLES_DIRECTIVOS.includes(user?.rol)
+const ROL_COLOR = {
+  PRESIDENTE: 'rol-presidente', SECRETARIO: 'rol-secretario',
+  TESORERO:   'rol-tesorero',   RESIDENTE:  'rol-residente',
+}
+const ROL_LABEL = {
+  PRESIDENTE: 'Presidente', SECRETARIO: 'Secretario',
+  TESORERO:   'Tesorero',   RESIDENTE:  'Residente',
+}
 
-  const [usuarios,  setUsuarios]  = useState([])
-  const [roles,     setRoles]     = useState([])
-  const [modulos,   setModulos]   = useState([])
-  const [permisos,  setPermisos]  = useState([])
-  const [deptos,    setDeptos]    = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [busqueda,  setBusqueda]  = useState('')
-  const [modal,     setModal]     = useState(null)
-  const [selected,  setSelected]  = useState(null)
-  const [form,      setForm]      = useState({})
-  const [msg,       setMsg]       = useState('')
-  const [error,     setError]     = useState('')
+const AVATAR_COLOR = {
+  PRESIDENTE: '#0F172A', SECRETARIO: '#2563EB',
+  TESORERO:   '#059669', RESIDENTE:  '#64748B',
+}
+
+// ── Íconos ──────────────────────────────────────────────────────
+const IcoSearch = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+const IcoEdit   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+const IcoCheck  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+const IcoX      = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+const IcoPlus   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+const IcoChev   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+
+// Iniciales para avatar
+const iniciales = u => u ? (u.nombre?.[0] || '') + (u.apellido?.[0] || '') : 'U'
+
+// Rol principal del usuario
+const rolPrincipal = u => u.roles?.[0]?.nombre || 'RESIDENTE'
+
+export default function Usuarios() {
+  const { user }       = useAuth()
+  const esDirectivo    = ROLES_DIRECTIVOS.includes(user?.rol)
+
+  const [usuarios,   setUsuarios]   = useState([])
+  const [roles,      setRoles]      = useState([])
+  const [deptos,     setDeptos]     = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [busqueda,   setBusqueda]   = useState('')
+  const [filtroRol,  setFiltroRol]  = useState('')
+  const [filtroEst,  setFiltroEst]  = useState('')
+  const [editId,     setEditId]     = useState(null)   // fila expandida para editar
+  const [crearOpen,  setCrearOpen]  = useState(false)  // panel crear nuevo
+  const [formEdit,   setFormEdit]   = useState({})
+  const [formNuevo,  setFormNuevo]  = useState({})
+  const [msg,        setMsg]        = useState({})     // { [id]: 'ok'|'error' }
+  const [msgNuevo,   setMsgNuevo]   = useState('')
+  const [errNuevo,   setErrNuevo]   = useState('')
+  const [error,      setError]      = useState('')
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -30,330 +60,351 @@ export default function Usuarios() {
     try {
       const promesas = [api.get('/api/usuarios')]
       if (esDirectivo) {
-        promesas.push(
-          api.get('/api/usuarios/catalogos/roles'),
-          api.get('/api/usuarios/catalogos/modulos'),
-          api.get('/api/usuarios/catalogos/permisos'),
-          api.get('/api/departamentos'),
-        )
+        promesas.push(api.get('/api/usuarios/catalogos/roles'), api.get('/api/departamentos'))
       }
-      const [u, r, m, p, d] = await Promise.all(promesas)
+      const [u, r, d] = await Promise.all(promesas)
       setUsuarios(u.data)
-      if (esDirectivo) { setRoles(r.data); setModulos(m.data); setPermisos(p.data); setDeptos(d.data) }
+      if (esDirectivo) { setRoles(r?.data || []); setDeptos(d?.data || []) }
     } catch { setError('Error al cargar datos') }
     finally { setLoading(false) }
   }
 
-  const filtrados = esDirectivo
-    ? usuarios.filter(u =>
-        `${u.nombre} ${u.apellido} ${u.email} ${u.dni||''}`.toLowerCase().includes(busqueda.toLowerCase()))
-    : usuarios.filter(u => u.id === user?.id)
-
-  const cerrar = () => { setModal(null); setSelected(null); setMsg(''); setError('') }
-
-  // Filtra el valor según el tipo de campo, mientras el usuario escribe
-  const filtrarCampo = (key, valor) => {
-    if (key === 'nombre' || key === 'apellido') return soloLetras(valor)
-    if (key === 'dni') return soloNumeros(valor).slice(0, 8)
-    if (key === 'telefono') return soloNumeros(valor).slice(0, 9)
-    return valor // email se valida en formato al enviar, password queda libre
-  }
+  // Filtrado
+  const filtrados = usuarios.filter(u => {
+    const texto = `${u.nombre} ${u.apellido} ${u.email} ${u.dni || ''}`.toLowerCase()
+    const rol   = rolPrincipal(u)
+    if (busqueda && !texto.includes(busqueda.toLowerCase())) return false
+    if (filtroRol && rol !== filtroRol) return false
+    if (filtroEst && u.estado !== filtroEst) return false
+    return true
+  })
 
   const abrirEditar = (u) => {
-    if (!esDirectivo && u.id !== user?.id) return
-    setSelected(u)
-    setForm({ nombre: u.nombre, apellido: u.apellido, dni: u.dni||'', telefono: u.telefono||'', email: u.email, nuevaPassword: '' })
-    setModal('editar'); setMsg(''); setError('')
+    if (editId === u.id) { setEditId(null); return }
+    setEditId(u.id)
+    setFormEdit({
+      nombre:       u.nombre,
+      apellido:     u.apellido,
+      email:        u.email,
+      telefono:     u.telefono || '',
+      dni:          u.dni || '',
+      rolId:        u.roles?.[0]?.id || '',
+      departamentoId: u.departamentos?.[0]?.departamentoId || '',
+      tipoResidencia: u.departamentos?.[0]?.tipo || 'PROPIETARIO',
+    })
+    setMsg(prev => ({ ...prev, [u.id]: '' }))
   }
 
-  const guardarEdicion = async () => {
-    if (form.email && !esEmailValido(form.email)) { setError('El formato del email no es válido'); return }
+  const guardarEditar = async (u) => {
     try {
-      const payload = { ...form }
-      if (!payload.nuevaPassword) delete payload.nuevaPassword
-      await api.put(`/api/usuarios/${selected.id}`, payload)
-      setMsg('Guardado correctamente')
+      const payload = { ...formEdit }
+      if (!payload.rolId)          delete payload.rolId
+      if (!payload.departamentoId) delete payload.departamentoId
+      await api.put(`/api/usuarios/${u.id}`, payload)
+      setMsg(prev => ({ ...prev, [u.id]: 'ok' }))
       cargarDatos()
-      setTimeout(cerrar, 1200)
-    } catch (e) { setError(e.response?.data || 'Error al guardar') }
+      setTimeout(() => { setEditId(null); setMsg({}) }, 1200)
+    } catch (e) { setMsg(prev => ({ ...prev, [u.id]: e.response?.data || 'Error al guardar' })) }
   }
 
-  const guardarNuevo = async () => {
-    if (!esEmailValido(form.email)) { setError('El formato del email no es válido'); return }
+  const toggleEstado = async (u) => {
+    const esDir = ROLES_DIRECTIVOS.includes(rolPrincipal(u))
+    if (esDir) return
     try {
-      await api.post('/api/usuarios', { ...form, rolId: form.rolId || null, departamentoId: form.departamentoId || null })
-      setMsg('Usuario creado correctamente')
+      await api[u.estado === 'ACTIVO' ? 'patch' : 'patch'](`/api/usuarios/${u.id}/${u.estado === 'ACTIVO' ? 'desactivar' : 'reactivar'}`)
       cargarDatos()
-      setTimeout(cerrar, 1200)
-    } catch (e) { setError(e.response?.data || 'Error al crear') }
+    } catch (e) { alert(e.response?.data || 'Error') }
   }
 
-  const desactivar = async (u) => {
-    if (!confirm(`¿Desactivar a ${u.nombre} ${u.apellido}?`)) return
-    try { await api.patch(`/api/usuarios/${u.id}/desactivar`); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'No se puede desactivar') }
-  }
-
-  const reactivar = async (u) => {
-    try { await api.patch(`/api/usuarios/${u.id}/reactivar`); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const guardarRol = async () => {
+  const crearUsuario = async () => {
+    setErrNuevo('')
     try {
-      await api.post(`/api/usuarios/${selected.id}/roles`, { rolId: Number(form.rolId) })
-      setMsg('Rol asignado.')
+      await api.post('/api/usuarios', {
+        nombre:    formNuevo.nombre,
+        apellido:  formNuevo.apellido,
+        dni:       formNuevo.dni || null,
+        email:     formNuevo.email,
+        telefono:  formNuevo.telefono || null,
+        password:  formNuevo.password,
+        rolId:     formNuevo.rolId || null,
+      })
+      setMsgNuevo('Usuario creado correctamente')
+      setFormNuevo({})
       cargarDatos()
-      setTimeout(cerrar, 1500)
-    } catch (e) { setError(e.response?.data || 'Error') }
+      setTimeout(() => { setCrearOpen(false); setMsgNuevo('') }, 1400)
+    } catch (e) { setErrNuevo(e.response?.data || 'Error al crear') }
   }
 
-  const revocarRol = async (usuarioId, rolId) => {
-    if (!confirm('¿Revocar este rol?')) return
-    try { await api.delete(`/api/usuarios/${usuarioId}/roles/${rolId}`); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const guardarPermiso = async () => {
-    try {
-      await api.post(`/api/usuarios/${selected.id}/permisos`, { moduloId: Number(form.moduloId), permisoId: Number(form.permisoId) })
-      setMsg('Permiso asignado correctamente')
-      cargarDatos()
-      setTimeout(cerrar, 1200)
-    } catch (e) { setError(e.response?.data || 'Error') }
-  }
-
-  const revocarPermiso = async (asignacionId) => {
-    if (!confirm('¿Revocar este permiso?')) return
-    try { await api.delete(`/api/usuarios/permisos/${asignacionId}`); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const restablecerPermisos = async (u) => {
-    if (!confirm(`¿Restablecer permisos de ${u.nombre}?`)) return
-    try { await api.post(`/api/usuarios/${u.id}/permisos/restablecer`); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  if (loading) return <div className="loading-msg">Cargando usuarios...</div>
+  if (loading) return (
+    <div className="us-page">
+      <div className="us-skeleton">
+        {[...Array(5)].map((_,i) => <div key={i} className="us-skeleton-row" />)}
+      </div>
+    </div>
+  )
 
   return (
-    <div className="usuarios-page">
-      <h1 className="page-title">Usuarios</h1>
-      <p className="page-subtitle">{esDirectivo ? 'Gestión de residentes y directiva' : 'Tu perfil'}</p>
+    <div className="us-page">
 
-      {esDirectivo && (
-        <div className="usuarios-toolbar">
-          <input className="search-input" placeholder="Buscar por nombre, email o DNI..."
-            value={busqueda} onChange={e => setBusqueda(e.target.value)} />
-          <button className="btn btn-primary" onClick={() => {
-            setForm({ nombre:'', apellido:'', dni:'', email:'', telefono:'', password:'', rolId:'', departamentoId:'' })
-            setModal('crear'); setMsg(''); setError('')
-          }}>Nuevo usuario</button>
+      {/* Header */}
+      <div className="us-header">
+        <div>
+          <h1 className="us-titulo">Usuarios</h1>
+          <p className="us-sub">{filtrados.length} de {usuarios.length} usuario{usuarios.length !== 1 ? 's' : ''}</p>
         </div>
-      )}
-
-      {error && <div className="alert-error">{error}</div>}
-
-      <div className="usuarios-list">
-        {filtrados.length === 0 && <div className="empty-state glass">No se encontraron usuarios.</div>}
-        {filtrados.map(u => (
-          <div key={u.id} className={`usuario-card glass ${u.estado === 'INACTIVO' ? 'card-inactive' : ''}`}>
-            <div className="user-avatar">{u.nombre[0]}{u.apellido[0]}</div>
-            <div className="user-info">
-              <p className="user-name">{u.nombre} {u.apellido}</p>
-              <p className="user-email">{u.email}</p>
-              {u.departamentos?.length > 0 && (
-                <div className="user-deptos">
-                  {u.departamentos.map((d,i) => (
-                    <span key={i} className="badge badge-depto">Depto {d.numero} · {d.tipo}</span>
-                  ))}
-                </div>
-              )}
-              <div className="user-tags">
-                <span className={`badge ${u.estado === 'ACTIVO' ? 'badge-active' : 'badge-inactive'}`}>{u.estado}</span>
-                {u.roles?.map(r => (
-                  <span key={r.asignacionId} className="badge badge-role">
-                    {r.nombre}
-                    {esDirectivo && <button className="tag-remove" onClick={() => revocarRol(u.id, r.rolId)}>×</button>}
-                  </span>
-                ))}
-              </div>
-              {esDirectivo && u.permisosExtra?.length > 0 && (
-                <div className="permisos-extra">
-                  <span className="permisos-label">Permisos extra:</span>
-                  {u.permisosExtra.map(p => (
-                    <span key={p.asignacionId} className="badge badge-permiso">
-                      {p.modulo} — {p.permiso}
-                      <button className="tag-remove" onClick={() => revocarPermiso(p.asignacionId)}>×</button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="user-actions">
-              {(esDirectivo || u.id === user?.id) && (
-                <button className="btn btn-ghost btn-sm" onClick={() => abrirEditar(u)}>Editar</button>
-              )}
-              {esDirectivo && (
-                <>
-                  <button className="btn btn-ghost btn-sm" onClick={() => {
-                    setSelected(u); setForm({ rolId: '' }); setModal('rol'); setMsg(''); setError('')
-                  }}>Asignar rol</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => {
-                    setSelected(u); setForm({ moduloId:'', permisoId:'' }); setModal('permiso'); setMsg(''); setError('')
-                  }}>Dar permiso</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => restablecerPermisos(u)}>Restablecer permisos</button>
-                  {u.estado === 'ACTIVO'
-                    ? <button className="btn btn-danger btn-sm" onClick={() => desactivar(u)}>Desactivar</button>
-                    : <button className="btn btn-ghost btn-sm" onClick={() => reactivar(u)}>Reactivar</button>
-                  }
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+        {esDirectivo && (
+          <button className="us-btn-nuevo" onClick={() => { setCrearOpen(!crearOpen); setFormNuevo({}); setErrNuevo(''); setMsgNuevo('') }}>
+            {crearOpen ? <IcoX /> : <IcoPlus />}
+            {crearOpen ? 'Cancelar' : 'Nuevo usuario'}
+          </button>
+        )}
       </div>
 
-      {/* MODAL EDITAR */}
-      {modal === 'editar' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Editar usuario</h3>
-            <div className="modal-scroll">
-              <div className="modal-form">
-                {[['nombre','Nombre'],['apellido','Apellido'],['dni','DNI'],['telefono','Teléfono'],['email','Email']].map(([k,l]) => (
-                  <div className="form-group" key={k}>
-                    <label>{l}</label>
-                    <input
-                      value={form[k]||''}
-                      onChange={e => setForm({...form,[k]: filtrarCampo(k, e.target.value)})}
-                      inputMode={(k==='dni'||k==='telefono') ? 'numeric' : 'text'}
-                    />
-                  </div>
-                ))}
-                <div className="form-group">
-                  <label>Nueva contraseña <span className="label-hint">(dejar en blanco para no cambiar)</span></label>
-                  <input type="password" value={form.nuevaPassword||''} onChange={e => setForm({...form, nuevaPassword: e.target.value})} placeholder="••••••••" />
-                </div>
-              </div>
-            </div>
-            {msg   && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarEdicion}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {error && <div className="us-alert-err">{error}</div>}
 
-      {/* MODAL CREAR */}
-      {modal === 'crear' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Nuevo usuario</h3>
-            <div className="modal-scroll">
-              <div className="modal-form">
-                {[['nombre','Nombre'],['apellido','Apellido'],['dni','DNI'],['email','Email'],['telefono','Teléfono']].map(([k,l]) => (
-                  <div className="form-group" key={k}>
-                    <label>{l}</label>
-                    <input
-                      value={form[k]||''}
-                      onChange={e => setForm({...form,[k]: filtrarCampo(k, e.target.value)})}
-                      inputMode={(k==='dni'||k==='telefono') ? 'numeric' : 'text'}
-                    />
-                  </div>
-                ))}
-                <div className="form-group">
-                  <label>Contraseña</label>
-                  <input type="password" value={form.password||''} onChange={e => setForm({...form, password: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Rol inicial</label>
-                  <select value={form.rolId||''} onChange={e => setForm({...form, rolId: e.target.value})}>
-                    <option value="">Sin rol</option>
-                    {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Departamento <span className="label-hint">(opcional)</span></label>
-                  <select value={form.departamentoId||''} onChange={e => setForm({...form, departamentoId: e.target.value})}>
-                    <option value="">Sin departamento</option>
-                    {deptos.sort((a,b) => a.numero.localeCompare(b.numero)).map(d => (
-                      <option key={d.id} value={d.id}>
-                        {d.numero} — Piso {d.piso} {d.propietarioNombre ? `(${d.propietarioNombre})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+      {/* Panel crear nuevo — sin modal, se despliega aquí */}
+      {crearOpen && esDirectivo && (
+        <div className="us-crear-panel">
+          <h3 className="us-crear-titulo">Nuevo usuario</h3>
+          <div className="us-crear-grid">
+            <div className="us-field">
+              <label className="us-label">Nombre</label>
+              <input className="us-input" value={formNuevo.nombre||''} onChange={e => setFormNuevo({...formNuevo,nombre:e.target.value})} />
             </div>
-            {msg   && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarNuevo}>Crear</button>
+            <div className="us-field">
+              <label className="us-label">Apellido</label>
+              <input className="us-input" value={formNuevo.apellido||''} onChange={e => setFormNuevo({...formNuevo,apellido:e.target.value})} />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL ROL */}
-      {modal === 'rol' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Asignar rol</h3>
-            <p className="modal-sub">Usuario: <strong>{selected?.nombre} {selected?.apellido}</strong></p>
-            <p className="modal-warning">Al asignar un rol se eliminarán los permisos extra actuales.</p>
-            <div className="form-group" style={{marginTop:16}}>
-              <label>Rol</label>
-              <select value={form.rolId||''} onChange={e => setForm({...form, rolId: e.target.value})}>
-                <option value="">Selecciona un rol</option>
+            <div className="us-field">
+              <label className="us-label">Email</label>
+              <input className="us-input" type="email" value={formNuevo.email||''} onChange={e => setFormNuevo({...formNuevo,email:e.target.value})} />
+            </div>
+            <div className="us-field">
+              <label className="us-label">DNI</label>
+              <input className="us-input" value={formNuevo.dni||''} maxLength={8} onChange={e => setFormNuevo({...formNuevo,dni:e.target.value.replace(/\D/g,'')})} />
+            </div>
+            <div className="us-field">
+              <label className="us-label">Teléfono</label>
+              <input className="us-input" value={formNuevo.telefono||''} onChange={e => setFormNuevo({...formNuevo,telefono:e.target.value.replace(/\D/g,'')})} />
+            </div>
+            <div className="us-field">
+              <label className="us-label">Contraseña</label>
+              <input className="us-input" type="password" value={formNuevo.password||''} onChange={e => setFormNuevo({...formNuevo,password:e.target.value})} />
+            </div>
+            <div className="us-field">
+              <label className="us-label">Rol</label>
+              <select className="us-input" value={formNuevo.rolId||''} onChange={e => setFormNuevo({...formNuevo,rolId:e.target.value})}>
+                <option value="">Sin rol (residente)</option>
                 {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
               </select>
             </div>
-            {msg   && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarRol} disabled={!form.rolId}>Asignar</button>
-            </div>
+          </div>
+          {errNuevo && <p className="us-err">{errNuevo}</p>}
+          {msgNuevo && <p className="us-ok">{msgNuevo}</p>}
+          <div className="us-crear-footer">
+            <button className="us-btn-cancelar" onClick={() => setCrearOpen(false)}>Cancelar</button>
+            <button className="us-btn-guardar" onClick={crearUsuario}>Crear usuario</button>
           </div>
         </div>
       )}
 
-      {/* MODAL PERMISO */}
-      {modal === 'permiso' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Dar permiso extra</h3>
-            <p className="modal-sub">Usuario: <strong>{selected?.nombre} {selected?.apellido}</strong></p>
-            <div className="modal-form" style={{marginTop:16}}>
-              <div className="form-group">
-                <label>Módulo</label>
-                <select value={form.moduloId||''} onChange={e => setForm({...form, moduloId: e.target.value})}>
-                  <option value="">Selecciona un módulo</option>
-                  {modulos.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Tipo de permiso</label>
-                <select value={form.permisoId||''} onChange={e => setForm({...form, permisoId: e.target.value})}>
-                  <option value="">Selecciona un permiso</option>
-                  {permisos.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                </select>
-              </div>
-            </div>
-            {msg   && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarPermiso} disabled={!form.moduloId||!form.permisoId}>Dar permiso</button>
-            </div>
-          </div>
+      {/* Filtros */}
+      <div className="us-filtros">
+        <div className="us-search-wrap">
+          <IcoSearch />
+          <input className="us-search" placeholder="Buscar por nombre, email o DNI..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-      )}
+        <select className="us-filtro-sel" value={filtroRol} onChange={e => setFiltroRol(e.target.value)}>
+          <option value="">Todos los roles</option>
+          <option value="PRESIDENTE">Presidente</option>
+          <option value="SECRETARIO">Secretario</option>
+          <option value="TESORERO">Tesorero</option>
+          <option value="RESIDENTE">Residente</option>
+        </select>
+        <select className="us-filtro-sel" value={filtroEst} onChange={e => setFiltroEst(e.target.value)}>
+          <option value="">Todos los estados</option>
+          <option value="ACTIVO">Activos</option>
+          <option value="INACTIVO">Inactivos</option>
+        </select>
+      </div>
+
+      {/* Tabla */}
+      <div className="us-tabla-wrap">
+        {/* Encabezado */}
+        <div className="us-tabla-head">
+          <span>Usuario</span>
+          <span>DNI</span>
+          <span>Departamento</span>
+          <span>Rol</span>
+          <span>Estado</span>
+          <span></span>
+        </div>
+
+        {filtrados.length === 0 && (
+          <div className="us-empty">No hay usuarios que coincidan con los filtros.</div>
+        )}
+
+        {/* Filas */}
+        {filtrados.map(u => {
+          const rol      = rolPrincipal(u)
+          const esDir    = ROLES_DIRECTIVOS.includes(rol)
+          const depto    = u.departamentos?.[0]
+          const abierto  = editId === u.id
+          const estadoOk = u.estado === 'ACTIVO'
+
+          return (
+            <div key={u.id} className={`us-fila-wrap ${abierto ? 'us-fila-wrap-open' : ''}`}>
+
+              {/* Fila principal */}
+              <div className={`us-fila ${abierto ? 'us-fila-active' : ''}`}>
+
+                {/* Avatar + nombre */}
+                <div className="us-col-usuario">
+                  <div className="us-avatar" style={{ background: AVATAR_COLOR[rol] || '#64748B' }}>
+                    {iniciales(u).toUpperCase()}
+                  </div>
+                  <div className="us-usuario-info">
+                    <p className="us-nombre">{u.nombre} {u.apellido}</p>
+                    <p className="us-email">{u.email}</p>
+                  </div>
+                </div>
+
+                {/* DNI */}
+                <span className="us-col-dni us-mono">{u.dni || <span className="us-vacio">—</span>}</span>
+
+                {/* Departamento */}
+                <div className="us-col-depto">
+                  {depto ? (
+                    <>
+                      <span className="us-depto-num">Depto {depto.numero}</span>
+                      <span className={`us-tipo-badge ${depto.tipo === 'PROPIETARIO' ? 'us-tipo-prop' : 'us-tipo-inq'}`}>
+                        {depto.tipo === 'PROPIETARIO' ? 'Propietario' : 'Inquilino'}
+                      </span>
+                    </>
+                  ) : <span className="us-vacio">Sin asignar</span>}
+                </div>
+
+                {/* Rol */}
+                <span className={`us-rol-badge ${ROL_COLOR[rol] || 'rol-residente'}`}>
+                  {ROL_LABEL[rol] || rol}
+                </span>
+
+                {/* Estado */}
+                <div className="us-col-estado">
+                  <span className={`us-estado-dot ${estadoOk ? 'us-dot-ok' : 'us-dot-off'}`} />
+                  <span className={`us-estado-txt ${estadoOk ? 'us-est-ok' : 'us-est-off'}`}>
+                    {estadoOk ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+
+                {/* Acciones */}
+                <div className="us-col-acc">
+                  {esDirectivo && (
+                    <>
+                      <button className={`us-btn-edit ${abierto ? 'us-btn-edit-on' : ''}`} onClick={() => abrirEditar(u)} title="Editar">
+                        {abierto ? <IcoX /> : <IcoEdit />}
+                      </button>
+                      {!esDir && (
+                        <button
+                          className={`us-btn-toggle ${estadoOk ? 'us-btn-desact' : 'us-btn-react'}`}
+                          onClick={() => toggleEstado(u)}
+                          title={estadoOk ? 'Desactivar' : 'Reactivar'}
+                        >
+                          {estadoOk ? 'Desactivar' : 'Reactivar'}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Panel edición inline — acordeón */}
+              <div className={`us-edit-panel ${abierto ? 'us-edit-panel-open' : ''}`}>
+                {abierto && (
+                  <div className="us-edit-body">
+                    <p className="us-edit-sec">Información personal</p>
+                    <div className="us-edit-grid">
+                      <div className="us-field">
+                        <label className="us-label">Nombre</label>
+                        <input className="us-input" value={formEdit.nombre||''} onChange={e => setFormEdit({...formEdit,nombre:e.target.value})} />
+                      </div>
+                      <div className="us-field">
+                        <label className="us-label">Apellido</label>
+                        <input className="us-input" value={formEdit.apellido||''} onChange={e => setFormEdit({...formEdit,apellido:e.target.value})} />
+                      </div>
+                      <div className="us-field">
+                        <label className="us-label">Email</label>
+                        <input className="us-input" type="email" value={formEdit.email||''} onChange={e => setFormEdit({...formEdit,email:e.target.value})} />
+                      </div>
+                      <div className="us-field">
+                        <label className="us-label">Teléfono</label>
+                        <input className="us-input" value={formEdit.telefono||''} onChange={e => setFormEdit({...formEdit,telefono:e.target.value.replace(/\D/g,'')})} />
+                      </div>
+
+                      {/* Solo directivos pueden editar DNI */}
+                      {esDirectivo && (
+                        <div className="us-field">
+                          <label className="us-label">
+                            DNI
+                            <span className="us-label-badge">Solo directivo</span>
+                          </label>
+                          <input className="us-input" value={formEdit.dni||''} maxLength={8}
+                            onChange={e => setFormEdit({...formEdit,dni:e.target.value.replace(/\D/g,'')})} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Solo directivos pueden cambiar rol y departamento */}
+                    {esDirectivo && (
+                      <>
+                        <p className="us-edit-sec us-edit-sec-top">Administración</p>
+                        <div className="us-edit-grid">
+                          <div className="us-field">
+                            <label className="us-label">Rol</label>
+                            <select className="us-input" value={formEdit.rolId||''} onChange={e => setFormEdit({...formEdit,rolId:e.target.value})}>
+                              <option value="">Sin rol (residente)</option>
+                              {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+                            </select>
+                          </div>
+                          <div className="us-field">
+                            <label className="us-label">Departamento</label>
+                            <select className="us-input" value={formEdit.departamentoId||''} onChange={e => setFormEdit({...formEdit,departamentoId:e.target.value})}>
+                              <option value="">Sin departamento</option>
+                              {deptos.sort((a,b) => a.numero.localeCompare(b.numero,undefined,{numeric:true})).map(d => (
+                                <option key={d.id} value={d.id}>Depto {d.numero} · Piso {d.piso}</option>
+                              ))}
+                            </select>
+                          </div>
+                          {formEdit.departamentoId && (
+                            <div className="us-field">
+                              <label className="us-label">Tipo de residencia</label>
+                              <select className="us-input" value={formEdit.tipoResidencia||'PROPIETARIO'} onChange={e => setFormEdit({...formEdit,tipoResidencia:e.target.value})}>
+                                <option value="PROPIETARIO">Propietario</option>
+                                <option value="INQUILINO">Inquilino</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {msg[u.id] && msg[u.id] !== 'ok' && <p className="us-err">{msg[u.id]}</p>}
+                    {msg[u.id] === 'ok' && <p className="us-ok">Guardado correctamente</p>}
+
+                    <div className="us-edit-footer">
+                      <button className="us-btn-cancelar" onClick={() => setEditId(null)}>Cancelar</button>
+                      <button className="us-btn-guardar" onClick={() => guardarEditar(u)}>
+                        <IcoCheck /> Guardar cambios
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
