@@ -1,0 +1,193 @@
+/* ── Overlay y toolbar ──────────────────────────────────────── */
+.rd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.7);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 0 0 40px 0;
+}
+
+.rd-toolbar {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  margin-bottom: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rd-toolbar-titulo {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+}
+
+.rd-toolbar-acciones { display: flex; align-items: center; gap: 10px; }
+
+.rd-btn-descargar {
+  display: flex; align-items: center; gap: 7px;
+  background: #2563EB; color: #fff; border: none;
+  padding: 9px 18px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: background 0.15s ease;
+}
+.rd-btn-descargar:hover { background: #1D4ED8; }
+
+.rd-btn-cerrar {
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s ease;
+}
+.rd-btn-cerrar:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Hoja de papel ──────────────────────────────────────────── */
+.rd-paper-wrap {
+  width: 100%;
+  max-width: 640px;
+  padding: 0 20px;
+}
+
+.rd-paper {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Header del recibo ──────────────────────────────────────── */
+.rd-header {
+  background: #0F172A;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rd-header-left { display: flex; align-items: center; gap: 14px; }
+
+.rd-logo-wrap {
+  width: 48px; height: 48px;
+  background: #fff; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.rd-logo { width: 34px; height: 34px; object-fit: contain; }
+
+.rd-brand-nombre { font-size: 1.1rem; font-weight: 800; color: #fff; margin: 0 0 2px 0; }
+.rd-brand-sub    { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin: 0; }
+
+.rd-header-right { text-align: right; }
+.rd-recibo-label {
+  font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.12em; margin: 0 0 4px 0;
+}
+.rd-recibo-num { font-size: 1.1rem; font-weight: 800; color: #60A5FA; margin: 0; letter-spacing: 1px; }
+
+/* ── Divisor ────────────────────────────────────────────────── */
+.rd-divider {
+  height: 4px;
+  background: linear-gradient(90deg, #2563EB 0%, #0EA5E9 100%);
+}
+
+/* ── Info residente + fecha ─────────────────────────────────── */
+.rd-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 32px 20px;
+  gap: 20px;
+}
+
+.rd-info-bloque { display: flex; flex-direction: column; gap: 4px; }
+.rd-info-bloque-der { text-align: right; align-items: flex-end; }
+
+.rd-info-lbl {
+  font-size: 0.68rem; font-weight: 700; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.08em; margin: 0;
+}
+.rd-info-val  { font-size: 0.92rem; font-weight: 600; color: #0F172A; margin: 0; }
+.rd-nombre    { font-size: 1.05rem; font-weight: 800; }
+.rd-info-sub  { font-size: 0.78rem; color: #64748B; margin: 0; }
+
+.rd-estado-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #DCFCE7; color: #166534;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; margin-top: 4px;
+}
+
+/* ── Tabla de detalle ───────────────────────────────────────── */
+.rd-tabla { margin: 0 32px; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
+
+.rd-tabla-head {
+  display: grid; grid-template-columns: 1fr 0.7fr 0.6fr;
+  padding: 10px 16px;
+  background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+  font-size: 0.68rem; font-weight: 700; color: #64748B;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.rd-tabla-head span:last-child { text-align: right; }
+
+.rd-tabla-row {
+  display: grid; grid-template-columns: 1fr 0.7fr 0.6fr;
+  padding: 14px 16px; align-items: center;
+}
+.rd-tabla-desc    { font-size: 0.9rem; font-weight: 600; color: #0F172A; }
+.rd-tabla-periodo { font-size: 0.875rem; color: #475569; }
+.rd-tabla-monto   { font-size: 0.95rem; font-weight: 700; color: #0F172A; text-align: right; }
+
+/* ── Total ──────────────────────────────────────────────────── */
+.rd-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 0 32px;
+  padding: 16px;
+  background: #0F172A;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+.rd-total-lbl { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.06em; }
+.rd-total-val { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+
+/* ── Método de pago ─────────────────────────────────────────── */
+.rd-pago-detalle {
+  display: flex; gap: 32px;
+  padding: 18px 32px 0;
+}
+.rd-pago-item  { display: flex; flex-direction: column; gap: 3px; }
+.rd-pago-lbl   { font-size: 0.68rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.07em; }
+.rd-pago-val   { font-size: 0.875rem; font-weight: 600; color: #0F172A; }
+.rd-codigo     { font-family: monospace; font-size: 0.82rem; color: #475569; }
+
+/* ── Voucher ────────────────────────────────────────────────── */
+.rd-voucher-sec { padding: 18px 32px 0; }
+.rd-voucher-lbl {
+  font-size: 0.68rem; font-weight: 700; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px;
+}
+.rd-voucher-img {
+  max-width: 200px; max-height: 160px;
+  border-radius: 8px; border: 1px solid #E2E8F0;
+  object-fit: contain; display: block;
+}
+
+/* ── Pie de página ──────────────────────────────────────────── */
+.rd-footer { padding: 20px 32px 24px; margin-top: 20px; }
+.rd-footer-linea { height: 1px; background: #E2E8F0; margin-bottom: 14px; }
+.rd-footer-txt {
+  font-size: 0.72rem; color: #94A3B8; line-height: 1.6;
+  margin: 0 0 6px 0; text-align: center;
+}
+.rd-footer-marca {
+  font-size: 0.72rem; font-weight: 700; color: #CBD5E1;
+  text-align: center; margin: 0; letter-spacing: 0.05em;
+}

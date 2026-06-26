@@ -166,14 +166,14 @@
 
 .rb-detalle-acciones { display: flex; align-items: center; gap: 8px; }
 
-.rb-btn-imprimir {
+.rb-btn-ver-recibo {
   display: flex; align-items: center; gap: 6px;
-  background: none; border: 1.5px solid #E2E8F0;
-  color: #475569; font-size: 0.8rem; font-weight: 600;
-  font-family: inherit; padding: 7px 14px; border-radius: 8px;
-  cursor: pointer; transition: all 0.15s ease;
+  background: #0F172A; color: #fff; border: none;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: background 0.18s ease;
 }
-.rb-btn-imprimir:hover { border-color: #0F172A; color: #0F172A; }
+.rb-btn-ver-recibo:hover { background: #2563EB; }
 
 .rb-btn-cerrar {
   background: none; border: none; cursor: pointer;

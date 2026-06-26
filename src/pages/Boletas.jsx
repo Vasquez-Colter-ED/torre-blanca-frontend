@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import ReciboDetalle from '../components/ReciboDetalle'
 import './Boletas.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE','SECRETARIO','TESORERO']
@@ -39,9 +40,10 @@ function ResidenteRecibos({ user }) {
   const [boletas,    setBoletas]    = useState([])
   const [loading,    setLoading]    = useState(true)
   const [anio,       setAnio]       = useState(ahora.getFullYear())
-  const [mesSelec,   setMesSelec]   = useState(null) // 1-12
+  const [mesSelec,   setMesSelec]   = useState(null)
+  const [reciboOpen, setReciboOpen] = useState(null) // boleta para mostrar en ReciboDetalle
   const [error,      setError]      = useState('')
-  const detalleRef = useRef(null)
+  const detalleRef = useRef()
 
   useEffect(() => { cargarBoletas() }, [])
 
@@ -179,8 +181,8 @@ function ResidenteRecibos({ user }) {
                 <p className="rb-detalle-periodo">{MESES[mesSelec-1]} {anio}</p>
               </div>
               <div className="rb-detalle-acciones">
-                <button className="rb-btn-imprimir" onClick={imprimir}>
-                  <IcoPrint /> Imprimir
+                <button className="rb-btn-ver-recibo" onClick={() => setReciboOpen(reciboSelec)}>
+                  <IcoDoc /> Ver recibo completo
                 </button>
                 <button className="rb-btn-cerrar" onClick={() => setMesSelec(null)}>
                   <IcoX />
@@ -254,6 +256,15 @@ function ResidenteRecibos({ user }) {
           <p className="rb-empty-t">Sin recibos aún</p>
           <p className="rb-empty-s">Cuando realices un pago verificado, aparecerá aquí.</p>
         </div>
+      )}
+
+      {/* Recibo completo con descarga PDF */}
+      {reciboOpen && (
+        <ReciboDetalle
+          boleta={reciboOpen}
+          anio={anio}
+          onCerrar={() => setReciboOpen(null)}
+        />
       )}
     </div>
   )
