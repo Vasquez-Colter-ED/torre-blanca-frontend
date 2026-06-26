@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import './PagoTarjeta.css'
 
@@ -13,8 +14,10 @@ const cargarSDK = () => new Promise((resolve) => {
 })
 
 export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExito, onCancelar }) {
+  const { user } = useAuth()
+
   const [mp,       setMp]       = useState(null)
-  const [form,     setForm]     = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', pagadorId: '', email: '' })
+  const [form,     setForm]     = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', tipoDoc: 'DNI', numeroDoc: '', email: user?.email || '' })
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
   const [sdkListo, setSdkListo] = useState(false)
@@ -43,6 +46,8 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
         cardExpirationMonth: mes,
         cardExpirationYear:  '20' + anio,
         securityCode:        form.cvv,
+        identificationType:  form.tipoDoc,
+        identificationNumber: form.numeroDoc,
       })
       if (tokenData.error) { setError('Datos de tarjeta inválidos. Verifica e intenta de nuevo.'); setLoading(false); return }
       await api.post('/api/mercadopago/pagar', {
@@ -60,27 +65,20 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
   }
 
   return (
-    <div className="pago-tarjeta">
-      <div className="pago-tarjeta-header">
-        <h3 className="pago-tarjeta-titulo">Pagar con tarjeta</h3>
-        <p className="pago-tarjeta-monto">
-          Depto <strong>{cuota.numeroDepartamento}</strong> · Monto a pagar: <strong className="monto-fijo">S/ {cuota.montoCalculado?.toFixed(2)}</strong>
-        </p>
-        <p className="pago-tarjeta-hint">🔒 El monto es fijo y no puede modificarse</p>
-      </div>
+    <div className="pt-wrap">
+      {esDirectivo && (
+        <div className="pt-field pt-full">
+          <label className="pt-label">¿Quién está pagando?</label>
+          <select className="pt-input" value={form.pagadorId} onChange={e => setForm({...form, pagadorId: e.target.value})}>
+            <option value="">-- Selecciona el residente --</option>
+            {residentesDepto.map(r => (
+              <option key={r.id} value={r.id}>{r.nombre} ({r.tipo === 'PROPIETARIO' ? 'Propietario' : 'Inquilino'})</option>
+            ))}
+          </select>
+        </div>
+      )}
 
-      <div className="pago-tarjeta-form">
-        {esDirectivo && (
-          <div className="pt-field pt-full">
-            <label className="pt-label">¿Quién está pagando?</label>
-            <select className="pt-input" value={form.pagadorId} onChange={e => setForm({...form, pagadorId: e.target.value})}>
-              <option value="">-- Selecciona el residente --</option>
-              {residentesDepto.map(r => (
-                <option key={r.id} value={r.id}>{r.nombre} ({r.tipo === 'PROPIETARIO' ? 'Propietario' : 'Inquilino'})</option>
-              ))}
-            </select>
-          </div>
-        )}
+      <div className="pt-grid">
         <div className="pt-field pt-full">
           <label className="pt-label">Número de tarjeta</label>
           <input className="pt-input pt-numero" value={form.numero}
@@ -88,10 +86,26 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
             placeholder="0000 0000 0000 0000" maxLength={19} inputMode="numeric" />
         </div>
         <div className="pt-field pt-full">
-          <label className="pt-label">Nombre en la tarjeta</label>
+          <label className="pt-label">Nombre del titular</label>
           <input className="pt-input" value={form.nombre}
             onChange={e => setForm({...form, nombre: e.target.value.toUpperCase()})}
             placeholder="COMO APARECE EN LA TARJETA" />
+        </div>
+        <div className="pt-field">
+          <label className="pt-label">Tipo de documento</label>
+          <select className="pt-input" value={form.tipoDoc} onChange={e => setForm({...form, tipoDoc: e.target.value})}>
+            <option value="DNI">DNI</option>
+            <option value="CE">CE</option>
+            <option value="RUC">RUC</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div className="pt-field">
+          <label className="pt-label">Número de documento</label>
+          <input className="pt-input" value={form.numeroDoc}
+            onChange={e => setForm({...form, numeroDoc: e.target.value.replace(/\D/g,'').slice(0,12)})}
+            placeholder={form.tipoDoc === 'DNI' ? '12345678' : form.tipoDoc === 'RUC' ? '20123456789' : ''}
+            inputMode="numeric" />
         </div>
         <div className="pt-field">
           <label className="pt-label">Vencimiento</label>
@@ -113,15 +127,23 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
         </div>
       </div>
 
-      {error && <div className="pago-tarjeta-error">{error}</div>}
+      {error && <div className="pt-error">{error}</div>}
 
-      <div className="pago-tarjeta-acciones">
-        <button className="btn-pt-cancelar" onClick={onCancelar} disabled={loading}>Cancelar</button>
-        <button className="btn-pt-pagar" onClick={procesarPago} disabled={loading || !sdkListo}>
-          {loading ? 'Procesando...' : `Pagar S/ ${cuota.montoCalculado?.toFixed(2)}`}
+      <div className="pt-acciones">
+        <button className="pt-btn-cancelar" onClick={onCancelar} disabled={loading}>
+          Cancelar
+        </button>
+        <button className="pt-btn-pagar" onClick={procesarPago} disabled={loading || !sdkListo}>
+          {loading ? 'Procesando...' : `Pagar S/ ${Number(cuota.montoCalculado)?.toFixed(2)}`}
         </button>
       </div>
-      <p className="pago-seguro-hint">🔐 Pago seguro procesado por Mercado Pago</p>
+
+      <div className="pt-seguro">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Pago seguro procesado por Mercado Pago
+      </div>
     </div>
   )
 }
