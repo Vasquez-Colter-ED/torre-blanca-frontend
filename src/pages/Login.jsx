@@ -55,13 +55,17 @@ export default function Login() {
   // ── Paso 1: enviar código ─────────────────────────────────────────
   const handleEnviarCodigo = async (e) => {
     e.preventDefault()
+    if (!emailReset.trim()) { setError('Ingresa tu correo electrónico'); return }
     setLoading(true); setError('')
     try {
-      await api.post('/api/auth/recuperar-password', { email: emailReset })
-      setPaso(2)
+      const res = await api.post('/api/auth/recuperar-password', { email: emailReset })
+      if (res.data?.exito === false) {
+        setError('No encontramos una cuenta con ese correo. Verifica que sea el correo con el que te registraste.')
+      } else {
+        setPaso(2)
+      }
     } catch (err) {
-      // Siempre avanzamos para no revelar si el email existe
-      setPaso(2)
+      setError('No encontramos una cuenta con ese correo. Verifica que sea el correo con el que te registraste.')
     } finally { setLoading(false) }
   }
 
@@ -254,9 +258,10 @@ export default function Login() {
                 ))}
               </div>
               <p className="digit-hint">
-                ¿No llegó? Revisa tu carpeta de spam o{' '}
+                Revisa la bandeja de <strong>{emailReset}</strong>.<br />
+                Asegúrate que ese correo esté registrado en el sistema.{' '}
                 <button type="button" className="link-olvide" onClick={() => { setPaso(1); setDigitos(['','','','','','']); setError('') }}>
-                  vuelve a enviarlo
+                  Cambiar correo
                 </button>
               </p>
 
