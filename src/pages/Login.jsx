@@ -174,7 +174,7 @@ export default function Login() {
 
           {sesionExpirada && paso === 0 && (
             <div className="login-alert login-alert-warning">
-              🔒 Tu sesión fue cerrada porque iniciaste sesión desde otro dispositivo.
+              Tu sesión fue cerrada porque iniciaste sesión desde otro dispositivo.
             </div>
           )}
 
@@ -275,8 +275,12 @@ export default function Login() {
           {paso === 3 && (
             <form onSubmit={handleNuevaPassword} className="login-form" noValidate>
               {msgExito ? (
-                <div className="login-alert login-alert-success" style={{textAlign:'center', padding:'20px'}}>
-                  <div style={{fontSize:'2rem', marginBottom:'8px'}}>✅</div>
+                <div className="login-alert login-alert-success login-success-final">
+                  <div className="login-success-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
                   {msgExito}
                 </div>
               ) : (

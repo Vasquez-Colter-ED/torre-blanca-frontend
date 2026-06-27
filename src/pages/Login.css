@@ -444,3 +444,135 @@
   .login-form { gap: 14px; }
   .login-footer { margin-top: 16px; }
 }
+
+/* ── Recuperación de contraseña ──────────────────────────────────────── */
+
+/* Barra de progreso por pasos */
+.recovery-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+}
+
+.progress-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--slate-200);
+  color: var(--slate-400);
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+}
+
+.progress-step-active .progress-dot {
+  background: var(--blue);
+  color: #fff;
+}
+
+.progress-step-done .progress-dot {
+  background: #059669;
+  color: #fff;
+}
+
+.progress-line {
+  width: 48px;
+  height: 2px;
+  background: var(--slate-200);
+  margin: 0 2px;
+  transition: background var(--transition);
+}
+
+.progress-line-done {
+  background: #059669;
+}
+
+/* Botón volver */
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--slate-600);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: center;
+  transition: color var(--transition);
+}
+.btn-back:hover { color: var(--navy); }
+
+/* Cajitas de código de 6 dígitos */
+.digit-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.digit-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--navy);
+  background: var(--slate-50);
+  border: 2px solid var(--slate-200);
+  border-radius: 10px;
+  outline: none;
+  font-family: monospace;
+  caret-color: var(--blue);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.digit-box:focus {
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: var(--shadow-input);
+}
+
+.digit-box-filled {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.digit-hint {
+  font-size: 0.8rem;
+  color: var(--slate-400);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Éxito final */
+.login-success-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 28px 20px;
+}
+
+.login-success-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #059669;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
