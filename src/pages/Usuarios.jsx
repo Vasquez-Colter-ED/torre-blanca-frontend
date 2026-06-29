@@ -21,6 +21,11 @@ const IcoEdit  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="non
 const IcoCheck = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
 const IcoX     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 const IcoPlus  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+const IcoEye   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+const IcoEyeOff= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+
+// Solo letras y tildes
+const soloLetras = v => v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')
 
 const iniciales = u => ((u?.nombre?.[0] || '') + (u?.apellido?.[0] || '')).toUpperCase()
 const cargoDirectivo = u => u.roles?.find(r => CARGOS_DIRECTIVOS.includes(r.nombre))
@@ -53,6 +58,7 @@ export default function Usuarios() {
   const [msgNuevo,   setMsgNuevo]   = useState('')
   const [errNuevo,   setErrNuevo]   = useState('')
   const [error,      setError]      = useState('')
+  const [verPass,    setVerPass]    = useState(false)
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -198,11 +204,13 @@ export default function Usuarios() {
           <div className="us-crear-grid">
             <div className="us-field">
               <label className="us-label">Nombre <span className="us-req">*</span></label>
-              <input className="us-input" value={formNuevo.nombre} onChange={e => setFormNuevo({ ...formNuevo, nombre: e.target.value })} />
+              <input className="us-input" value={formNuevo.nombre}
+                onChange={e => setFormNuevo({ ...formNuevo, nombre: soloLetras(e.target.value) })} />
             </div>
             <div className="us-field">
               <label className="us-label">Apellido <span className="us-req">*</span></label>
-              <input className="us-input" value={formNuevo.apellido} onChange={e => setFormNuevo({ ...formNuevo, apellido: e.target.value })} />
+              <input className="us-input" value={formNuevo.apellido}
+                onChange={e => setFormNuevo({ ...formNuevo, apellido: soloLetras(e.target.value) })} />
             </div>
             <div className="us-field">
               <label className="us-label">Correo <span className="us-label-hint">(o DNI)</span></label>
@@ -218,7 +226,14 @@ export default function Usuarios() {
             </div>
             <div className="us-field">
               <label className="us-label">Contraseña <span className="us-req">*</span></label>
-              <input className="us-input" type="password" value={formNuevo.password} onChange={e => setFormNuevo({ ...formNuevo, password: e.target.value })} />
+              <div className="us-pass-wrap">
+                <input className="us-input us-pass-input" type={verPass ? 'text' : 'password'}
+                  value={formNuevo.password}
+                  onChange={e => setFormNuevo({ ...formNuevo, password: e.target.value })} />
+                <button type="button" className="us-pass-toggle" onClick={() => setVerPass(v => !v)}>
+                  {verPass ? <IcoEyeOff /> : <IcoEye />}
+                </button>
+              </div>
             </div>
           </div>
 
