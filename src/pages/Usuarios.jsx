@@ -300,7 +300,7 @@ export default function Usuarios() {
 
           return (
             <div key={u.id} className={`us-fila-wrap ${abierto ? 'us-fila-wrap-open' : ''}`}>
-              <div className={`us-fila us-fila-7 ${abierto ? 'us-fila-active' : ''}`}>
+              <div className={`us-fila ${abierto ? 'us-fila-active' : ''}`}>
 
                 {/* Avatar + nombre */}
                 <div className="us-col-usuario">
