@@ -78,11 +78,17 @@
 
 .us-tabla-head {
   display: grid;
-  grid-template-columns: 2.2fr 0.8fr 1.2fr 1fr 0.8fr 1fr;
+  grid-template-columns: 2fr 0.7fr 1fr 0.9fr 1fr 0.7fr 0.9fr;
   gap: 12px; padding: 11px 20px;
   background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
   font-size: 0.72rem; font-weight: 700; color: #64748B;
   text-transform: uppercase; letter-spacing: 0.07em;
+}
+.us-fila-7 {
+  display: grid;
+  grid-template-columns: 2fr 0.7fr 1fr 0.9fr 1fr 0.7fr 0.9fr;
+  gap: 12px; padding: 14px 20px;
+  align-items: center;
 }
 
 /* Fila wrapper — contiene la fila y el panel expandible */
@@ -237,6 +243,14 @@
   padding: 48px; text-align: center; color: #94A3B8;
   font-size: 0.875rem; font-weight: 500;
 }
+
+/* Estilos adicionales */
+.us-req         { color: #DC2626; font-size: 0.72rem; }
+.us-label-hint  { font-size: 0.68rem; color: #94A3B8; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.us-crear-sec   { font-size: 0.7rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px 0; }
+.us-crear-sec-top { margin-top: 20px; padding-top: 16px; border-top: 1px solid #F1F5F9; }
+.us-col-depto-num { font-size: 0.82rem; font-weight: 600; color: #0F172A; }
+.us-edit-nota   { font-size: 0.75rem; color: #94A3B8; margin: 8px 0 0 0; font-style: italic; }
 
 /* Responsive */
 @media (max-width: 768px) {
