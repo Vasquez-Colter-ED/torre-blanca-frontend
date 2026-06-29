@@ -146,6 +146,11 @@
 .rd-tabla-periodo { font-size: 0.875rem; color: #475569; }
 .rd-tabla-monto   { font-size: 0.95rem; font-weight: 700; color: #0F172A; text-align: right; }
 
+.rd-tabla-row-comision { background: #FFFBEB; }
+.rd-tabla-desc-comision { color: #92400E; font-size: 0.82rem; }
+.rd-comision-tasa { font-size: 0.72rem; color: #B45309; font-weight: 500; }
+.rd-tabla-monto-comision { color: #92400E; }
+
 /* ── Total ──────────────────────────────────────────────────── */
 .rd-total-row {
   display: flex; justify-content: space-between; align-items: center;

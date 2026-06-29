@@ -101,22 +101,29 @@ export default function ReciboDetalle({ boleta, anio, onCerrar }) {
 
           {/* Tabla de detalle */}
           <div className="rd-tabla">
-            <div className="rd-tabla-head">
-              <span>Descripción</span>
-              <span>Período</span>
-              <span>Monto</span>
-            </div>
-            <div className="rd-tabla-row">
-              <span className="rd-tabla-desc">Cuota de mantenimiento mensual</span>
-              <span className="rd-tabla-periodo">{MESES[boleta.mes-1]} {anio}</span>
-              <span className="rd-tabla-monto">S/ {Number(boleta.monto).toFixed(2)}</span>
-            </div>
+          <div className="rd-tabla-head">
+          <span>Descripción</span>
+          <span>Período</span>
+          <span>Monto</span>
           </div>
+          <div className="rd-tabla-row">
+          <span className="rd-tabla-desc">Cuota de mantenimiento mensual</span>
+          <span className="rd-tabla-periodo">{MESES[boleta.mes-1]} {anio}</span>
+          <span className="rd-tabla-monto">S/ {Number(boleta.monto).toFixed(2)}</span>
+          </div>
+            {boleta.comision > 0 && (
+                <div className="rd-tabla-row rd-tabla-row-comision">
+                  <span className="rd-tabla-desc rd-tabla-desc-comision">Comisión pasarela de pago <span className="rd-comision-tasa">(Mercado Pago · 3.99% + S/ 0.30)</span></span>
+                  <span className="rd-tabla-periodo"></span>
+                  <span className="rd-tabla-monto rd-tabla-monto-comision">S/ {Number(boleta.comision).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
 
           {/* Total */}
           <div className="rd-total-row">
             <span className="rd-total-lbl">Total pagado</span>
-            <span className="rd-total-val">S/ {Number(boleta.monto).toFixed(2)}</span>
+            <span className="rd-total-val">S/ {(Number(boleta.monto) + Number(boleta.comision || 0)).toFixed(2)}</span>
           </div>
 
           {/* Método de pago y operación */}
