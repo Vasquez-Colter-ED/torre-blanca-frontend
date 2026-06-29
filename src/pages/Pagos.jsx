@@ -152,11 +152,15 @@ function PanelPago({ cuota, onExito, onCancelar }) {
 // ══════════════════════════════════════════════════════════════════
 //  TARJETA DE CUOTA
 // ══════════════════════════════════════════════════════════════════
-function CuotaCard({ cuota, pagandoEste, onPagar, onExito, futura }) {
+function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExito, futura }) {
   const estaVencida = cuota.estadoCuota === 'VENCIDO'
   return (
     <div className={`pgr-cuota ${futura ? 'pgr-cuota-futura' : estaVencida ? 'pgr-cuota-vencida' : 'pgr-cuota-pendiente'} ${pagandoEste ? 'pgr-cuota-abierta' : ''}`}>
       <div className="pgr-cuota-fila">
+        <label className="pgr-checkbox-wrap" onClick={e => e.stopPropagation()}>
+          <input type="checkbox" checked={seleccionada || false} onChange={onToggle} className="pgr-checkbox" />
+          <span className="pgr-checkbox-custom">{seleccionada && <IcoCheck />}</span>
+        </label>
         <div className="pgr-cuota-info">
           <p className="pgr-cuota-mes">{etiquetaMes(cuota.mes, cuota.anio)}</p>
           <p className="pgr-cuota-depto">Depto {cuota.numeroDepartamento} · Piso {cuota.piso}</p>
@@ -331,6 +335,8 @@ function ResidentePagos({ user }) {
                 <p className="pgr-sec-lbl">Por pagar</p>
                 {deudas.map(c => (
                   <CuotaCard key={c.cuotaId} cuota={c}
+                    seleccionada={seleccionadas.has(c.cuotaId)}
+                    onToggle={() => toggleSel(c.cuotaId)}
                     pagandoEste={pagandoId === c.cuotaId}
                     onPagar={() => setPagandoId(pagandoId === c.cuotaId ? null : c.cuotaId)}
                     onExito={() => handleExito('Pago enviado. Quedará confirmado una vez verificado.')}
@@ -381,6 +387,8 @@ function ResidentePagos({ user }) {
                 <p className="pgr-sec-lbl">Disponibles para adelantar</p>
                 {futuras.map(c => (
                   <CuotaCard key={c.cuotaId} cuota={c} futura
+                    seleccionada={seleccionadas.has(c.cuotaId)}
+                    onToggle={() => toggleSel(c.cuotaId)}
                     pagandoEste={pagandoId === c.cuotaId}
                     onPagar={() => setPagandoId(pagandoId === c.cuotaId ? null : c.cuotaId)}
                     onExito={() => handleExito('Pago adelantado enviado para verificación.')}
