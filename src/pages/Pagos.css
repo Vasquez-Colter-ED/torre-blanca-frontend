@@ -492,3 +492,38 @@
   .pp-metodos { grid-template-columns: repeat(3,1fr); }
   .pgr-barra  { flex-wrap: wrap; bottom: 16px; }
 }
+
+/* Panel pago múltiple */
+.pgr-panel-multiple {
+  margin-top: 20px;
+  background: #fff;
+  border: 1.5px solid #BFDBFE;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.1);
+  animation: pgr-slide-in 0.2s ease;
+}
+@keyframes pgr-slide-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.pgr-pm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: #F0F7FF; border-bottom: 1px solid #BFDBFE;
+}
+.pgr-pm-titulo { font-size: 0.95rem; font-weight: 800; color: #0F172A; margin: 0; }
+.pgr-pm-close {
+  background: none; border: none; cursor: pointer; color: #64748B;
+  padding: 4px; border-radius: 6px; transition: all 0.15s ease;
+  display: flex; align-items: center;
+}
+.pgr-pm-close:hover { background: #E2E8F0; color: #0F172A; }
+.pgr-pm-resumen {
+  padding: 14px 20px; display: flex; flex-direction: column; gap: 7px;
+  background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+}
+.pgr-pm-fila {
+  display: flex; justify-content: space-between;
+  font-size: 0.875rem; color: #475569;
+}
+.pgr-pm-total {
+  font-size: 0.95rem; font-weight: 800; color: #0F172A;
+  padding-top: 8px; border-top: 1px solid #E2E8F0; margin-top: 4px;
+}

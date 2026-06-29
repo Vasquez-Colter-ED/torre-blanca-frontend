@@ -13,7 +13,13 @@ const cargarSDK = () => new Promise((resolve) => {
   document.body.appendChild(script)
 })
 
-export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExito, onCancelar }) {
+// Comisión Mercado Pago Perú: 3.99% + S/ 0.30 por transacción
+const calcularComision = (monto) => {
+  const comision = Number(monto) * 0.0399 + 0.30
+  return Math.round(comision * 100) / 100
+}
+
+export default function PagoTarjeta({ cuota, cuotaIds, esMultiple, residentesDepto, esDirectivo, onExito, onCancelar }) {
   const { user } = useAuth()
 
   const [mp,       setMp]       = useState(null)
@@ -50,14 +56,14 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
         identificationNumber: form.numeroDoc,
       })
       if (tokenData.error) { setError('Datos de tarjeta inválidos. Verifica e intenta de nuevo.'); setLoading(false); return }
-      await api.post('/api/mercadopago/pagar', {
-        cuotaId:    cuota.cuotaId,
-        token:      tokenData.id,
-        email:      form.email,
-        metodoPago: tokenData.payment_method_id || 'visa',
-        cuotas:     1,
-        pagadorId:  esDirectivo ? Number(form.pagadorId) : null,
-      })
+
+      // Pago múltiple o individual según el contexto
+      const endpoint = esMultiple ? '/api/mercadopago/pagar-multiple' : '/api/mercadopago/pagar'
+      const payload  = esMultiple
+        ? { cuotaIds, token: tokenData.id, email: form.email, metodoPago: tokenData.payment_method_id || 'visa', cuotas: 1 }
+        : { cuotaId: cuota.cuotaId, token: tokenData.id, email: form.email, metodoPago: tokenData.payment_method_id || 'visa', cuotas: 1, pagadorId: esDirectivo ? Number(form.pagadorId) : null }
+
+      await api.post(endpoint, payload)
       onExito()
     } catch (e) {
       setError(e.response?.data || 'No se pudo procesar el pago. Intenta nuevamente.')
@@ -129,12 +135,28 @@ export default function PagoTarjeta({ cuota, residentesDepto, esDirectivo, onExi
 
       {error && <div className="pt-error">{error}</div>}
 
+      {/* Resumen de cobro con comisión */}
+      <div className="pt-resumen-cobro">
+        <div className="pt-resumen-fila">
+          <span>Cuota de mantenimiento</span>
+          <span>S/ {Number(cuota.montoCalculado).toFixed(2)}</span>
+        </div>
+        <div className="pt-resumen-fila pt-resumen-comision">
+          <span>Comisión Mercado Pago <span className="pt-tasa">(3.99% + S/ 0.30)</span></span>
+          <span>S/ {calcularComision(cuota.montoCalculado).toFixed(2)}</span>
+        </div>
+        <div className="pt-resumen-fila pt-resumen-total">
+          <span>Total a cobrar</span>
+          <span>S/ {(Number(cuota.montoCalculado) + calcularComision(cuota.montoCalculado)).toFixed(2)}</span>
+        </div>
+      </div>
+
       <div className="pt-acciones">
         <button className="pt-btn-cancelar" onClick={onCancelar} disabled={loading}>
           Cancelar
         </button>
         <button className="pt-btn-pagar" onClick={procesarPago} disabled={loading || !sdkListo}>
-          {loading ? 'Procesando...' : `Pagar S/ ${Number(cuota.montoCalculado)?.toFixed(2)}`}
+          {loading ? 'Procesando...' : `Pagar S/ ${(Number(cuota.montoCalculado) + calcularComision(cuota.montoCalculado)).toFixed(2)}`}
         </button>
       </div>
 

@@ -105,3 +105,41 @@
   font-weight: 500;
   justify-content: center;
 }
+
+/* Resumen de cobro con comisión */
+.pt-resumen-cobro {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.pt-resumen-comision {
+  color: #64748B;
+  font-size: 0.82rem;
+}
+
+.pt-tasa {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.pt-resumen-total {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  padding-top: 8px;
+  border-top: 1px solid #E2E8F0;
+  margin-top: 2px;
+}

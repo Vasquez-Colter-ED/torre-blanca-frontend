@@ -410,6 +410,42 @@ function ResidentePagos({ user }) {
             </button>
           </div>
         )}
+
+        {/* Panel pago múltiple */}
+        {pagMultiple && cuotasSelArray.length > 0 && (
+          <div className="pgr-panel-multiple">
+            <div className="pgr-pm-header">
+              <h3 className="pgr-pm-titulo">Pago de {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}</h3>
+              <button className="pgr-pm-close" onClick={() => setPagMultiple(false)}><IcoX /></button>
+            </div>
+            <div className="pgr-pm-resumen">
+              {cuotasSelArray.map(c => (
+                <div key={c.cuotaId} className="pgr-pm-fila">
+                  <span>{etiquetaMes(c.mes, c.anio)}</span>
+                  <span>S/ {Number(c.montoCalculado).toFixed(2)}</span>
+                </div>
+              ))}
+              <div className="pgr-pm-fila pgr-pm-total">
+                <span>Total cuotas</span>
+                <span>S/ {totalSel.toFixed(2)}</span>
+              </div>
+            </div>
+            <PagoTarjeta
+              cuota={{
+                cuotaId:          cuotasSelArray[0].cuotaId,
+                montoCalculado:   totalSel,
+                numeroDepartamento: cuotasSelArray[0].numeroDepartamento,
+                piso:             cuotasSelArray[0].piso,
+              }}
+              cuotaIds={cuotasSelArray.map(c => c.cuotaId)}
+              esMultiple={true}
+              residentesDepto={[]}
+              esDirectivo={false}
+              onExito={() => handleExito('Pago múltiple procesado correctamente.')}
+              onCancelar={() => setPagMultiple(false)}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
