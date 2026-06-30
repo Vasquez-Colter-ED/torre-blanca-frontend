@@ -128,6 +128,10 @@ export default function Departamentos() {
     !deptos.some(d => (d.cocheras || []).some(c => c.cocheraId === e.id))
   )
 
+  // Para estacionamientos: qué depto tiene asignada esa cochera
+  const deptoDeEstac = (estacId) =>
+    deptos.find(d => (d.cocheras || []).some(c => c.cocheraId === estacId))
+
   if (loading) return (
     <div className="dpt-page">
       <div className="dpt-skeleton">{[...Array(6)].map((_, i) => <div key={i} className="dpt-skeleton-item" />)}</div>
@@ -209,7 +213,34 @@ export default function Departamentos() {
                 </div>
               )}
 
-              {/* ── Propietario ── */}
+              {/* ── Propietario (deptos) o Depto asignado (estacionamientos) ── */}
+              {esEstac ? (
+                <div className="dpt-seccion">
+                  <div className="dpt-sec-header">
+                    <p className="dpt-sec-titulo">Asignado al departamento</p>
+                    <span className={`dpt-sec-badge ${deptoDeEstac(depto.id) ? 'dpt-sec-badge-ok' : 'dpt-sec-badge-empty'}`}>
+                      {deptoDeEstac(depto.id) ? '1' : '0'}
+                    </span>
+                  </div>
+                  {deptoDeEstac(depto.id) ? (
+                    <div className="dpt-residente-item">
+                      <div className="dpt-res-avatar" style={{ background: '#0F172A', fontSize: '0.7rem' }}>
+                        {deptoDeEstac(depto.id).numero}
+                      </div>
+                      <div className="dpt-res-info">
+                        <p className="dpt-res-nombre">Departamento {deptoDeEstac(depto.id).numero}</p>
+                        <p className="dpt-res-email">
+                          Piso {deptoDeEstac(depto.id).piso}
+                          {deptoDeEstac(depto.id).propietarioNombre && ` · ${deptoDeEstac(depto.id).propietarioNombre}`}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="dpt-vacio-hint"><p>Sin departamento asignado.</p></div>
+                  )}
+                </div>
+              ) : (
+              /* ── Propietario (deptos) ── */
               <div className="dpt-seccion">
                 <div className="dpt-sec-header">
                   <p className="dpt-sec-titulo">Propietario</p>
@@ -246,6 +277,7 @@ export default function Departamentos() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* ── Cocheras (solo deptos) ── */}
               {!esEstac && (
