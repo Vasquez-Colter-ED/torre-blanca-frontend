@@ -147,6 +147,7 @@
   background: #0F172A; color: #fff;
   font-size: 0.72rem; padding: 2px 8px; border-radius: 20px;
 }
+.dpt-pct-total-badge strong { color: #fff; }
 
 .dpt-res-info  { flex: 1; min-width: 0; }
 .dpt-res-nombre { font-size: 0.875rem; font-weight: 700; color: #0F172A; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
