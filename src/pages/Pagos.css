@@ -767,10 +767,18 @@
 }
 .drp-confirm-elim p { font-size: 0.85rem; color: #991B1B; margin: 0 0 10px 0; }
 
+.drp-metodo-calculo-3 { grid-template-columns: repeat(3, 1fr); }
+
+.drp-edit-aviso {
+  font-size: 0.78rem; color: #94A3B8; font-style: italic;
+  margin: 12px 0 0 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .drp-tabla-head, .drp-fila { grid-template-columns: 1.6fr 1fr 36px; }
   .drp-col-residentes, .drp-col-estado { display: none; }
   .drp-form-grid { grid-template-columns: 1fr; }
   .drp-metodo-calculo { grid-template-columns: 1fr; }
+  .drp-metodo-calculo-3 { grid-template-columns: 1fr; }
 }

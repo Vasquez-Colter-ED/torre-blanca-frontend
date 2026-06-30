@@ -740,6 +740,7 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
   const [tipoCalculo,   setTipoCalculo]   = useState('PORCENTAJE')
   const [costoPorM2,    setCostoPorM2]    = useState('')
   const [totalMensual,  setTotalMensual]  = useState('')
+  const [montoFijo,     setMontoFijo]     = useState('')
   const [gastosEst,     setGastosEst]     = useState('')
   const [obs,           setObs]           = useState('')
   const [guardando,     setGuardando]     = useState(false)
@@ -761,12 +762,16 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
     if (tipoCalculo === 'COSTO_M2' && (!costoPorM2 || Number(costoPorM2) <= 0)) {
       setError('Ingresa el costo por metro cuadrado'); return
     }
+    if (tipoCalculo === 'MONTO_FIJO' && (!montoFijo || Number(montoFijo) <= 0)) {
+      setError('Ingresa el monto fijo que pagará cada departamento'); return
+    }
     setGuardando(true)
     try {
       const r = await api.post('/api/pagos/configurar-mes', {
         mes: Number(mes), anio: Number(anio), tipoCalculo,
         costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
         totalMensual: totalMensual ? Number(totalMensual) : null,
+        montoFijo: montoFijo ? Number(montoFijo) : null,
         totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
         observaciones: obs || null,
       })
@@ -795,7 +800,7 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
       </div>
 
       <p className="drp-sec-lbl">Método de cálculo</p>
-      <div className="drp-metodo-calculo">
+      <div className="drp-metodo-calculo drp-metodo-calculo-3">
         <button
           type="button"
           className={`drp-calculo-opt ${tipoCalculo === 'PORCENTAJE' ? 'drp-calculo-opt-active' : ''}`}
@@ -812,18 +817,33 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
           <p className="drp-calculo-nombre">Por metro cuadrado</p>
           <p className="drp-calculo-desc">Costo fijo por m² × área de cada departamento.</p>
         </button>
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'MONTO_FIJO' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('MONTO_FIJO')}
+        >
+          <p className="drp-calculo-nombre">Cuota fija</p>
+          <p className="drp-calculo-desc">Todos los departamentos pagan exactamente el mismo monto.</p>
+        </button>
       </div>
 
       <div className="drp-form-grid">
-        {tipoCalculo === 'PORCENTAJE' ? (
+        {tipoCalculo === 'PORCENTAJE' && (
           <div className="drp-field drp-field-full">
             <label className="drp-label">Monto total mensual a recaudar (S/)</label>
             <input className="drp-input" inputMode="decimal" value={totalMensual} onChange={e => setTotalMensual(soloMonto(e.target.value))} placeholder="Ej: 5120.40" />
           </div>
-        ) : (
+        )}
+        {tipoCalculo === 'COSTO_M2' && (
           <div className="drp-field drp-field-full">
             <label className="drp-label">Costo por m² (S/)</label>
             <input className="drp-input" inputMode="decimal" value={costoPorM2} onChange={e => setCostoPorM2(soloMonto(e.target.value))} />
+          </div>
+        )}
+        {tipoCalculo === 'MONTO_FIJO' && (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Monto fijo por departamento (S/)</label>
+            <input className="drp-input" inputMode="decimal" value={montoFijo} onChange={e => setMontoFijo(soloMonto(e.target.value))} placeholder="Ej: 150.00" />
           </div>
         )}
         <div className="drp-field drp-field-full">
@@ -851,11 +871,14 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
 //  PANEL INLINE — Editar configuración existente
 // ══════════════════════════════════════════════════════════════════
 function PanelEditarConfig({ config, onExito, onCancelar }) {
-  const [costoPorM2, setCostoPorM2] = useState(config.costoPorM2 || '')
-  const [gastosEst,  setGastosEst]  = useState(config.totalGastosEstimados || '')
-  const [obs,        setObs]        = useState(config.observaciones || '')
-  const [guardando,  setGuardando]  = useState(false)
-  const [error,      setError]      = useState('')
+  const [tipoCalculo,  setTipoCalculo]  = useState(config.tipoCalculo || 'COSTO_M2')
+  const [costoPorM2,   setCostoPorM2]   = useState(config.costoPorM2 || '')
+  const [totalMensual, setTotalMensual] = useState(config.totalMensual || '')
+  const [montoFijo,    setMontoFijo]    = useState(config.montoFijo || '')
+  const [gastosEst,    setGastosEst]    = useState(config.totalGastosEstimados || '')
+  const [obs,          setObs]          = useState(config.observaciones || '')
+  const [guardando,    setGuardando]    = useState(false)
+  const [error,        setError]        = useState('')
 
   const soloMonto = (v) => {
     let limpio = v.replace(/[^0-9.]/g, '')
@@ -865,10 +888,23 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
   }
 
   const guardar = async () => {
-    setGuardando(true); setError('')
+    setError('')
+    if (tipoCalculo === 'PORCENTAJE' && (!totalMensual || Number(totalMensual) <= 0)) {
+      setError('Ingresa el monto total mensual a recaudar'); return
+    }
+    if (tipoCalculo === 'COSTO_M2' && (!costoPorM2 || Number(costoPorM2) <= 0)) {
+      setError('Ingresa el costo por metro cuadrado'); return
+    }
+    if (tipoCalculo === 'MONTO_FIJO' && (!montoFijo || Number(montoFijo) <= 0)) {
+      setError('Ingresa el monto fijo que pagará cada departamento'); return
+    }
+    setGuardando(true)
     try {
       await api.put(`/api/pagos/configuraciones/${config.id}`, {
+        tipoCalculo,
         costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
+        totalMensual: totalMensual ? Number(totalMensual) : null,
+        montoFijo: montoFijo ? Number(montoFijo) : null,
         totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
         observaciones: obs || null,
       })
@@ -880,11 +916,54 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
   return (
     <div className="drp-config-panel">
       <p className="drp-form-titulo">Editar {MESES[config.mes - 1]} {config.anio}</p>
+
+      <p className="drp-sec-lbl">Método de cálculo</p>
+      <div className="drp-metodo-calculo drp-metodo-calculo-3">
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'PORCENTAJE' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('PORCENTAJE')}
+        >
+          <p className="drp-calculo-nombre">Por alícuota</p>
+          <p className="drp-calculo-desc">% de participación × monto total a recaudar. Incluye cocheras automáticamente.</p>
+        </button>
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'COSTO_M2' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('COSTO_M2')}
+        >
+          <p className="drp-calculo-nombre">Por metro cuadrado</p>
+          <p className="drp-calculo-desc">Costo fijo por m² × área de cada departamento.</p>
+        </button>
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'MONTO_FIJO' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('MONTO_FIJO')}
+        >
+          <p className="drp-calculo-nombre">Cuota fija</p>
+          <p className="drp-calculo-desc">Todos los departamentos pagan exactamente el mismo monto.</p>
+        </button>
+      </div>
+
       <div className="drp-form-grid">
-        <div className="drp-field drp-field-full">
-          <label className="drp-label">Costo por m² (S/)</label>
-          <input className="drp-input" inputMode="decimal" value={costoPorM2} onChange={e => setCostoPorM2(soloMonto(e.target.value))} />
-        </div>
+        {tipoCalculo === 'PORCENTAJE' && (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Monto total mensual a recaudar (S/)</label>
+            <input className="drp-input" inputMode="decimal" value={totalMensual} onChange={e => setTotalMensual(soloMonto(e.target.value))} />
+          </div>
+        )}
+        {tipoCalculo === 'COSTO_M2' && (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Costo por m² (S/)</label>
+            <input className="drp-input" inputMode="decimal" value={costoPorM2} onChange={e => setCostoPorM2(soloMonto(e.target.value))} />
+          </div>
+        )}
+        {tipoCalculo === 'MONTO_FIJO' && (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Monto fijo por departamento (S/)</label>
+            <input className="drp-input" inputMode="decimal" value={montoFijo} onChange={e => setMontoFijo(soloMonto(e.target.value))} />
+          </div>
+        )}
         <div className="drp-field drp-field-full">
           <label className="drp-label">Total de gastos estimados</label>
           <input className="drp-input" inputMode="decimal" value={gastosEst} onChange={e => setGastosEst(soloMonto(e.target.value))} />
@@ -894,6 +973,9 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
           <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} />
         </div>
       </div>
+
+      <p className="drp-edit-aviso">Al guardar se recalcularán automáticamente los montos de todas las cuotas de este mes según la fórmula seleccionada.</p>
+
       {error && <p className="pm-error">{error}</p>}
       <div className="drp-form-footer">
         <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
@@ -926,7 +1008,6 @@ function DirectivoPagos({ user }) {
 
   const [crearConfigOpen, setCrearConfigOpen] = useState(false)
   const [editConfigId,    setEditConfigId]    = useState(null)
-  const [confirmarElim,   setConfirmarElim]   = useState(null)
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
@@ -964,14 +1045,6 @@ function DirectivoPagos({ user }) {
   const verificarPendiente = async (pagoId, accion) => {
     try {
       await api.patch(`/api/pagos/${pagoId}/verificar`, { accion, observaciones: '' })
-      cargarDatos()
-    } catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const eliminarConfig = async (config) => {
-    try {
-      await api.delete('/api/pagos/configuraciones/' + config.id)
-      setConfirmarElim(null)
       cargarDatos()
     } catch (e) { alert(e.response?.data || 'Error') }
   }
@@ -1138,6 +1211,8 @@ function DirectivoPagos({ user }) {
                     <p className="config-costo">
                       {c.tipoCalculo === 'PORCENTAJE'
                         ? `Por alícuota · S/ ${Number(c.totalMensual || 0).toFixed(2)} total`
+                        : c.tipoCalculo === 'MONTO_FIJO'
+                        ? `Cuota fija · S/ ${Number(c.montoFijo || 0).toFixed(2)} por departamento`
                         : `S/ ${c.costoPorM2} por m²`}
                     </p>
                     {c.observaciones && <p className="config-obs">{c.observaciones}</p>}
@@ -1146,21 +1221,8 @@ function DirectivoPagos({ user }) {
                     <button className="btn btn-ghost btn-sm" onClick={() => { setEditConfigId(editConfigId === c.id ? null : c.id); setCrearConfigOpen(false) }}>
                       <IcoEdit /> Editar
                     </button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setConfirmarElim(confirmarElim === c.id ? null : c.id)}>
-                      <IcoTrash /> Eliminar
-                    </button>
                   </div>
                 </div>
-
-                {confirmarElim === c.id && (
-                  <div className="drp-confirm-elim">
-                    <p>¿Eliminar la configuración de {MESES[c.mes - 1]} {c.anio}? Se borrarán todas las cuotas y pagos asociados.</p>
-                    <div className="drp-form-footer">
-                      <button className="pm-btn-cancelar" onClick={() => setConfirmarElim(null)}>Cancelar</button>
-                      <button className="btn-rechazar-inline" onClick={() => eliminarConfig(c)}>Sí, eliminar</button>
-                    </div>
-                  </div>
-                )}
 
                 {editConfigId === c.id && (
                   <PanelEditarConfig
