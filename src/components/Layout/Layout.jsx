@@ -137,7 +137,9 @@ export default function Layout() {
               <div className="topbar-avatar">{iniciales}</div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{user?.nombre} {user?.apellido}</span>
-                <span className="topbar-user-role">{user?.rol}</span>
+                {ROLES_DIRECTIVOS.includes(user?.rol) && (
+                  <span className="topbar-user-role">{user?.rol}</span>
+                )}
               </div>
               <svg
                 width="14" height="14" viewBox="0 0 24 24" fill="none"
