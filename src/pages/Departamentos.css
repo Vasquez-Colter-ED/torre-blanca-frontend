@@ -252,6 +252,8 @@
   font-size: 0.78rem; color: #64748B;
 }
 .dpt-info-tecnica strong { color: #0F172A; font-weight: 700; }
+.dpt-info-tecnica .dpt-pct-total-badge,
+.dpt-info-tecnica .dpt-pct-total-badge strong { color: #fff !important; }
 
 /* Datos técnicos en cabecera */
 .dpt-datos-tecnicos {
