@@ -527,3 +527,44 @@
   font-size: 0.95rem; font-weight: 800; color: #0F172A;
   padding-top: 8px; border-top: 1px solid #E2E8F0; margin-top: 4px;
 }
+
+/* ── Cuota parcial ── */
+.pgr-cuota-parcial { border-left: 3px solid #F59E0B; }
+.pgr-cuota-saldo {
+  font-size: 0.74rem; color: #B45309; margin: 3px 0 0 0;
+}
+.pgr-cuota-saldo strong { color: #92400E; }
+
+/* ── Campo de monto editable en pago manual ── */
+.pm-monto-wrap {
+  display: flex; align-items: center;
+  border: 1.5px solid #E2E8F0; border-radius: 9px;
+  background: #fff; overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pm-monto-wrap:focus-within { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.pm-monto-prefix {
+  padding: 0 0 0 14px; font-size: 0.95rem; font-weight: 700; color: #64748B;
+}
+.pm-input-monto {
+  border: none !important; box-shadow: none !important;
+  font-size: 1.1rem !important; font-weight: 800; color: #0F172A;
+  padding: 10px 14px 10px 6px !important;
+}
+.pm-input-monto:focus { border: none !important; box-shadow: none !important; }
+.pm-monto-hint {
+  font-size: 0.78rem; color: #64748B; margin: 6px 0 0 0;
+}
+.pm-monto-hint strong { color: #0F172A; }
+.pm-monto-parcial {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 7px;
+  padding: 8px 12px; font-size: 0.78rem; color: #92400E;
+  margin: 8px 0 0 0;
+}
+.pm-monto-parcial strong { color: #78350F; }
+
+/* ── Resumen directivo — tarjeta ambar y monto parcial ── */
+.rc-amber { background: #FFFBEB; border: 1px solid #FDE68A; }
+.rc-amber .rc-value { color: #92400E; }
+.cuota-monto-total { font-size: 0.7rem; color: #94A3B8; font-weight: 500; display: block; }
+.modal-sub-parcial { color: #B45309; font-weight: 600; }

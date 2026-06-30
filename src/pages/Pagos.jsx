@@ -27,6 +27,7 @@ function StatusBadge({ estado }) {
   const map = {
     PAGADO:                 { l:'Pagado',          c:'badge-ok'   },
     VERIFICADO:             { l:'Verificado',       c:'badge-ok'   },
+    PARCIAL:                { l:'Parcial',          c:'badge-warn' },
     PENDIENTE:              { l:'Pendiente',        c:'badge-warn' },
     PENDIENTE_VERIFICACION: { l:'En verificación',  c:'badge-info' },
     VENCIDO:                { l:'Vencido',          c:'badge-err'  },
@@ -40,6 +41,8 @@ function StatusBadge({ estado }) {
 //  FORMULARIO DE PAGO — Transferencia / Efectivo
 // ══════════════════════════════════════════════════════════════════
 function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
+  const saldoPendiente = cuota.saldoPendiente != null ? Number(cuota.saldoPendiente) : Number(cuota.montoCalculado)
+  const [monto,       setMonto]       = useState(saldoPendiente.toFixed(2))
   const [voucherUrl,  setVoucherUrl]  = useState('')
   const [obs,         setObs]         = useState('')
   const [guardando,   setGuardando]   = useState(false)
@@ -47,14 +50,26 @@ function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
 
   const esTransferencia = metodo === 'TRANSFERENCIA' || metodo === 'DEPOSITO' || metodo === 'PLIN'
   const fotoObligatoria = esTransferencia
+  const montoNum = Number(monto)
+  const esParcial = montoNum > 0 && montoNum < saldoPendiente
+
+  const handleMonto = (v) => {
+    // Solo números y un punto decimal — nunca negativos
+    let limpio = v.replace(/[^0-9.]/g, '')
+    const partes = limpio.split('.')
+    if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
+    setMonto(limpio)
+  }
 
   const enviar = async () => {
+    if (!montoNum || montoNum <= 0) { setError('Ingresa un monto válido mayor a cero'); return }
+    if (montoNum > saldoPendiente) { setError(`El monto no puede superar el saldo pendiente de S/ ${saldoPendiente.toFixed(2)}`); return }
     if (fotoObligatoria && !voucherUrl) { setError('La foto del comprobante es obligatoria'); return }
     setGuardando(true); setError('')
     try {
       await api.post('/api/pagos/registrar', {
         cuotaId:         cuota.cuotaId,
-        monto:           cuota.montoCalculado,
+        monto:           montoNum,
         metodoPago:      metodo,
         voucherUrl:      voucherUrl || null,
         observaciones:   obs || null,
@@ -66,6 +81,27 @@ function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
 
   return (
     <div className="pm-form">
+      <div className="pm-field">
+        <label className="pm-label">Monto a pagar (S/)</label>
+        <div className="pm-monto-wrap">
+          <span className="pm-monto-prefix">S/</span>
+          <input
+            className="pm-input pm-input-monto"
+            value={monto}
+            onChange={e => handleMonto(e.target.value)}
+            inputMode="decimal"
+            placeholder="0.00"
+          />
+        </div>
+        <p className="pm-monto-hint">
+          Saldo pendiente de esta cuota: <strong>S/ {saldoPendiente.toFixed(2)}</strong>
+        </p>
+        {esParcial && (
+          <p className="pm-monto-parcial">
+            Pago parcial — quedará un saldo de <strong>S/ {(saldoPendiente - montoNum).toFixed(2)}</strong> después de este pago
+          </p>
+        )}
+      </div>
       <SubirFoto
         onSubida={url => setVoucherUrl(url)}
         obligatorio={fotoObligatoria}
@@ -85,7 +121,7 @@ function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
       <div className="pm-acciones">
         <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
         <button className="pm-btn-enviar" onClick={enviar} disabled={guardando}>
-          {guardando ? 'Enviando...' : 'Enviar para verificación'}
+          {guardando ? 'Enviando...' : `Enviar S/ ${montoNum > 0 ? montoNum.toFixed(2) : '0.00'} para verificación`}
         </button>
       </div>
     </div>
@@ -136,7 +172,10 @@ function PanelPago({ cuota, onExito, onCancelar }) {
         </span>
       </div>
       <div className="pp-monto-ref">
-        Cuota a pagar: <strong>S/ {Number(cuota.montoCalculado).toFixed(2)}</strong> · {etiquetaMes(cuota.mes, cuota.anio)}
+        {cuota.estadoCuota === 'PARCIAL'
+          ? <>Saldo pendiente: <strong>S/ {Number(cuota.saldoPendiente).toFixed(2)}</strong> de S/ {Number(cuota.montoCalculado).toFixed(2)} · {etiquetaMes(cuota.mes, cuota.anio)}</>
+          : <>Cuota a pagar: <strong>S/ {Number(cuota.montoCalculado).toFixed(2)}</strong> · {etiquetaMes(cuota.mes, cuota.anio)}</>
+        }
       </div>
 
       {metodo === 'TARJETA' && (
@@ -154,8 +193,9 @@ function PanelPago({ cuota, onExito, onCancelar }) {
 // ══════════════════════════════════════════════════════════════════
 function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExito, futura }) {
   const estaVencida = cuota.estadoCuota === 'VENCIDO'
+  const esParcial   = cuota.estadoCuota === 'PARCIAL'
   return (
-    <div className={`pgr-cuota ${futura ? 'pgr-cuota-futura' : estaVencida ? 'pgr-cuota-vencida' : 'pgr-cuota-pendiente'} ${pagandoEste ? 'pgr-cuota-abierta' : ''}`}>
+    <div className={`pgr-cuota ${futura ? 'pgr-cuota-futura' : estaVencida ? 'pgr-cuota-vencida' : esParcial ? 'pgr-cuota-parcial' : 'pgr-cuota-pendiente'} ${pagandoEste ? 'pgr-cuota-abierta' : ''}`}>
       <div className="pgr-cuota-fila">
         <label className="pgr-checkbox-wrap" onClick={e => e.stopPropagation()}>
           <input type="checkbox" checked={seleccionada || false} onChange={onToggle} className="pgr-checkbox" />
@@ -164,9 +204,14 @@ function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExit
         <div className="pgr-cuota-info">
           <p className="pgr-cuota-mes">{etiquetaMes(cuota.mes, cuota.anio)}</p>
           <p className="pgr-cuota-depto">Depto {cuota.numeroDepartamento} · Piso {cuota.piso}</p>
+          {esParcial && (
+            <p className="pgr-cuota-saldo">
+              Pagaste S/ {Number(cuota.montoPagado).toFixed(2)} de S/ {Number(cuota.montoCalculado).toFixed(2)} · Saldo: <strong>S/ {Number(cuota.saldoPendiente).toFixed(2)}</strong>
+            </p>
+          )}
         </div>
         <div className="pgr-cuota-der">
-          <span className="pgr-cuota-monto">S/ {Number(cuota.montoCalculado).toFixed(2)}</span>
+          <span className="pgr-cuota-monto">S/ {Number(esParcial ? cuota.saldoPendiente : cuota.montoCalculado).toFixed(2)}</span>
           <StatusBadge estado={futura ? 'PENDIENTE' : cuota.estadoCuota} />
           <button
             className={`pgr-btn-pagar ${pagandoEste ? 'pgr-btn-cancelar-pago' : ''}`}
@@ -217,14 +262,14 @@ function ResidentePagos({ user }) {
 
   const esFuturo = c => c.anio > anioActual || (c.anio === anioActual && c.mes > mesActual)
 
-  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c))
+  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PARCIAL') && !esFuturo(c))
   const enVerif      = cuotas.filter(c => c.estadoCuota === 'PENDIENTE_VERIFICACION')
   const todasFuturas = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c))
     .sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
   const futuras      = verMas ? todasFuturas : todasFuturas.slice(0, 3)
   const pagadas      = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
 
-  const totalDeuda     = deudas.reduce((s,c) => s + Number(c.montoCalculado), 0)
+  const totalDeuda     = deudas.reduce((s,c) => s + Number(c.saldoPendiente != null ? c.saldoPendiente : c.montoCalculado), 0)
   const pagadasAnio    = pagadas.filter(c => c.anio === anioActual).length
   const totalMesesAnio = cuotas.filter(c => c.anio === anioActual).length || 12
   const pctProgreso    = Math.round((pagadasAnio / totalMesesAnio) * 100)
@@ -492,7 +537,8 @@ function DirectivoPagos({ user }) {
 
   const abrirPago = async (cuota) => {
     setSelected(cuota)
-    setForm({ monto: cuota.montoCalculado, metodoPago:'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
+    const saldo = cuota.saldoPendiente != null ? cuota.saldoPendiente : cuota.montoCalculado
+    setForm({ monto: saldo, metodoPago:'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
     setModal('pago'); setMsg(''); setError('')
     if (cuota.departamentoId) {
       try { const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`); setResidentesDepto(r.data) }
@@ -540,8 +586,8 @@ function DirectivoPagos({ user }) {
     catch (e) { alert(e.response?.data || 'Error') }
   }
 
-  const estadoColor = e => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
-  const estadoLabel = e => ({ PENDIENTE:'Pendiente', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
+  const estadoColor = e => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', PARCIAL:'pill-warning', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
+  const estadoLabel = e => ({ PENDIENTE:'Pendiente', PARCIAL:'Parcial', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
 
   return (
     <div className="pagos-page">
@@ -573,6 +619,9 @@ function DirectivoPagos({ user }) {
                 <div className="resumen-card rc-green"><p className="rc-value">S/ {resumen.totalRecaudado?.toFixed(2)}</p><p className="rc-label">Recaudado</p></div>
                 <div className="resumen-card rc-red"><p className="rc-value">S/ {resumen.totalPendiente?.toFixed(2)}</p><p className="rc-label">Por cobrar</p></div>
                 <div className="resumen-card rc-neutral"><p className="rc-value">{resumen.pagados} / {resumen.totalDepartamentos}</p><p className="rc-label">Deptos pagados</p></div>
+                {resumen.parciales > 0 && (
+                  <div className="resumen-card rc-amber"><p className="rc-value">{resumen.parciales}</p><p className="rc-label">Pagos parciales</p></div>
+                )}
               </div>
               <div className="cuotas-lista">
                 {resumen.cuotas?.map(c => (
@@ -583,7 +632,11 @@ function DirectivoPagos({ user }) {
                         ? c.residentesNombres.map((n,i) => <p key={i} className="cuota-responsable">{n}</p>)
                         : <p className="cuota-responsable sin-residente">Sin residentes</p>}
                     </div>
-                    <div className="cuota-monto">S/ {c.montoCalculado?.toFixed(2)}</div>
+                    <div className="cuota-monto">
+                      {c.estadoCuota === 'PARCIAL'
+                        ? <>S/ {Number(c.saldoPendiente).toFixed(2)} <span className="cuota-monto-total">de S/ {c.montoCalculado?.toFixed(2)}</span></>
+                        : <>S/ {c.montoCalculado?.toFixed(2)}</>}
+                    </div>
                     <span className={'pill ' + estadoColor(c.estadoCuota)}>{estadoLabel(c.estadoCuota)}</span>
                     {c.estadoCuota !== 'PAGADO' && <button className="btn btn-ghost btn-sm" onClick={() => abrirPago(c)}>Registrar pago</button>}
                     {c.pagos?.some(p => p.voucherUrl) && (
@@ -654,7 +707,10 @@ function DirectivoPagos({ user }) {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3 className="modal-title">Registrar pago manual</h3>
-            <p className="modal-sub">Depto <strong>{selected?.numeroDepartamento}</strong> · S/ {selected?.montoCalculado?.toFixed(2)}</p>
+            <p className="modal-sub">
+              Depto <strong>{selected?.numeroDepartamento}</strong> · Saldo pendiente: S/ {Number(selected?.saldoPendiente != null ? selected.saldoPendiente : selected?.montoCalculado).toFixed(2)}
+              {selected?.estadoCuota === 'PARCIAL' && <span className="modal-sub-parcial"> (de S/ {Number(selected?.montoCalculado).toFixed(2)} total)</span>}
+            </p>
             <div className="modal-scroll">
               <div className="modal-form">
                 <div className="form-group"><label>Monto (S/)</label><input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:sinNegativos(e.target.value)})} /></div>
