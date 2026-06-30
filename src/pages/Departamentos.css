@@ -132,8 +132,21 @@
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; text-transform: uppercase;
 }
-.dpt-av-prop { background: #0F172A; }
-.dpt-av-inq  { background: #2563EB; }
+.dpt-av-prop    { background: #0F172A; }
+.dpt-av-inq     { background: #2563EB; }
+.dpt-av-cochera { background: #7C3AED; font-size: 0.55rem; font-weight: 800; }
+
+.dpt-badge-cochera {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #F3E8FF; color: #7C3AED;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+}
+
+.dpt-pct-total-badge {
+  background: #0F172A; color: #fff;
+  font-size: 0.72rem; padding: 2px 8px; border-radius: 20px;
+}
 
 .dpt-res-info  { flex: 1; min-width: 0; }
 .dpt-res-nombre { font-size: 0.875rem; font-weight: 700; color: #0F172A; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
