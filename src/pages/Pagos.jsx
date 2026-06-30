@@ -14,14 +14,22 @@ const etiquetaMes = (mes, anio) =>
   mes && anio ? `${MESES[mes - 1]} ${anio}` : '—'
 
 // ── Íconos SVG ──────────────────────────────────────────────────
-const IcoCard  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-const IcoBank  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-const IcoCash  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-const IcoCheck = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-const IcoX     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-const IcoAlert = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-const IcoCal   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const IcoImg   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+const IcoCard     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+const IcoBank     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+const IcoCash     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+const IcoCheck    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+const IcoX        = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+const IcoAlert    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+const IcoCal      = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+const IcoImg      = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+const IcoBuilding = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+const IcoUsers    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+const IcoTrash    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+const IcoEdit     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+const IcoChev     = ({ open }) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}><polyline points="6 9 12 15 18 9"/></svg>
+const IcoSliders  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+const IcoClipboard= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+const IcoPlus     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 
 function StatusBadge({ estado }) {
   const map = {
@@ -54,7 +62,6 @@ function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
   const esParcial = montoNum > 0 && montoNum < saldoPendiente
 
   const handleMonto = (v) => {
-    // Solo números y un punto decimal — nunca negativos
     let limpio = v.replace(/[^0-9.]/g, '')
     const partes = limpio.split('.')
     if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
@@ -223,7 +230,6 @@ function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExit
         </div>
       </div>
 
-      {/* Panel de pago inline — acordeón */}
       <div className={`pgr-panel ${pagandoEste ? 'pgr-panel-open' : ''}`}>
         {pagandoEste && (
           <PanelPago cuota={cuota} onExito={onExito} onCancelar={onPagar} />
@@ -305,7 +311,6 @@ function ResidentePagos({ user }) {
   return (
     <div className="pgr-layout">
 
-      {/* ── Columna izquierda — resumen de cuenta ── */}
       <aside className="pgr-aside">
         <div className="pgr-aside-avatar">{iniciales}</div>
         <h2 className="pgr-aside-nombre">{user?.nombre} {user?.apellido}</h2>
@@ -347,13 +352,11 @@ function ResidentePagos({ user }) {
         )}
       </aside>
 
-      {/* ── Columna derecha — tabs ── */}
       <div className="pgr-main">
 
         {msg   && <div className="pgr-alert pgr-alert-ok"><IcoCheck /> {msg}</div>}
         {error && <div className="pgr-alert pgr-alert-err">{error}</div>}
 
-        {/* Tabs */}
         <div className="pgr-tabs">
           <button className={`pgr-tab ${tab === 'pendientes' ? 'pgr-tab-active' : ''}`} onClick={() => { setTab('pendientes'); setPagandoId(null) }}>
             <IcoAlert />
@@ -367,7 +370,6 @@ function ResidentePagos({ user }) {
           </button>
         </div>
 
-        {/* ── Tab: Deudas ── */}
         {tab === 'pendientes' && (
           <div className="pgr-tab-body">
             {deudas.length === 0 && enVerif.length === 0 && (
@@ -424,7 +426,6 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {/* ── Tab: Próximas ── */}
         {tab === 'proximas' && (
           <div className="pgr-tab-body">
             {todasFuturas.length === 0 && enVerifFuturas.length === 0 ? (
@@ -482,7 +483,6 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {/* Barra de pago múltiple */}
         {seleccionadas.size > 0 && (
           <div className="pgr-barra">
             <button className="pgr-barra-close" onClick={() => setSeleccionadas(new Set())}><IcoX /></button>
@@ -497,7 +497,6 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {/* Panel pago múltiple */}
         {pagMultiple && cuotasSelArray.length > 0 && (
           <div className="pgr-panel-multiple">
             <div className="pgr-pm-header">
@@ -538,6 +537,359 @@ function ResidentePagos({ user }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+//  PANEL INLINE — Registrar pago manual (fila de tabla del directivo)
+// ══════════════════════════════════════════════════════════════════
+function PanelRegistrarPagoDirectivo({ cuota, residentes, onExito, onCancelar }) {
+  const saldoPendiente = cuota.saldoPendiente != null ? Number(cuota.saldoPendiente) : Number(cuota.montoCalculado)
+  const [monto,     setMonto]     = useState(saldoPendiente.toFixed(2))
+  const [pagadorId, setPagadorId] = useState('')
+  const [metodo,    setMetodo]    = useState('TRANSFERENCIA')
+  const [numOp,     setNumOp]     = useState('')
+  const [voucher,   setVoucher]   = useState('')
+  const [obs,       setObs]       = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [error,     setError]     = useState('')
+
+  const montoNum = Number(monto)
+
+  const handleMonto = (v) => {
+    let limpio = v.replace(/[^0-9.]/g, '')
+    const partes = limpio.split('.')
+    if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
+    setMonto(limpio)
+  }
+
+  const guardar = async () => {
+    if (!pagadorId) { setError('Selecciona quién realizó el pago'); return }
+    if (!montoNum || montoNum <= 0) { setError('Ingresa un monto válido mayor a cero'); return }
+    if (montoNum > saldoPendiente) { setError(`El monto no puede superar el saldo pendiente de S/ ${saldoPendiente.toFixed(2)}`); return }
+    setGuardando(true); setError('')
+    try {
+      await api.post('/api/pagos/registrar', {
+        cuotaId: cuota.cuotaId, monto: montoNum, metodoPago: metodo,
+        numeroOperacion: numOp || null, voucherUrl: voucher || null,
+        observaciones: obs || null, pagadorId: Number(pagadorId),
+      })
+      onExito()
+    } catch (e) { setError(e.response?.data || 'Error al registrar el pago') }
+    finally { setGuardando(false) }
+  }
+
+  return (
+    <div className="drp-form">
+      <p className="drp-form-titulo">Registrar pago manual</p>
+      <div className="drp-form-grid">
+        <div className="drp-field">
+          <label className="drp-label">Pagador</label>
+          <select className="drp-input" value={pagadorId} onChange={e => setPagadorId(e.target.value)}>
+            <option value="">Seleccionar residente...</option>
+            {residentes.map(r => <option key={r.id} value={r.id}>{r.nombre} ({r.tipo === 'PROPIETARIO' ? 'Propietario' : 'Inquilino'})</option>)}
+          </select>
+        </div>
+        <div className="drp-field">
+          <label className="drp-label">Monto a registrar (S/)</label>
+          <div className="pm-monto-wrap">
+            <span className="pm-monto-prefix">S/</span>
+            <input className="pm-input pm-input-monto" value={monto} onChange={e => handleMonto(e.target.value)} inputMode="decimal" />
+          </div>
+          <p className="pm-monto-hint">Saldo pendiente: <strong>S/ {saldoPendiente.toFixed(2)}</strong></p>
+        </div>
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Método de pago</label>
+          <div className="metodos-grid">
+            {METODOS_PAGO.map(m => (
+              <button key={m} type="button" className={`metodo-btn ${metodo === m ? 'metodo-active' : ''}`} onClick={() => setMetodo(m)}>{m}</button>
+            ))}
+          </div>
+        </div>
+        <div className="drp-field">
+          <label className="drp-label">N° de operación (opcional)</label>
+          <input className="drp-input" value={numOp} onChange={e => setNumOp(textoLibreEstricto(e.target.value))} />
+        </div>
+        <div className="drp-field drp-field-full">
+          <SubirFoto onSubida={url => setVoucher(url)} obligatorio={false} label="Foto del comprobante (opcional)" />
+        </div>
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Observaciones (opcional)</label>
+          <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} maxLength={200} />
+        </div>
+      </div>
+      {error && <p className="pm-error">{error}</p>}
+      <div className="drp-form-footer">
+        <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
+        <button className="pm-btn-enviar" onClick={guardar} disabled={guardando}>
+          {guardando ? 'Registrando...' : 'Registrar pago'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PANEL INLINE — Pago pendiente bloqueado, aprobar/rechazar directo
+// ══════════════════════════════════════════════════════════════════
+function PanelPagoBloqueado({ pago, onResuelto }) {
+  const [procesando, setProcesando] = useState(false)
+
+  const resolver = async (accion) => {
+    setProcesando(true)
+    try {
+      await api.patch(`/api/pagos/${pago.pagoId}/verificar`, { accion, observaciones: '' })
+      onResuelto()
+    } catch (e) { alert(e.response?.data || 'Error') }
+    finally { setProcesando(false) }
+  }
+
+  return (
+    <div className="drp-bloqueo">
+      <div className="drp-bloqueo-aviso">
+        <IcoAlert />
+        <p>Este departamento tiene un pago esperando revisión. Apruébalo o recházalo para poder registrar uno nuevo.</p>
+      </div>
+      <div className="drp-bloqueo-info">
+        <div className="drp-bloqueo-fila"><span>Pagador</span><strong>{pago.pagadorNombre}</strong></div>
+        <div className="drp-bloqueo-fila"><span>Monto</span><strong>S/ {Number(pago.monto).toFixed(2)}</strong></div>
+        <div className="drp-bloqueo-fila">
+          <span>Método</span>
+          <strong>{pago.metodoPago}{pago.numeroOperacion ? ' · Op: ' + pago.numeroOperacion : ''}</strong>
+        </div>
+        {pago.voucherUrl && (
+          <a href={pago.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
+        )}
+      </div>
+      <div className="drp-form-footer">
+        <button className="btn-rechazar-inline" onClick={() => resolver('RECHAZAR')} disabled={procesando}>Rechazar</button>
+        <button className="pm-btn-enviar" onClick={() => resolver('APROBAR')} disabled={procesando}>
+          {procesando ? 'Procesando...' : 'Aprobar pago'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TABLA DE CUOTAS DEL MES — fila expandible (sin modales)
+// ══════════════════════════════════════════════════════════════════
+function FilaCuota({ cuota, abierto, onToggle, residentes, cargandoResidentes, onExito }) {
+  const pagoPend = (cuota.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+  const esParcial = cuota.estadoCuota === 'PARCIAL'
+  const esPagado  = cuota.estadoCuota === 'PAGADO'
+
+  return (
+    <div className={`drp-fila-wrap ${abierto ? 'drp-fila-wrap-open' : ''}`}>
+      <button className={`drp-fila ${abierto ? 'drp-fila-active' : ''}`} onClick={onToggle}>
+        <div className="drp-col-depto">
+          <div className="drp-depto-avatar"><IcoBuilding /></div>
+          <div>
+            <p className="drp-depto-num">Depto {cuota.numeroDepartamento}</p>
+            <p className="drp-depto-piso">Piso {cuota.piso}</p>
+          </div>
+        </div>
+        <div className="drp-col-residentes">
+          {cuota.residentesNombres?.length > 0
+            ? cuota.residentesNombres.slice(0, 2).map((n, i) => <p key={i} className="drp-residente-nombre">{n}</p>)
+            : <p className="drp-residente-vacio">Sin residentes</p>}
+        </div>
+        <div className="drp-col-monto">
+          {esParcial
+            ? <><span className="drp-monto-principal">S/ {Number(cuota.saldoPendiente).toFixed(2)}</span><span className="drp-monto-sub">de S/ {Number(cuota.montoCalculado).toFixed(2)}</span></>
+            : <span className="drp-monto-principal">S/ {Number(cuota.montoCalculado).toFixed(2)}</span>}
+        </div>
+        <div className="drp-col-estado">
+          <StatusBadge estado={pagoPend ? 'PENDIENTE_VERIFICACION' : cuota.estadoCuota} />
+        </div>
+        <div className="drp-col-chev"><IcoChev open={abierto} /></div>
+      </button>
+
+      <div className={`drp-panel ${abierto ? 'drp-panel-open' : ''}`}>
+        {abierto && (
+          <div className="drp-panel-body">
+            {pagoPend ? (
+              <PanelPagoBloqueado pago={pagoPend} onResuelto={onExito} />
+            ) : esPagado ? (
+              <div className="drp-historial">
+                <p className="drp-historial-titulo">Historial de pagos</p>
+                {(cuota.pagos || []).filter(p => p.estado === 'VERIFICADO').map(p => (
+                  <div key={p.pagoId} className="drp-historial-item">
+                    <span>{p.pagadorNombre}</span>
+                    <span>S/ {Number(p.monto).toFixed(2)}</span>
+                    <span className="drp-historial-fecha">{p.fechaVerificacion ? new Date(p.fechaVerificacion).toLocaleDateString('es-PE') : ''}</span>
+                  </div>
+                ))}
+              </div>
+            ) : cargandoResidentes ? (
+              <p className="drp-cargando">Cargando residentes...</p>
+            ) : (
+              <PanelRegistrarPagoDirectivo cuota={cuota} residentes={residentes} onExito={onExito} onCancelar={onToggle} />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PANEL INLINE — Configurar mes nuevo
+// ══════════════════════════════════════════════════════════════════
+function PanelConfigurarMes({ onExito, onCancelar }) {
+  const ahora = new Date()
+  const [mes,           setMes]           = useState(ahora.getMonth() + 1)
+  const [anio,          setAnio]          = useState(ahora.getFullYear())
+  const [tipoCalculo,   setTipoCalculo]   = useState('PORCENTAJE')
+  const [costoPorM2,    setCostoPorM2]    = useState('')
+  const [totalMensual,  setTotalMensual]  = useState('')
+  const [gastosEst,     setGastosEst]     = useState('')
+  const [obs,           setObs]           = useState('')
+  const [guardando,     setGuardando]     = useState(false)
+  const [error,         setError]         = useState('')
+
+  const guardar = async () => {
+    setError('')
+    if (tipoCalculo === 'PORCENTAJE' && (!totalMensual || Number(totalMensual) <= 0)) {
+      setError('Ingresa el monto total mensual a recaudar'); return
+    }
+    if (tipoCalculo === 'COSTO_M2' && (!costoPorM2 || Number(costoPorM2) <= 0)) {
+      setError('Ingresa el costo por metro cuadrado'); return
+    }
+    setGuardando(true)
+    try {
+      const r = await api.post('/api/pagos/configurar-mes', {
+        mes: Number(mes), anio: Number(anio), tipoCalculo,
+        costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
+        totalMensual: totalMensual ? Number(totalMensual) : null,
+        totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
+        observaciones: obs || null,
+      })
+      onExito(r.data.mensaje)
+    } catch (e) { setError(e.response?.data || 'Error al configurar el mes') }
+    finally { setGuardando(false) }
+  }
+
+  return (
+    <div className="drp-config-panel">
+      <p className="drp-form-titulo">Configurar nuevo mes</p>
+
+      <div className="drp-form-grid">
+        <div className="drp-field">
+          <label className="drp-label">Mes</label>
+          <select className="drp-input" value={mes} onChange={e => setMes(e.target.value)}>
+            {MESES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+          </select>
+        </div>
+        <div className="drp-field">
+          <label className="drp-label">Año</label>
+          <select className="drp-input" value={anio} onChange={e => setAnio(e.target.value)}>
+            {[2024, 2025, 2026].map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <p className="drp-sec-lbl">Método de cálculo</p>
+      <div className="drp-metodo-calculo">
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'PORCENTAJE' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('PORCENTAJE')}
+        >
+          <p className="drp-calculo-nombre">Por alícuota</p>
+          <p className="drp-calculo-desc">% de participación × monto total a recaudar. Incluye cocheras automáticamente.</p>
+        </button>
+        <button
+          type="button"
+          className={`drp-calculo-opt ${tipoCalculo === 'COSTO_M2' ? 'drp-calculo-opt-active' : ''}`}
+          onClick={() => setTipoCalculo('COSTO_M2')}
+        >
+          <p className="drp-calculo-nombre">Por metro cuadrado</p>
+          <p className="drp-calculo-desc">Costo fijo por m² × área de cada departamento.</p>
+        </button>
+      </div>
+
+      <div className="drp-form-grid">
+        {tipoCalculo === 'PORCENTAJE' ? (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Monto total mensual a recaudar (S/)</label>
+            <input className="drp-input" type="number" min="0" step="0.01" value={totalMensual} onChange={e => setTotalMensual(sinNegativos(e.target.value))} placeholder="Ej: 5120.40" />
+          </div>
+        ) : (
+          <div className="drp-field drp-field-full">
+            <label className="drp-label">Costo por m² (S/)</label>
+            <input className="drp-input" type="number" min="0" step="0.01" value={costoPorM2} onChange={e => setCostoPorM2(sinNegativos(e.target.value))} />
+          </div>
+        )}
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Total de gastos estimados (opcional)</label>
+          <input className="drp-input" type="number" min="0" step="0.01" value={gastosEst} onChange={e => setGastosEst(sinNegativos(e.target.value))} />
+        </div>
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Observaciones (opcional)</label>
+          <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} placeholder="Ej: Incluye aumento de personal de mantenimiento" />
+        </div>
+      </div>
+
+      {error && <p className="pm-error">{error}</p>}
+      <div className="drp-form-footer">
+        <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
+        <button className="pm-btn-enviar" onClick={guardar} disabled={guardando}>
+          {guardando ? 'Generando...' : 'Generar cuotas del mes'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PANEL INLINE — Editar configuración existente
+// ══════════════════════════════════════════════════════════════════
+function PanelEditarConfig({ config, onExito, onCancelar }) {
+  const [costoPorM2, setCostoPorM2] = useState(config.costoPorM2 || '')
+  const [gastosEst,  setGastosEst]  = useState(config.totalGastosEstimados || '')
+  const [obs,        setObs]        = useState(config.observaciones || '')
+  const [guardando,  setGuardando]  = useState(false)
+  const [error,      setError]      = useState('')
+
+  const guardar = async () => {
+    setGuardando(true); setError('')
+    try {
+      await api.put(`/api/pagos/configuraciones/${config.id}`, {
+        costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
+        totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
+        observaciones: obs || null,
+      })
+      onExito()
+    } catch (e) { setError(e.response?.data || 'Error al actualizar') }
+    finally { setGuardando(false) }
+  }
+
+  return (
+    <div className="drp-config-panel">
+      <p className="drp-form-titulo">Editar {MESES[config.mes - 1]} {config.anio}</p>
+      <div className="drp-form-grid">
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Costo por m² (S/)</label>
+          <input className="drp-input" type="number" min="0" step="0.01" value={costoPorM2} onChange={e => setCostoPorM2(sinNegativos(e.target.value))} />
+        </div>
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Total de gastos estimados</label>
+          <input className="drp-input" type="number" min="0" step="0.01" value={gastosEst} onChange={e => setGastosEst(sinNegativos(e.target.value))} />
+        </div>
+        <div className="drp-field drp-field-full">
+          <label className="drp-label">Observaciones</label>
+          <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} />
+        </div>
+      </div>
+      {error && <p className="pm-error">{error}</p>}
+      <div className="drp-form-footer">
+        <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
+        <button className="pm-btn-enviar" onClick={guardar} disabled={guardando}>
+          {guardando ? 'Guardando...' : 'Guardar cambios'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 //  VISTA DIRECTIVO
 // ══════════════════════════════════════════════════════════════════
 function DirectivoPagos({ user }) {
@@ -549,123 +901,111 @@ function DirectivoPagos({ user }) {
   const [configs,    setConfigs]    = useState([])
   const [loading,    setLoading]    = useState(false)
   const [tab,        setTab]        = useState('resumen')
-  const [modal,      setModal]      = useState(null)
-  const [selected,   setSelected]   = useState(null)
-  const [form,       setForm]       = useState({})
   const [msg,        setMsg]        = useState('')
   const [error,      setError]      = useState('')
-  const [residentesDepto, setResidentesDepto] = useState([])
+
+  const [expandedId,    setExpandedId]    = useState(null)
+  const [residentesPorDepto, setResidentesPorDepto] = useState({})
+  const [cargandoResidentes, setCargandoResidentes]  = useState(false)
+
+  const [crearConfigOpen, setCrearConfigOpen] = useState(false)
+  const [editConfigId,    setEditConfigId]    = useState(null)
+  const [confirmarElim,   setConfirmarElim]   = useState(null)
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
   const cargarDatos = async () => {
     setLoading(true); setError('')
     try {
-      if (tab === 'resumen')    { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
-      if (tab === 'pendientes') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
-      if (tab === 'configurar') { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
+      if (tab === 'resumen')        { const r = await api.get(`/api/pagos/resumen/${anio}/${mes}`); setResumen(r.data) }
+      if (tab === 'verificaciones') { const r = await api.get('/api/pagos/pendientes'); setPendientes(r.data) }
+      if (tab === 'configuracion')  { const r = await api.get('/api/pagos/configuraciones'); setConfigs(r.data) }
     } catch (e) { setError(e.response?.status === 400 ? e.response.data : 'Error al cargar datos') }
     finally { setLoading(false) }
   }
 
-  const abrirPago = async (cuota) => {
-    // Si esta cuota ya tiene un pago pendiente de verificación, no abrimos
-    // el formulario de registro — mostramos primero el aviso para que el
-    // directivo lo resuelva (apruebe o rechace) antes de registrar uno nuevo
+  const toggleFila = async (cuota) => {
+    if (expandedId === cuota.cuotaId) { setExpandedId(null); return }
+    setExpandedId(cuota.cuotaId)
     const pagoPend = (cuota.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
-    if (pagoPend) {
-      setSelected(cuota)
-      setForm({ pagoPendienteId: pagoPend.pagoId, pagoPendienteInfo: pagoPend })
-      setModal('bloqueoPendiente'); setMsg(''); setError('')
-      return
-    }
-    setSelected(cuota)
-    const saldo = cuota.saldoPendiente != null ? cuota.saldoPendiente : cuota.montoCalculado
-    setForm({ monto: saldo, metodoPago:'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
-    setModal('pago'); setMsg(''); setError('')
-    if (cuota.departamentoId) {
-      try { const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`); setResidentesDepto(r.data) }
-      catch { setResidentesDepto([]) }
+    if (!pagoPend && cuota.estadoCuota !== 'PAGADO' && !residentesPorDepto[cuota.departamentoId]) {
+      setCargandoResidentes(true)
+      try {
+        const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`)
+        setResidentesPorDepto(prev => ({ ...prev, [cuota.departamentoId]: r.data }))
+      } catch { setResidentesPorDepto(prev => ({ ...prev, [cuota.departamentoId]: [] })) }
+      finally { setCargandoResidentes(false) }
     }
   }
 
-  // Aprobar/rechazar el pago pendiente desde el aviso de bloqueo, y de una
-  // vez abrir el formulario normal de registro si el directivo quiere
-  const resolverYAbrir = async (accion) => {
+  const handleExitoFila = () => {
+    setExpandedId(null)
+    setMsg('Operación realizada correctamente.')
+    cargarDatos()
+    setTimeout(() => setMsg(''), 4000)
+  }
+
+  const verificarPendiente = async (pagoId, accion) => {
     try {
-      await api.patch(`/api/pagos/${form.pagoPendienteId}/verificar`, { accion, observaciones: '' })
-      setModal(null)
+      await api.patch(`/api/pagos/${pagoId}/verificar`, { accion, observaciones: '' })
       cargarDatos()
     } catch (e) { alert(e.response?.data || 'Error') }
   }
 
-  const guardarPago = async () => {
-    if (!form.pagadorId) { setError('Selecciona quién realizó el pago'); return }
-    if (!form.monto || Number(form.monto) <= 0) { setError('El monto debe ser mayor a cero'); return }
+  const eliminarConfig = async (config) => {
     try {
-      await api.post('/api/pagos/registrar', {
-        cuotaId: selected.cuotaId, monto: Number(form.monto),
-        metodoPago: form.metodoPago, numeroOperacion: form.numeroOperacion || null,
-        voucherUrl: form.voucherUrl || null, observaciones: form.observaciones || null,
-        pagadorId: Number(form.pagadorId)
-      })
-      setMsg('Pago registrado. Pendiente de verificación.'); cargarDatos(); setTimeout(() => { setModal(null); setMsg('') }, 1500)
-    } catch (e) { setError(e.response?.data || 'Error al registrar pago') }
-  }
-
-  const verificarPago = async (pagoId, accion) => {
-    const obs = accion === 'RECHAZAR' ? prompt('Motivo del rechazo (opcional):') : ''
-    try { await api.patch(`/api/pagos/${pagoId}/verificar`, { accion, observaciones: obs || '' }); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const guardarConfig = async () => {
-    try {
-      const r = await api.post('/api/pagos/configurar-mes', { mes: Number(form.mes), anio: Number(form.anio), costoPorM2: Number(form.costoPorM2), totalGastosEstimados: form.totalGastosEstimados ? Number(form.totalGastosEstimados) : null, observaciones: form.observaciones || null })
-      setMsg(r.data.mensaje); cargarDatos(); setTimeout(() => { setModal(null); setMsg('') }, 1500)
-    } catch (e) { setError(e.response?.data || 'Error') }
-  }
-
-  const guardarEditConfig = async () => {
-    try {
-      await api.put(`/api/pagos/configuraciones/${selected.id}`, { costoPorM2: Number(form.costoPorM2), totalGastosEstimados: form.totalGastosEstimados ? Number(form.totalGastosEstimados) : null, observaciones: form.observaciones || null })
-      setMsg('Actualizado'); cargarDatos(); setTimeout(() => { setModal(null); setMsg('') }, 1500)
-    } catch (e) { setError(e.response?.data || 'Error') }
-  }
-
-  const eliminarConfig = async (c) => {
-    if (!confirm(`¿Eliminar configuración de ${MESES[c.mes-1]} ${c.anio}?`)) return
-    try { await api.delete('/api/pagos/configuraciones/' + c.id); cargarDatos() }
-    catch (e) { alert(e.response?.data || 'Error') }
+      await api.delete('/api/pagos/configuraciones/' + config.id)
+      setConfirmarElim(null)
+      cargarDatos()
+    } catch (e) { alert(e.response?.data || 'Error') }
   }
 
   const estadoColor = e => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', PARCIAL:'pill-warning', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
   const estadoLabel = e => ({ PENDIENTE:'Pendiente', PARCIAL:'Parcial', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
 
   return (
-    <div className="pagos-page">
-      <h1 className="page-title">Pagos</h1>
-      <p className="page-subtitle">Control de pagos de mantenimiento mensual</p>
-
-      <div className="pagos-tabs">
-        {[['resumen','Resumen del mes'],['pendientes','Pendientes de verificación'],['configurar','Configurar mes']].map(([k,l]) => (
-          <button key={k} className={'pagos-tab ' + (tab===k?'pagos-tab-active':'')} onClick={() => setTab(k)}>{l}</button>
-        ))}
+    <div className="drp-page">
+      <div className="drp-header">
+        <div>
+          <h1 className="drp-titulo">Pagos</h1>
+          <p className="drp-sub">Recaudación de mantenimiento mensual · Torre Blanca</p>
+        </div>
       </div>
 
+      {msg   && <div className="pgr-alert pgr-alert-ok"><IcoCheck /> {msg}</div>}
+
+      <div className="drp-tabs">
+        <button className={`drp-tab ${tab === 'resumen' ? 'drp-tab-active' : ''}`} onClick={() => setTab('resumen')}>
+          <IcoBuilding /> Resumen del mes
+        </button>
+        <button className={`drp-tab ${tab === 'verificaciones' ? 'drp-tab-active' : ''}`} onClick={() => setTab('verificaciones')}>
+          <IcoClipboard /> Verificaciones
+          {pendientes.length > 0 && <span className="drp-tab-badge">{pendientes.length}</span>}
+        </button>
+        <button className={`drp-tab ${tab === 'cuenta' ? 'drp-tab-active' : ''}`} onClick={() => setTab('cuenta')}>
+          <IcoUsers /> Mi cuenta
+        </button>
+        <button className={`drp-tab ${tab === 'configuracion' ? 'drp-tab-active' : ''}`} onClick={() => setTab('configuracion')}>
+          <IcoSliders /> Configuración
+        </button>
+      </div>
+
+      {/* ── Resumen del mes ── */}
       {tab === 'resumen' && (
-        <div>
-          <div className="mes-selector">
-            <select className="mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
-              {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
+        <div className="drp-tab-content">
+          <div className="drp-mes-selector">
+            <select className="drp-mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
+              {MESES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
             </select>
-            <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
-              {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
+            <select className="drp-mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
+              {[2024, 2025, 2026].map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
-          {loading && <div className="loading-msg">Cargando...</div>}
+
+          {loading && <div className="drp-skeleton">{[...Array(4)].map((_, i) => <div key={i} className="drp-skeleton-row" />)}</div>}
           {error && <div className="alert-error">{error}</div>}
-          {resumen && (
+
+          {resumen && !loading && (
             <>
               <div className="resumen-grid">
                 <div className="resumen-card rc-blue"><p className="rc-value">S/ {resumen.totalEsperado?.toFixed(2)}</p><p className="rc-label">Total esperado</p></div>
@@ -676,28 +1016,26 @@ function DirectivoPagos({ user }) {
                   <div className="resumen-card rc-amber"><p className="rc-value">{resumen.parciales}</p><p className="rc-label">Pagos parciales</p></div>
                 )}
               </div>
-              <div className="cuotas-lista">
+
+              <div className="drp-tabla-wrap">
+                <div className="drp-tabla-head">
+                  <span>Departamento</span>
+                  <span>Residentes</span>
+                  <span>Monto</span>
+                  <span>Estado</span>
+                  <span></span>
+                </div>
+                {resumen.cuotas?.length === 0 && <div className="us-empty">No hay cuotas configuradas para este mes.</div>}
                 {resumen.cuotas?.map(c => (
-                  <div key={c.cuotaId} className="cuota-card">
-                    <div className="cuota-depto"><span className="depto-num">{c.numeroDepartamento}</span><span className="depto-piso">Piso {c.piso}</span></div>
-                    <div className="cuota-info">
-                      {c.residentesNombres?.length > 0
-                        ? c.residentesNombres.map((n,i) => <p key={i} className="cuota-responsable">{n}</p>)
-                        : <p className="cuota-responsable sin-residente">Sin residentes</p>}
-                    </div>
-                    <div className="cuota-monto">
-                      {c.estadoCuota === 'PARCIAL'
-                        ? <>S/ {Number(c.saldoPendiente).toFixed(2)} <span className="cuota-monto-total">de S/ {c.montoCalculado?.toFixed(2)}</span></>
-                        : <>S/ {c.montoCalculado?.toFixed(2)}</>}
-                    </div>
-                    <span className={'pill ' + estadoColor(c.estadoCuota)}>{estadoLabel(c.estadoCuota)}</span>
-                    {c.estadoCuota !== 'PAGADO' && <button className="btn btn-ghost btn-sm" onClick={() => abrirPago(c)}>Registrar pago</button>}
-                    {c.pagos?.some(p => p.voucherUrl) && (
-                      <a href={c.pagos.find(p => p.voucherUrl)?.voucherUrl} target="_blank" rel="noreferrer" className="pgr-btn-voucher">
-                        <IcoImg /> Ver voucher
-                      </a>
-                    )}
-                  </div>
+                  <FilaCuota
+                    key={c.cuotaId}
+                    cuota={c}
+                    abierto={expandedId === c.cuotaId}
+                    onToggle={() => toggleFila(c)}
+                    residentes={residentesPorDepto[c.departamentoId] || []}
+                    cargandoResidentes={cargandoResidentes && expandedId === c.cuotaId}
+                    onExito={handleExitoFila}
+                  />
                 ))}
               </div>
             </>
@@ -705,10 +1043,17 @@ function DirectivoPagos({ user }) {
         </div>
       )}
 
-      {tab === 'pendientes' && (
-        <div>
-          {loading && <div className="loading-msg">Cargando...</div>}
-          {pendientes.length === 0 && !loading && <div className="empty-state">No hay pagos pendientes de verificación.</div>}
+      {/* ── Verificaciones pendientes ── */}
+      {tab === 'verificaciones' && (
+        <div className="drp-tab-content">
+          {loading && <div className="drp-skeleton">{[...Array(3)].map((_, i) => <div key={i} className="drp-skeleton-row" />)}</div>}
+          {!loading && pendientes.length === 0 && (
+            <div className="pgr-empty">
+              <div className="pgr-empty-icon"><IcoCheck /></div>
+              <p className="pgr-empty-t">Sin pagos pendientes</p>
+              <p className="pgr-empty-s">Todos los pagos han sido revisados.</p>
+            </div>
+          )}
           <div className="pendientes-lista">
             {pendientes.map(p => (
               <div key={p.pagoId} className="pendiente-card">
@@ -726,8 +1071,8 @@ function DirectivoPagos({ user }) {
                 </div>
                 <div className="pendiente-monto">S/ {p.monto?.toFixed(2)}</div>
                 <div className="pendiente-actions">
-                  <button className="btn btn-primary btn-sm" onClick={() => verificarPago(p.pagoId,'APROBAR')}>Aprobar</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => verificarPago(p.pagoId,'RECHAZAR')}>Rechazar</button>
+                  <button className="btn-rechazar-inline" onClick={() => verificarPendiente(p.pagoId, 'RECHAZAR')}>Rechazar</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => verificarPendiente(p.pagoId, 'APROBAR')}>Aprobar</button>
                 </div>
               </div>
             ))}
@@ -735,134 +1080,78 @@ function DirectivoPagos({ user }) {
         </div>
       )}
 
-      {tab === 'configurar' && (
-        <div>
-          <div style={{marginBottom:16}}>
-            <button className="btn btn-primary" onClick={() => { setForm({ mes: ahora.getMonth()+1, anio: ahora.getFullYear(), costoPorM2:'', totalGastosEstimados:'', observaciones:'' }); setModal('configurar'); setMsg(''); setError('') }}>Configurar nuevo mes</button>
+      {/* ── Mi cuenta — el directivo como residente ── */}
+      {tab === 'cuenta' && (
+        <div className="drp-tab-content drp-mi-cuenta">
+          <ResidentePagos user={user} />
+        </div>
+      )}
+
+      {/* ── Configuración ── */}
+      {tab === 'configuracion' && (
+        <div className="drp-tab-content">
+          <div className="drp-config-header">
+            <p className="drp-sub-lbl">{configs.length} mes{configs.length !== 1 ? 'es' : ''} configurado{configs.length !== 1 ? 's' : ''}</p>
+            <button className="us-btn-nuevo" onClick={() => { setCrearConfigOpen(!crearConfigOpen); setEditConfigId(null) }}>
+              {crearConfigOpen ? <IcoX /> : <IcoPlus />}
+              {crearConfigOpen ? 'Cancelar' : 'Configurar nuevo mes'}
+            </button>
           </div>
+
+          {crearConfigOpen && (
+            <PanelConfigurarMes
+              onExito={(m) => { setCrearConfigOpen(false); setMsg(m); cargarDatos(); setTimeout(() => setMsg(''), 4000) }}
+              onCancelar={() => setCrearConfigOpen(false)}
+            />
+          )}
+
+          {loading && <div className="drp-skeleton">{[...Array(3)].map((_, i) => <div key={i} className="drp-skeleton-row" />)}</div>}
+          {!loading && configs.length === 0 && !crearConfigOpen && (
+            <div className="empty-state">No hay configuraciones registradas todavía.</div>
+          )}
+
           <div className="configs-lista">
-            {configs.length === 0 && <div className="empty-state">No hay configuraciones registradas.</div>}
             {configs.map(c => (
-              <div key={c.id} className="config-card">
-                <div><p className="config-periodo">{MESES[c.mes-1]} {c.anio}</p><p className="config-costo">S/ {c.costoPorM2} por m²</p>{c.observaciones && <p className="config-obs">{c.observaciones}</p>}</div>
-                <div className="config-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(c); setForm({ costoPorM2:c.costoPorM2, totalGastosEstimados:c.totalGastosEstimados||'', observaciones:c.observaciones||'' }); setModal('editarConfig'); setMsg(''); setError('') }}>Editar</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => eliminarConfig(c)}>Eliminar</button>
+              <div key={c.id} className="drp-config-card-wrap">
+                <div className="config-card">
+                  <div>
+                    <p className="config-periodo">{MESES[c.mes - 1]} {c.anio}</p>
+                    <p className="config-costo">
+                      {c.tipoCalculo === 'PORCENTAJE'
+                        ? `Por alícuota · S/ ${Number(c.totalMensual || 0).toFixed(2)} total`
+                        : `S/ ${c.costoPorM2} por m²`}
+                    </p>
+                    {c.observaciones && <p className="config-obs">{c.observaciones}</p>}
+                  </div>
+                  <div className="config-actions">
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setEditConfigId(editConfigId === c.id ? null : c.id); setCrearConfigOpen(false) }}>
+                      <IcoEdit /> Editar
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setConfirmarElim(confirmarElim === c.id ? null : c.id)}>
+                      <IcoTrash /> Eliminar
+                    </button>
+                  </div>
                 </div>
+
+                {confirmarElim === c.id && (
+                  <div className="drp-confirm-elim">
+                    <p>¿Eliminar la configuración de {MESES[c.mes - 1]} {c.anio}? Se borrarán todas las cuotas y pagos asociados.</p>
+                    <div className="drp-form-footer">
+                      <button className="pm-btn-cancelar" onClick={() => setConfirmarElim(null)}>Cancelar</button>
+                      <button className="btn-rechazar-inline" onClick={() => eliminarConfig(c)}>Sí, eliminar</button>
+                    </div>
+                  </div>
+                )}
+
+                {editConfigId === c.id && (
+                  <PanelEditarConfig
+                    config={c}
+                    onExito={() => { setEditConfigId(null); setMsg('Configuración actualizada.'); cargarDatos(); setTimeout(() => setMsg(''), 4000) }}
+                    onCancelar={() => setEditConfigId(null)}
+                  />
+                )}
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Modal registrar pago directivo */}
-      {modal === 'pago' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Registrar pago manual</h3>
-            <p className="modal-sub">
-              Depto <strong>{selected?.numeroDepartamento}</strong> · Saldo pendiente: S/ {Number(selected?.saldoPendiente != null ? selected.saldoPendiente : selected?.montoCalculado).toFixed(2)}
-              {selected?.estadoCuota === 'PARCIAL' && <span className="modal-sub-parcial"> (de S/ {Number(selected?.montoCalculado).toFixed(2)} total)</span>}
-            </p>
-            <div className="modal-scroll">
-              <div className="modal-form">
-                <div className="form-group"><label>Monto (S/)</label><input type="number" min="0" step="0.01" value={form.monto||''} onChange={e => setForm({...form,monto:sinNegativos(e.target.value)})} /></div>
-                <div className="form-group"><label>Pagador</label>
-                  <select value={form.pagadorId||''} onChange={e => setForm({...form,pagadorId:e.target.value})}>
-                    <option value="">-- Selecciona el residente --</option>
-                    {residentesDepto.map(r => <option key={r.id} value={r.id}>{r.nombre} ({r.tipo==='PROPIETARIO'?'Propietario':'Inquilino'})</option>)}
-                  </select>
-                </div>
-                <div className="form-group"><label>Método</label>
-                  <div className="metodos-grid">{METODOS_PAGO.map(m => <button key={m} type="button" className={'metodo-btn '+(form.metodoPago===m?'metodo-active':'')} onClick={() => setForm({...form,metodoPago:m})}>{m}</button>)}</div>
-                </div>
-                <div className="form-group"><label>N° de operación</label><input value={form.numeroOperacion||''} onChange={e => setForm({...form,numeroOperacion:textoLibreEstricto(e.target.value)})} /></div>
-                <SubirFoto onSubida={url => setForm({...form,voucherUrl:url})} obligatorio={false} label="Foto del comprobante (opcional)" />
-                <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
-              </div>
-            </div>
-            {msg   && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarPago}>Registrar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal aviso: cuota con pago pendiente — directivo debe resolver primero */}
-      {modal === 'bloqueoPendiente' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Pago pendiente de verificación</h3>
-            <p className="modal-sub">
-              El departamento <strong>{selected?.numeroDepartamento}</strong> ya tiene un pago esperando revisión.
-              Apruébalo o recházalo antes de registrar uno nuevo.
-            </p>
-            <div className="bloqueo-pago-info">
-              <div className="bloqueo-pago-fila">
-                <span>Pagador</span>
-                <strong>{form.pagoPendienteInfo?.pagadorNombre}</strong>
-              </div>
-              <div className="bloqueo-pago-fila">
-                <span>Monto</span>
-                <strong>S/ {Number(form.pagoPendienteInfo?.monto).toFixed(2)}</strong>
-              </div>
-              <div className="bloqueo-pago-fila">
-                <span>Método</span>
-                <strong>{form.pagoPendienteInfo?.metodoPago}{form.pagoPendienteInfo?.numeroOperacion ? ' · Op: ' + form.pagoPendienteInfo.numeroOperacion : ''}</strong>
-              </div>
-              {form.pagoPendienteInfo?.voucherUrl && (
-                <a href={form.pagoPendienteInfo.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
-              )}
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cerrar</button>
-              <button className="btn btn-danger" onClick={() => resolverYAbrir('RECHAZAR')}>Rechazar</button>
-              <button className="btn btn-primary" onClick={() => resolverYAbrir('APROBAR')}>Aprobar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {modal === 'configurar' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Configurar mes</h3>
-            <div className="modal-scroll"><div className="modal-form">
-              <div className="form-group"><label>Mes</label><select value={form.mes} onChange={e => setForm({...form,mes:e.target.value})}>{MESES.map((m,i)=><option key={i} value={i+1}>{m}</option>)}</select></div>
-              <div className="form-group"><label>Año</label><select value={form.anio} onChange={e => setForm({...form,anio:e.target.value})}>{[2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}</select></div>
-              <div className="form-group"><label>Costo por m²</label><input type="number" min="0" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:sinNegativos(e.target.value)})} /></div>
-              <div className="form-group"><label>Total gastos estimados</label><input type="number" min="0" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:sinNegativos(e.target.value)})} /></div>
-              <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
-            </div></div>
-            {msg && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarConfig}>Generar cuotas</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {modal === 'editarConfig' && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 className="modal-title">Editar configuración</h3>
-            <p className="modal-sub">{MESES[selected?.mes-1]} {selected?.anio}</p>
-            <div className="modal-form" style={{marginTop:14}}>
-              <div className="form-group"><label>Costo por m²</label><input type="number" min="0" step="0.01" value={form.costoPorM2||''} onChange={e => setForm({...form,costoPorM2:sinNegativos(e.target.value)})} /></div>
-              <div className="form-group"><label>Total gastos estimados</label><input type="number" min="0" step="0.01" value={form.totalGastosEstimados||''} onChange={e => setForm({...form,totalGastosEstimados:sinNegativos(e.target.value)})} /></div>
-              <div className="form-group"><label>Observaciones</label><input value={form.observaciones||''} onChange={e => setForm({...form,observaciones:textoLibreEstricto(e.target.value)})} /></div>
-            </div>
-            {msg && <p className="modal-success">{msg}</p>}
-            {error && <p className="modal-error">{error}</p>}
-            <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardarEditConfig}>Guardar</button>
-            </div>
           </div>
         </div>
       )}

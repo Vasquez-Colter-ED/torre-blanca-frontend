@@ -576,3 +576,199 @@
 }
 .bloqueo-pago-fila { display: flex; justify-content: space-between; font-size: 0.85rem; color: #78350F; }
 .bloqueo-pago-fila strong { color: #451A03; }
+
+/* ══════════════════════════════════════════════════════════════
+   MODULO PAGOS DIRECTIVO — sin modales
+══════════════════════════════════════════════════════════════ */
+
+.drp-page { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
+
+.drp-header { margin-bottom: 20px; }
+.drp-titulo { font-size: 1.45rem; font-weight: 800; color: #0F172A; margin: 0 0 3px 0; letter-spacing: -0.4px; }
+.drp-sub    { font-size: 0.8rem; color: #94A3B8; font-weight: 500; margin: 0; }
+.drp-sub-lbl{ font-size: 0.8rem; color: #64748B; font-weight: 500; margin: 0; }
+
+/* Tabs */
+.drp-tabs {
+  display: flex; gap: 4px; margin-bottom: 22px;
+  border-bottom: 1px solid #E2E8F0; overflow-x: auto;
+}
+.drp-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 11px 16px; background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600; color: #64748B;
+  font-family: inherit; white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.drp-tab:hover { color: #0F172A; }
+.drp-tab-active { color: #2563EB; border-bottom-color: #2563EB; }
+.drp-tab-badge {
+  background: #DC2626; color: #fff; font-size: 0.65rem; font-weight: 800;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.drp-tab-content { animation: drp-fade 0.15s ease; }
+@keyframes drp-fade { from{opacity:0} to{opacity:1} }
+
+/* Selector de mes */
+.drp-mes-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+.drp-mes-select {
+  padding: 9px 14px; border: 1.5px solid #E2E8F0; border-radius: 9px;
+  font-family: inherit; font-size: 0.85rem; color: #0F172A;
+  background: #fff; cursor: pointer;
+}
+.drp-mes-select:focus { border-color: #2563EB; outline: none; }
+
+/* Skeleton */
+.drp-skeleton { display: flex; flex-direction: column; gap: 8px; }
+.drp-skeleton-row { height: 58px; background: #F1F5F9; border-radius: 10px; animation: dpt-pulse 1.4s ease infinite; }
+
+/* ── Tabla de cuotas ── */
+.drp-tabla-wrap { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; margin-top: 18px; }
+
+.drp-tabla-head {
+  display: grid; grid-template-columns: 1.6fr 1.8fr 1.2fr 1fr 36px;
+  gap: 12px; padding: 11px 20px;
+  background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+  font-size: 0.7rem; font-weight: 700; color: #64748B;
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
+
+.drp-fila-wrap { border-bottom: 1px solid #F1F5F9; }
+.drp-fila-wrap:last-child { border-bottom: none; }
+.drp-fila-wrap-open { background: #F8FAFC; }
+
+.drp-fila {
+  width: 100%; display: grid; grid-template-columns: 1.6fr 1.8fr 1.2fr 1fr 36px;
+  gap: 12px; padding: 13px 20px; align-items: center;
+  background: none; border: none; cursor: pointer; text-align: left;
+  font-family: inherit; transition: background 0.12s ease;
+}
+.drp-fila:hover { background: #F8FAFC; }
+.drp-fila-active { background: #F0F7FF !important; border-left: 3px solid #2563EB; padding-left: 17px; }
+
+.drp-col-depto { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.drp-depto-avatar {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: #0F172A; color: #fff;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.drp-depto-num  { font-size: 0.85rem; font-weight: 700; color: #0F172A; margin: 0; }
+.drp-depto-piso { font-size: 0.72rem; color: #94A3B8; margin: 0; }
+
+.drp-col-residentes { min-width: 0; }
+.drp-residente-nombre { font-size: 0.78rem; color: #475569; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drp-residente-vacio  { font-size: 0.78rem; color: #CBD5E1; font-style: italic; margin: 0; }
+
+.drp-col-monto { display: flex; flex-direction: column; }
+.drp-monto-principal { font-size: 0.88rem; font-weight: 800; color: #0F172A; }
+.drp-monto-sub { font-size: 0.68rem; color: #94A3B8; }
+
+.drp-col-estado { display: flex; }
+.drp-col-chev { display: flex; justify-content: flex-end; color: #94A3B8; }
+
+/* Panel expandible de fila */
+.drp-panel { max-height: 0; overflow: hidden; transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1); }
+.drp-panel-open { max-height: 900px; }
+.drp-panel-body { padding: 20px; border-top: 1px solid #EFF6FF; }
+
+.drp-cargando { font-size: 0.85rem; color: #94A3B8; text-align: center; padding: 20px 0; }
+
+/* Formulario inline (registrar pago / configurar) */
+.drp-form-titulo { font-size: 0.92rem; font-weight: 800; color: #0F172A; margin: 0 0 16px 0; }
+.drp-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.drp-field { display: flex; flex-direction: column; gap: 6px; }
+.drp-field-full { grid-column: 1 / -1; }
+.drp-label {
+  font-size: 0.72rem; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.drp-input {
+  padding: 9px 12px; border: 1.5px solid #E2E8F0; border-radius: 8px;
+  font-size: 0.875rem; font-family: inherit; color: #0F172A; background: #fff;
+  outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%; box-sizing: border-box;
+}
+.drp-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+.drp-form-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid #F1F5F9;
+}
+
+.btn-rechazar-inline {
+  padding: 9px 16px; background: #FEF2F2; border: 1px solid #FECACA;
+  color: #DC2626; font-size: 0.85rem; font-weight: 700; font-family: inherit;
+  border-radius: 8px; cursor: pointer; transition: all 0.15s ease;
+}
+.btn-rechazar-inline:hover { background: #DC2626; color: #fff; }
+
+/* Historial de pagos (cuota pagada) */
+.drp-historial { display: flex; flex-direction: column; gap: 8px; }
+.drp-historial-titulo { font-size: 0.72rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 4px 0; }
+.drp-historial-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px;
+  font-size: 0.82rem; color: #166534;
+}
+.drp-historial-fecha { font-size: 0.72rem; color: #059669; }
+
+/* Bloqueo por pago pendiente */
+.drp-bloqueo-aviso {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 14px; color: #92400E; font-size: 0.85rem;
+}
+.drp-bloqueo-aviso svg { flex-shrink: 0; margin-top: 1px; }
+.drp-bloqueo-info {
+  display: flex; flex-direction: column; gap: 8px;
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px;
+}
+.drp-bloqueo-fila { display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; }
+.drp-bloqueo-fila strong { color: #0F172A; }
+
+/* Mi cuenta */
+.drp-mi-cuenta { margin-top: 4px; }
+
+/* Configuracion */
+.drp-config-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.drp-config-card-wrap { margin-bottom: 10px; }
+
+.drp-config-panel {
+  background: #fff; border: 1.5px solid #BFDBFE; border-radius: 14px;
+  padding: 22px 24px; margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.08);
+  animation: us-slide-down 0.2s ease;
+}
+
+.drp-sec-lbl {
+  font-size: 0.7rem; font-weight: 700; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin: 18px 0 10px 0;
+}
+
+.drp-metodo-calculo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.drp-calculo-opt {
+  text-align: left; padding: 14px 16px; border: 1.5px solid #E2E8F0; border-radius: 10px;
+  background: #fff; cursor: pointer; transition: all 0.15s ease;
+}
+.drp-calculo-opt:hover { border-color: #93C5FD; }
+.drp-calculo-opt-active { border-color: #2563EB; background: #EFF6FF; }
+.drp-calculo-nombre { font-size: 0.85rem; font-weight: 700; color: #0F172A; margin: 0 0 4px 0; }
+.drp-calculo-desc { font-size: 0.75rem; color: #64748B; margin: 0; line-height: 1.4; }
+
+.drp-confirm-elim {
+  background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px;
+  padding: 14px 16px; margin-top: 8px; animation: dpt-slide-in 0.18s ease;
+}
+.drp-confirm-elim p { font-size: 0.85rem; color: #991B1B; margin: 0 0 10px 0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .drp-tabla-head, .drp-fila { grid-template-columns: 1.6fr 1fr 36px; }
+  .drp-col-residentes, .drp-col-estado { display: none; }
+  .drp-form-grid { grid-template-columns: 1fr; }
+  .drp-metodo-calculo { grid-template-columns: 1fr; }
+}
