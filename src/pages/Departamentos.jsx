@@ -148,9 +148,11 @@ export default function Departamentos() {
     const cocheras  = depto.cocheras || []
     const confirm   = confirmacion?.deptoId === depto.id ? confirmacion : null
 
-    const dotClass = !tieneProp && numInq === 0 ? 'dpt-dot-vacio'
-                   : !tieneProp                  ? 'dpt-dot-parcial'
-                   : 'dpt-dot-ocupado'
+    const dotClass = esEstac
+      ? (deptoDeEstac(depto.id) ? 'dpt-dot-ocupado' : 'dpt-dot-vacio')
+      : (!tieneProp && numInq === 0 ? 'dpt-dot-vacio'
+         : !tieneProp               ? 'dpt-dot-parcial'
+         : 'dpt-dot-ocupado')
 
     // Porcentaje total = depto + cocheras
     const pctTotal = (Number(depto.porcentaje || 0) + cocheras.reduce((s, c) => s + Number(c.porcentaje || 0), 0)).toFixed(2)
@@ -172,10 +174,16 @@ export default function Departamentos() {
               {cocheras.length > 0 && <span className="dpt-badge-cochera"><IcoCar /> {cocheras.length} cochera{cocheras.length > 1 ? 's' : ''}</span>}
             </span>
             <span className="dpt-card-mid-sep" />
-            {tieneProp
-              ? <span className="dpt-resumen-prop"><IcoHome /> {depto.propietarioNombre}</span>
-              : <span className="dpt-resumen-vacio">Sin propietario</span>}
-            {numInq > 0 && <span className="dpt-resumen-inq"><IcoUser /> {numInq} inq.</span>}
+            {esEstac ? (
+              deptoDeEstac(depto.id)
+                ? <span className="dpt-resumen-prop"><IcoHome /> Depto {deptoDeEstac(depto.id).numero}</span>
+                : <span className="dpt-resumen-vacio">Sin departamento</span>
+            ) : (
+              tieneProp
+                ? <span className="dpt-resumen-prop"><IcoHome /> {depto.propietarioNombre}</span>
+                : <span className="dpt-resumen-vacio">Sin propietario</span>
+            )}
+            {!esEstac && numInq > 0 && <span className="dpt-resumen-inq"><IcoUser /> {numInq} inq.</span>}
           </div>
           <div className="dpt-card-right">
             {!esEstac && <span className="dpt-badge-inq">{numInq}/{MAX_INQUILINOS} inq.</span>}
