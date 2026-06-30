@@ -45,9 +45,25 @@ export default function PagoTarjeta({ cuota, cuotaIds, esMultiple, residentesDep
     if (!form.email) { setError('Ingresa el correo del titular de la tarjeta'); return }
     setLoading(true); setError('')
     try {
+      const numeroLimpio = form.numero.replace(/\s/g, '')
+      const bin = numeroLimpio.slice(0, 6)
+
+      // Detectar la marca real de la tarjeta (visa, master, amex, etc.)
+      // según el BIN — createCardToken NO devuelve el payment_method_id.
+      let metodoPago = 'visa'
+      try {
+        const metodos = await mp.getPaymentMethods({ bin })
+        if (metodos?.results?.length > 0) {
+          metodoPago = metodos.results[0].id
+        }
+      } catch {
+        setError('No se pudo identificar la tarjeta. Verifica el número.')
+        setLoading(false); return
+      }
+
       const [mes, anio] = form.vencimiento.split('/')
       const tokenData = await mp.createCardToken({
-        cardNumber:          form.numero.replace(/\s/g, ''),
+        cardNumber:          numeroLimpio,
         cardholderName:      form.nombre,
         cardExpirationMonth: mes,
         cardExpirationYear:  '20' + anio,
@@ -60,8 +76,8 @@ export default function PagoTarjeta({ cuota, cuotaIds, esMultiple, residentesDep
       // Pago múltiple o individual según el contexto
       const endpoint = esMultiple ? '/api/mercadopago/pagar-multiple' : '/api/mercadopago/pagar'
       const payload  = esMultiple
-        ? { cuotaIds, token: tokenData.id, email: form.email, metodoPago: tokenData.payment_method_id || 'visa', cuotas: 1 }
-        : { cuotaId: cuota.cuotaId, token: tokenData.id, email: form.email, metodoPago: tokenData.payment_method_id || 'visa', cuotas: 1, pagadorId: esDirectivo ? Number(form.pagadorId) : null }
+        ? { cuotaIds, token: tokenData.id, email: form.email, metodoPago, cuotas: 1 }
+        : { cuotaId: cuota.cuotaId, token: tokenData.id, email: form.email, metodoPago, cuotas: 1, pagadorId: esDirectivo ? Number(form.pagadorId) : null }
 
       await api.post(endpoint, payload)
       onExito()
