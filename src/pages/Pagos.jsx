@@ -9,6 +9,7 @@ import './Pagos.css'
 const ROLES_DIRECTIVOS = ['PRESIDENTE','SECRETARIO','TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const METODOS_PAGO = ['TRANSFERENCIA','DEPOSITO','PLIN','EFECTIVO','OTRO']
+const METODOS_PAGO_DIRECTIVO = ['TRANSFERENCIA','EFECTIVO']
 
 const etiquetaMes = (mes, anio) =>
   mes && anio ? `${MESES[mes - 1]} ${anio}` : '—'
@@ -597,7 +598,7 @@ function PanelRegistrarPagoDirectivo({ cuota, residentes, onExito, onCancelar })
         <div className="drp-field drp-field-full">
           <label className="drp-label">Método de pago</label>
           <div className="metodos-grid">
-            {METODOS_PAGO.map(m => (
+            {METODOS_PAGO_DIRECTIVO.map(m => (
               <button key={m} type="button" className={`metodo-btn ${metodo === m ? 'metodo-active' : ''}`} onClick={() => setMetodo(m)}>{m}</button>
             ))}
           </div>
@@ -744,6 +745,14 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
   const [guardando,     setGuardando]     = useState(false)
   const [error,         setError]         = useState('')
 
+  // Solo dígitos y un punto decimal — nunca signos ni letras
+  const soloMonto = (v) => {
+    let limpio = v.replace(/[^0-9.]/g, '')
+    const partes = limpio.split('.')
+    if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
+    return limpio
+  }
+
   const guardar = async () => {
     setError('')
     if (tipoCalculo === 'PORCENTAJE' && (!totalMensual || Number(totalMensual) <= 0)) {
@@ -809,17 +818,17 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
         {tipoCalculo === 'PORCENTAJE' ? (
           <div className="drp-field drp-field-full">
             <label className="drp-label">Monto total mensual a recaudar (S/)</label>
-            <input className="drp-input" type="number" min="0" step="0.01" value={totalMensual} onChange={e => setTotalMensual(sinNegativos(e.target.value))} placeholder="Ej: 5120.40" />
+            <input className="drp-input" inputMode="decimal" value={totalMensual} onChange={e => setTotalMensual(soloMonto(e.target.value))} placeholder="Ej: 5120.40" />
           </div>
         ) : (
           <div className="drp-field drp-field-full">
             <label className="drp-label">Costo por m² (S/)</label>
-            <input className="drp-input" type="number" min="0" step="0.01" value={costoPorM2} onChange={e => setCostoPorM2(sinNegativos(e.target.value))} />
+            <input className="drp-input" inputMode="decimal" value={costoPorM2} onChange={e => setCostoPorM2(soloMonto(e.target.value))} />
           </div>
         )}
         <div className="drp-field drp-field-full">
           <label className="drp-label">Total de gastos estimados (opcional)</label>
-          <input className="drp-input" type="number" min="0" step="0.01" value={gastosEst} onChange={e => setGastosEst(sinNegativos(e.target.value))} />
+          <input className="drp-input" inputMode="decimal" value={gastosEst} onChange={e => setGastosEst(soloMonto(e.target.value))} />
         </div>
         <div className="drp-field drp-field-full">
           <label className="drp-label">Observaciones (opcional)</label>
@@ -848,6 +857,13 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
   const [guardando,  setGuardando]  = useState(false)
   const [error,      setError]      = useState('')
 
+  const soloMonto = (v) => {
+    let limpio = v.replace(/[^0-9.]/g, '')
+    const partes = limpio.split('.')
+    if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
+    return limpio
+  }
+
   const guardar = async () => {
     setGuardando(true); setError('')
     try {
@@ -867,11 +883,11 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
       <div className="drp-form-grid">
         <div className="drp-field drp-field-full">
           <label className="drp-label">Costo por m² (S/)</label>
-          <input className="drp-input" type="number" min="0" step="0.01" value={costoPorM2} onChange={e => setCostoPorM2(sinNegativos(e.target.value))} />
+          <input className="drp-input" inputMode="decimal" value={costoPorM2} onChange={e => setCostoPorM2(soloMonto(e.target.value))} />
         </div>
         <div className="drp-field drp-field-full">
           <label className="drp-label">Total de gastos estimados</label>
-          <input className="drp-input" type="number" min="0" step="0.01" value={gastosEst} onChange={e => setGastosEst(sinNegativos(e.target.value))} />
+          <input className="drp-input" inputMode="decimal" value={gastosEst} onChange={e => setGastosEst(soloMonto(e.target.value))} />
         </div>
         <div className="drp-field drp-field-full">
           <label className="drp-label">Observaciones</label>
@@ -1014,6 +1030,9 @@ function DirectivoPagos({ user }) {
                 <div className="resumen-card rc-neutral"><p className="rc-value">{resumen.pagados} / {resumen.totalDepartamentos}</p><p className="rc-label">Deptos pagados</p></div>
                 {resumen.parciales > 0 && (
                   <div className="resumen-card rc-amber"><p className="rc-value">{resumen.parciales}</p><p className="rc-label">Pagos parciales</p></div>
+                )}
+                {resumen.enVerificacion > 0 && (
+                  <div className="resumen-card rc-blue-soft"><p className="rc-value">{resumen.enVerificacion}</p><p className="rc-label">En verificación</p></div>
                 )}
               </div>
 

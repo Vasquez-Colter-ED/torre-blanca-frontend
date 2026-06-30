@@ -566,6 +566,8 @@
 /* ── Resumen directivo — tarjeta ambar y monto parcial ── */
 .rc-amber { background: #FFFBEB; border: 1px solid #FDE68A; }
 .rc-amber .rc-value { color: #92400E; }
+.rc-blue-soft { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.rc-blue-soft .rc-value { color: #1D4ED8; }
 .cuota-monto-total { font-size: 0.7rem; color: #94A3B8; font-weight: 500; display: block; }
 .modal-sub-parcial { color: #B45309; font-weight: 600; }
 
