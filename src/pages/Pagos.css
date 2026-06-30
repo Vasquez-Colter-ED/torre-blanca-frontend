@@ -568,3 +568,11 @@
 .rc-amber .rc-value { color: #92400E; }
 .cuota-monto-total { font-size: 0.7rem; color: #94A3B8; font-weight: 500; display: block; }
 .modal-sub-parcial { color: #B45309; font-weight: 600; }
+
+/* ── Modal de pago pendiente bloqueado (directivo) ── */
+.bloqueo-pago-info {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px;
+  padding: 14px 16px; margin: 16px 0; display: flex; flex-direction: column; gap: 8px;
+}
+.bloqueo-pago-fila { display: flex; justify-content: space-between; font-size: 0.85rem; color: #78350F; }
+.bloqueo-pago-fila strong { color: #451A03; }

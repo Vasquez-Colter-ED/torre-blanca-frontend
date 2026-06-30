@@ -212,7 +212,7 @@ function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExit
         </div>
         <div className="pgr-cuota-der">
           <span className="pgr-cuota-monto">S/ {Number(esParcial ? cuota.saldoPendiente : cuota.montoCalculado).toFixed(2)}</span>
-          <StatusBadge estado={futura ? 'PENDIENTE' : cuota.estadoCuota} />
+          <StatusBadge estado={futura && cuota.estadoCuota !== 'PARCIAL' ? 'PENDIENTE' : cuota.estadoCuota} />
           <button
             className={`pgr-btn-pagar ${pagandoEste ? 'pgr-btn-cancelar-pago' : ''}`}
             onClick={onPagar}
@@ -262,10 +262,13 @@ function ResidentePagos({ user }) {
 
   const esFuturo = c => c.anio > anioActual || (c.anio === anioActual && c.mes > mesActual)
 
-  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PARCIAL') && !esFuturo(c))
-  const enVerif      = cuotas.filter(c => c.estadoCuota === 'PENDIENTE_VERIFICACION')
-  const todasFuturas = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c))
+  const tienePagoPendiente = c => (c.pagos || []).some(p => p.estado === 'PENDIENTE_VERIFICACION')
+
+  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PARCIAL') && !esFuturo(c) && !tienePagoPendiente(c))
+  const enVerif      = cuotas.filter(c => tienePagoPendiente(c) && !esFuturo(c))
+  const todasFuturas = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'PARCIAL') && esFuturo(c) && !tienePagoPendiente(c))
     .sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
+  const enVerifFuturas = cuotas.filter(c => tienePagoPendiente(c) && esFuturo(c))
   const futuras      = verMas ? todasFuturas : todasFuturas.slice(0, 3)
   const pagadas      = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
 
@@ -393,25 +396,28 @@ function ResidentePagos({ user }) {
             {enVerif.length > 0 && (
               <>
                 <p className="pgr-sec-lbl pgr-sec-lbl-info" style={{marginTop: deudas.length > 0 ? 20 : 8}}>En verificación</p>
-                {enVerif.map(c => (
-                  <div key={c.cuotaId} className="pgr-cuota pgr-cuota-verif">
-                    <div className="pgr-cuota-fila">
-                      <div className="pgr-cuota-info">
-                        <p className="pgr-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
-                        <p className="pgr-cuota-depto">Depto {c.numeroDepartamento} · Piso {c.piso}</p>
-                      </div>
-                      <div className="pgr-cuota-der">
-                        <span className="pgr-cuota-monto">S/ {Number(c.montoCalculado).toFixed(2)}</span>
-                        <StatusBadge estado="PENDIENTE_VERIFICACION" />
-                        {c.pagos?.[0]?.voucherUrl && (
-                          <a href={c.pagos[0].voucherUrl} target="_blank" rel="noreferrer" className="pgr-btn-voucher">
-                            <IcoImg /> Voucher
-                          </a>
-                        )}
+                {enVerif.map(c => {
+                  const pagoPend = (c.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+                  return (
+                    <div key={c.cuotaId} className="pgr-cuota pgr-cuota-verif">
+                      <div className="pgr-cuota-fila">
+                        <div className="pgr-cuota-info">
+                          <p className="pgr-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
+                          <p className="pgr-cuota-depto">Depto {c.numeroDepartamento} · Piso {c.piso}</p>
+                        </div>
+                        <div className="pgr-cuota-der">
+                          <span className="pgr-cuota-monto">S/ {Number(pagoPend?.monto ?? c.montoCalculado).toFixed(2)}</span>
+                          <StatusBadge estado="PENDIENTE_VERIFICACION" />
+                          {pagoPend?.voucherUrl && (
+                            <a href={pagoPend.voucherUrl} target="_blank" rel="noreferrer" className="pgr-btn-voucher">
+                              <IcoImg /> Voucher
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 <p className="pgr-verif-hint">El directivo aprobará tu pago en breve y recibirás tu recibo automáticamente.</p>
               </>
             )}
@@ -421,7 +427,7 @@ function ResidentePagos({ user }) {
         {/* ── Tab: Próximas ── */}
         {tab === 'proximas' && (
           <div className="pgr-tab-body">
-            {todasFuturas.length === 0 ? (
+            {todasFuturas.length === 0 && enVerifFuturas.length === 0 ? (
               <div className="pgr-empty">
                 <div className="pgr-empty-icon"><IcoCal /></div>
                 <p className="pgr-empty-t">Sin cuotas futuras</p>
@@ -429,20 +435,47 @@ function ResidentePagos({ user }) {
               </div>
             ) : (
               <>
-                <p className="pgr-sec-lbl">Disponibles para adelantar</p>
-                {futuras.map(c => (
-                  <CuotaCard key={c.cuotaId} cuota={c} futura
-                    seleccionada={seleccionadas.has(c.cuotaId)}
-                    onToggle={() => toggleSel(c.cuotaId)}
-                    pagandoEste={pagandoId === c.cuotaId}
-                    onPagar={() => setPagandoId(pagandoId === c.cuotaId ? null : c.cuotaId)}
-                    onExito={() => handleExito('Pago adelantado enviado para verificación.')}
-                  />
-                ))}
-                {todasFuturas.length > 3 && (
-                  <button className="pgr-btn-ver-mas" onClick={() => setVerMas(!verMas)}>
-                    {verMas ? 'Ver menos' : `Ver ${todasFuturas.length - 3} cuota${todasFuturas.length - 3 > 1 ? 's' : ''} más`}
-                  </button>
+                {todasFuturas.length > 0 && (
+                  <>
+                    <p className="pgr-sec-lbl">Disponibles para adelantar</p>
+                    {futuras.map(c => (
+                      <CuotaCard key={c.cuotaId} cuota={c} futura
+                        seleccionada={seleccionadas.has(c.cuotaId)}
+                        onToggle={() => toggleSel(c.cuotaId)}
+                        pagandoEste={pagandoId === c.cuotaId}
+                        onPagar={() => setPagandoId(pagandoId === c.cuotaId ? null : c.cuotaId)}
+                        onExito={() => handleExito('Pago adelantado enviado para verificación.')}
+                      />
+                    ))}
+                    {todasFuturas.length > 3 && (
+                      <button className="pgr-btn-ver-mas" onClick={() => setVerMas(!verMas)}>
+                        {verMas ? 'Ver menos' : `Ver ${todasFuturas.length - 3} cuota${todasFuturas.length - 3 > 1 ? 's' : ''} más`}
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {enVerifFuturas.length > 0 && (
+                  <>
+                    <p className="pgr-sec-lbl pgr-sec-lbl-info" style={{marginTop: todasFuturas.length > 0 ? 20 : 8}}>En verificación</p>
+                    {enVerifFuturas.map(c => {
+                      const pagoPend = (c.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+                      return (
+                        <div key={c.cuotaId} className="pgr-cuota pgr-cuota-verif">
+                          <div className="pgr-cuota-fila">
+                            <div className="pgr-cuota-info">
+                              <p className="pgr-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
+                              <p className="pgr-cuota-depto">Depto {c.numeroDepartamento} · Piso {c.piso}</p>
+                            </div>
+                            <div className="pgr-cuota-der">
+                              <span className="pgr-cuota-monto">S/ {Number(pagoPend?.monto ?? c.montoCalculado).toFixed(2)}</span>
+                              <StatusBadge estado="PENDIENTE_VERIFICACION" />
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </>
                 )}
               </>
             )}
@@ -536,6 +569,16 @@ function DirectivoPagos({ user }) {
   }
 
   const abrirPago = async (cuota) => {
+    // Si esta cuota ya tiene un pago pendiente de verificación, no abrimos
+    // el formulario de registro — mostramos primero el aviso para que el
+    // directivo lo resuelva (apruebe o rechace) antes de registrar uno nuevo
+    const pagoPend = (cuota.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+    if (pagoPend) {
+      setSelected(cuota)
+      setForm({ pagoPendienteId: pagoPend.pagoId, pagoPendienteInfo: pagoPend })
+      setModal('bloqueoPendiente'); setMsg(''); setError('')
+      return
+    }
     setSelected(cuota)
     const saldo = cuota.saldoPendiente != null ? cuota.saldoPendiente : cuota.montoCalculado
     setForm({ monto: saldo, metodoPago:'TRANSFERENCIA', numeroOperacion:'', bancoOrigen:'', voucherUrl:'', observaciones:'', pagadorId:'' })
@@ -544,6 +587,16 @@ function DirectivoPagos({ user }) {
       try { const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`); setResidentesDepto(r.data) }
       catch { setResidentesDepto([]) }
     }
+  }
+
+  // Aprobar/rechazar el pago pendiente desde el aviso de bloqueo, y de una
+  // vez abrir el formulario normal de registro si el directivo quiere
+  const resolverYAbrir = async (accion) => {
+    try {
+      await api.patch(`/api/pagos/${form.pagoPendienteId}/verificar`, { accion, observaciones: '' })
+      setModal(null)
+      cargarDatos()
+    } catch (e) { alert(e.response?.data || 'Error') }
   }
 
   const guardarPago = async () => {
@@ -733,6 +786,41 @@ function DirectivoPagos({ user }) {
             <div className="modal-actions">
               <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
               <button className="btn btn-primary" onClick={guardarPago}>Registrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal aviso: cuota con pago pendiente — directivo debe resolver primero */}
+      {modal === 'bloqueoPendiente' && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3 className="modal-title">Pago pendiente de verificación</h3>
+            <p className="modal-sub">
+              El departamento <strong>{selected?.numeroDepartamento}</strong> ya tiene un pago esperando revisión.
+              Apruébalo o recházalo antes de registrar uno nuevo.
+            </p>
+            <div className="bloqueo-pago-info">
+              <div className="bloqueo-pago-fila">
+                <span>Pagador</span>
+                <strong>{form.pagoPendienteInfo?.pagadorNombre}</strong>
+              </div>
+              <div className="bloqueo-pago-fila">
+                <span>Monto</span>
+                <strong>S/ {Number(form.pagoPendienteInfo?.monto).toFixed(2)}</strong>
+              </div>
+              <div className="bloqueo-pago-fila">
+                <span>Método</span>
+                <strong>{form.pagoPendienteInfo?.metodoPago}{form.pagoPendienteInfo?.numeroOperacion ? ' · Op: ' + form.pagoPendienteInfo.numeroOperacion : ''}</strong>
+              </div>
+              {form.pagoPendienteInfo?.voucherUrl && (
+                <a href={form.pagoPendienteInfo.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cerrar</button>
+              <button className="btn btn-danger" onClick={() => resolverYAbrir('RECHAZAR')}>Rechazar</button>
+              <button className="btn btn-primary" onClick={() => resolverYAbrir('APROBAR')}>Aprobar</button>
             </div>
           </div>
         </div>
