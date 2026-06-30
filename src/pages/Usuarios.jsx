@@ -102,6 +102,7 @@ export default function Usuarios() {
       telefono:       u.telefono || '',
       dni:            u.dni || '',
       cargoDirectivoId: cargo?.rolId || '',
+      cargoOriginalId:  cargo?.rolId || null, // para detectar si se quiere quitar
     })
     setMsg(prev => ({ ...prev, [u.id]: '' }))
   }
@@ -109,7 +110,17 @@ export default function Usuarios() {
   const guardarEditar = async (u) => {
     try {
       const payload = { ...formEdit }
-      if (!payload.cargoDirectivoId) delete payload.cargoDirectivoId
+      const teniaCargo = !!payload.cargoOriginalId
+      const quiereQuitar = teniaCargo && !payload.cargoDirectivoId
+      delete payload.cargoOriginalId
+
+      if (quiereQuitar) {
+        // Envía 0 como señal explícita de "quitar cargo actual"
+        payload.cargoDirectivoId = 0
+      } else if (!payload.cargoDirectivoId) {
+        delete payload.cargoDirectivoId
+      }
+
       await api.put(`/api/usuarios/${u.id}`, payload)
       setMsg(prev => ({ ...prev, [u.id]: 'ok' }))
       cargarDatos()
