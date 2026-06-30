@@ -7,6 +7,15 @@ import './Reportes.css'
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const PIE_COLORS = ['#1B4F8A','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#F97316','#EF4444','#6B7280']
 
+const CARGO_LABEL = { PRESIDENTE: 'Presidente', SECRETARIO: 'Secretario', TESORERO: 'Tesorero' }
+
+const formatearFechaHora = (iso) => {
+  if (!iso) return '—'
+  const f = new Date(iso)
+  return f.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ' · ' + f.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+}
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
@@ -28,6 +37,8 @@ export default function Reportes() {
   const [anio,        setAnio]        = useState(ahora.getFullYear())
   const [reporteMes,  setReporteMes]  = useState(null)
   const [reporteAnio, setReporteAnio] = useState(null)
+  const [auditoria,   setAuditoria]   = useState([])
+  const [filtroAuditoria, setFiltroAuditoria] = useState('TODOS')
   const [loading,     setLoading]     = useState(false)
   const [error,       setError]       = useState('')
 
@@ -39,9 +50,12 @@ export default function Reportes() {
       if (tab === 'mensual') {
         const r = await api.get('/api/reportes/mes/' + anio + '/' + mes)
         setReporteMes(r.data)
-      } else {
+      } else if (tab === 'anual') {
         const r = await api.get('/api/reportes/anio/' + anio)
         setReporteAnio(r.data)
+      } else if (tab === 'auditoria') {
+        const r = await api.get('/api/reportes/auditoria', { params: { mes, anio } })
+        setAuditoria(r.data)
       }
     } catch (e) {
       setError(e.response?.data || 'Error al cargar reportes')
@@ -107,7 +121,7 @@ export default function Reportes() {
           <h1 className="page-title">Reportes</h1>
           <p className="page-subtitle">Análisis financiero de Torre Blanca</p>
         </div>
-        <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading}>
+        <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading || tab === 'auditoria'} style={tab === 'auditoria' ? { visibility: 'hidden' } : {}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
@@ -118,10 +132,11 @@ export default function Reportes() {
       <div className="pagos-tabs">
         <button className={'pagos-tab ' + (tab==='mensual'?'pagos-tab-active':'')} onClick={() => setTab('mensual')}>Reporte mensual</button>
         <button className={'pagos-tab ' + (tab==='anual'?'pagos-tab-active':'')} onClick={() => setTab('anual')}>Reporte anual</button>
+        <button className={'pagos-tab ' + (tab==='auditoria'?'pagos-tab-active':'')} onClick={() => setTab('auditoria')}>Auditoría</button>
       </div>
 
       <div className="mes-selector" style={{marginBottom:20}}>
-        {tab === 'mensual' && (
+        {(tab === 'mensual' || tab === 'auditoria') && (
           <select className="mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
             {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
           </select>
@@ -229,6 +244,101 @@ export default function Reportes() {
                 <Line type="monotone" dataKey="balance" name="Balance" stroke="#10B981" strokeWidth={2.5} dot={{r:4,fill:'#10B981'}} />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {tab === 'auditoria' && !loading && (
+        <div>
+          <div className="audit-filtros">
+            {['TODOS','PENDIENTE_VERIFICACION','VERIFICADO','RECHAZADO'].map(f => (
+              <button key={f}
+                className={'audit-filtro-btn ' + (filtroAuditoria === f ? 'audit-filtro-active' : '')}
+                onClick={() => setFiltroAuditoria(f)}
+              >
+                {f === 'TODOS' ? 'Todos' : f === 'PENDIENTE_VERIFICACION' ? 'Pendientes' : f === 'VERIFICADO' ? 'Verificados' : 'Rechazados'}
+              </button>
+            ))}
+          </div>
+
+          {auditoria.length === 0 && (
+            <div className="empty-state">No hay movimientos de pago registrados en {MESES[mes-1]} {anio}.</div>
+          )}
+
+          <div className="audit-lista">
+            {auditoria
+              .filter(a => filtroAuditoria === 'TODOS' || a.estado === filtroAuditoria)
+              .map(a => (
+                <div key={a.pagoId} className="audit-card">
+
+                  <div className="audit-card-top">
+                    <div className="audit-depto">
+                      <span className="audit-depto-num">Depto {a.numeroDepartamento}</span>
+                      <span className="audit-depto-piso">Piso {a.piso} · {MESES[a.mes-1]} {a.anio}</span>
+                    </div>
+                    <div className="audit-monto-wrap">
+                      <span className="audit-monto">S/ {Number(a.monto).toFixed(2)}</span>
+                      <span className={'pg-badge ' + (a.estado === 'VERIFICADO' ? 'badge-ok' : a.estado === 'RECHAZADO' ? 'badge-err' : 'badge-warn')}>
+                        {a.estado === 'VERIFICADO' ? 'Verificado' : a.estado === 'RECHAZADO' ? 'Rechazado' : 'Pendiente'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="audit-timeline">
+
+                    <div className="audit-evento">
+                      <div className="audit-evento-dot audit-dot-registro" />
+                      <div className="audit-evento-body">
+                        <p className="audit-evento-titulo">
+                          Pago registrado — {a.metodoPago}{a.esPasarela ? ' (pasarela Mercado Pago)' : ''}
+                        </p>
+                        <p className="audit-evento-meta">{formatearFechaHora(a.fechaRegistro)}</p>
+                        <p className="audit-evento-quien">
+                          Pagador: <strong>{a.pagadorNombre}</strong>
+                          {a.registradoPorNombre && a.registradoPorNombre !== a.pagadorNombre && (
+                            <> · Registrado por: <strong>{a.registradoPorNombre}</strong>
+                              {a.registradoPorCargo && <span className="audit-cargo-badge">{CARGO_LABEL[a.registradoPorCargo] || a.registradoPorCargo}</span>}
+                            </>
+                          )}
+                          {!a.registradoPorNombre && a.registradoPor === 'RESIDENTE' && <> · Autorregistrado por el residente</>}
+                        </p>
+                      </div>
+                    </div>
+
+                    {a.fechaVerificacion && (
+                      <div className="audit-evento">
+                        <div className={'audit-evento-dot ' + (a.estado === 'RECHAZADO' ? 'audit-dot-rechazo' : 'audit-dot-verificado')} />
+                        <div className="audit-evento-body">
+                          <p className="audit-evento-titulo">
+                            {a.estado === 'RECHAZADO' ? 'Pago rechazado' : 'Pago verificado y aprobado'}
+                          </p>
+                          <p className="audit-evento-meta">{formatearFechaHora(a.fechaVerificacion)}</p>
+                          <p className="audit-evento-quien">
+                            {a.esPasarela
+                              ? <>Verificado automáticamente por el sistema (pasarela de pago)</>
+                              : <>
+                                  Por: <strong>{a.verificadoPorNombre || '—'}</strong>
+                                  {a.verificadoPorCargo && <span className="audit-cargo-badge">{CARGO_LABEL[a.verificadoPorCargo] || a.verificadoPorCargo}</span>}
+                                </>
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!a.fechaVerificacion && (
+                      <div className="audit-evento">
+                        <div className="audit-evento-dot audit-dot-pendiente" />
+                        <div className="audit-evento-body">
+                          <p className="audit-evento-titulo">Esperando verificación de un directivo</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {a.observaciones && <p className="audit-obs">“{a.observaciones}”</p>}
+                </div>
+              ))}
           </div>
         </div>
       )}
