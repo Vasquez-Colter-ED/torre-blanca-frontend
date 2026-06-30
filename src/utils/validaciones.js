@@ -17,3 +17,12 @@ export const esEmailValido = (valor) => /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(v
 
 // Quita el signo "-" para que no se puedan escribir montos negativos
 export const sinNegativos = (valor) => valor.replace(/-/g, '')
+
+// Solo dígitos y un único punto decimal — para montos en soles.
+// No permite letras, signos (-, +, e) ni más de un punto.
+export const soloMonto = (valor) => {
+  let limpio = valor.replace(/[^0-9.]/g, '')
+  const partes = limpio.split('.')
+  if (partes.length > 2) limpio = partes[0] + '.' + partes.slice(1).join('')
+  return limpio
+}

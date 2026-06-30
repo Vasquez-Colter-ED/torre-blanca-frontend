@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import SubirFoto from '../components/SubirFoto'
-import { sinNegativos } from '../utils/validaciones'
+import { soloMonto } from '../utils/validaciones'
 import './Gastos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -176,8 +176,8 @@ export default function Gastos() {
             </div>
             <div className="gst-campo">
               <label>Monto (S/)</label>
-              <input type="number" min="0" step="0.01" placeholder="0.00" value={montoNuevo}
-                onChange={e => setMontoNuevo(sinNegativos(e.target.value))} />
+              <input type="text" inputMode="decimal" placeholder="0.00" value={montoNuevo}
+                onChange={e => setMontoNuevo(soloMonto(e.target.value))} />
             </div>
           </div>
 
