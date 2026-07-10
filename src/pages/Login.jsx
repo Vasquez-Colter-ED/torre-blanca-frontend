@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import './Login.css'
 
-// Elige el logo según el mes actual
+// Elige el logo según el mes actual. Si el logo festivo de ese mes
+// todavía no se diseñó (o el archivo no existe en /public), el <img>
+// cae automáticamente a logo-base.png mediante el onError del tag.
 const getLogoFestivo = () => {
   const mes = new Date().getMonth() + 1
   if (mes === 1)  return '/logo-añonuevo.png'
@@ -14,12 +16,19 @@ const getLogoFestivo = () => {
   return '/logo-base.png'
 }
 
+// Clave de localStorage para "Recuérdame". La contraseña se guarda
+// ofuscada con base64 (no es cifrado real, solo evita que quede
+// legible a simple vista en las devtools).
+const RECORDAR_KEY = 'tb_recordar'
+
 export default function Login() {
   const [email,        setEmail]        = useState('')
   const [password,     setPassword]     = useState('')
   const [showPass,     setShowPass]     = useState(false)
   const [error,        setError]        = useState('')
   const [loading,      setLoading]      = useState(false)
+  const [recordar,     setRecordar]     = useState(false)
+  const [logoSrc,      setLogoSrc]      = useState(getLogoFestivo())
 
   // Flujo de recuperación
   const [paso,         setPaso]         = useState(0) // 0=login, 1=email, 2=código, 3=nueva pass
@@ -34,6 +43,19 @@ export default function Login() {
   const { login, sesionExpirada } = useAuth()
   const navigate = useNavigate()
 
+  // Al montar: si había credenciales guardadas por "Recuérdame", las precarga
+  useEffect(() => {
+    try {
+      const guardado = localStorage.getItem(RECORDAR_KEY)
+      if (guardado) {
+        const { email: e, password: p } = JSON.parse(guardado)
+        setEmail(e || '')
+        setPassword(p ? atob(p) : '')
+        setRecordar(true)
+      }
+    } catch { /* si el JSON guardado es inválido, se ignora */ }
+  }, [])
+
   const resetRecuperacion = () => {
     setPaso(0); setEmailReset(''); setDigitos(['','','','','',''])
     setNuevaPass(''); setConfirmaPass(''); setError(''); setMsgExito('')
@@ -46,6 +68,14 @@ export default function Login() {
     try {
       const res = await api.post('/api/auth/login', { email, password })
       login(res.data)
+
+      // Guarda o borra las credenciales según el checkbox "Recuérdame"
+      if (recordar) {
+        localStorage.setItem(RECORDAR_KEY, JSON.stringify({ email, password: btoa(password) }))
+      } else {
+        localStorage.removeItem(RECORDAR_KEY)
+      }
+
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data || 'Correo o contraseña incorrectos.')
@@ -143,7 +173,12 @@ export default function Login() {
 
           {/* Marca */}
           <div className="login-brand">
-            <img src={getLogoFestivo()} alt="Torre Blanca" className="login-brand-logo" />
+            <img
+              src={logoSrc}
+              alt="Torre Blanca"
+              className="login-brand-logo"
+              onError={() => setLogoSrc('/logo-base.png')}
+            />
             <h1 className="login-title">
               {paso === 0 && 'Bienvenido'}
               {paso === 1 && 'Recuperar contraseña'}
@@ -203,6 +238,13 @@ export default function Login() {
                     {showPass ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
+              </div>
+
+              <div className="login-remember-row">
+                <label className="login-remember-check">
+                  <input type="checkbox" checked={recordar} onChange={e => setRecordar(e.target.checked)} />
+                  <span>Recuérdame</span>
+                </label>
                 <button type="button" className="link-olvide"
                   onClick={() => { setPaso(1); setError('') }}>
                   ¿Olvidaste tu contraseña?

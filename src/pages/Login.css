@@ -576,3 +576,29 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ── Fila: Recuérdame + olvidé contraseña ───────────────────────── */
+.login-remember-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -8px;
+}
+
+.login-remember-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--slate-600);
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-remember-check input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
