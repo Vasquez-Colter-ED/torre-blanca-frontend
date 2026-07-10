@@ -218,7 +218,7 @@ export default function Reportes() {
             {separarCaja ? (
               <>
                 <div className="rep-stat rc-green"><p className="rep-stat-label"><IcoCash /> Efectivo</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoEfectivo||0).toFixed(2)}</p></div>
-                <div className="rep-stat rc-teal"><p className="rep-stat-label"><IcoBank /> Digital</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoDigital||0).toFixed(2)}</p></div>
+                <div className="rep-stat rc-indigo"><p className="rep-stat-label"><IcoBank /> Digital</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoDigital||0).toFixed(2)}</p></div>
               </>
             ) : (
               <div className="rep-stat rc-green"><p className="rep-stat-label">Recaudado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalRecaudado).toFixed(2)}</p></div>
@@ -261,7 +261,7 @@ export default function Reportes() {
                   {separarCaja ? (
                     <>
                       <Bar dataKey="Efectivo" fill="#059669" radius={[4,4,0,0]} />
-                      <Bar dataKey="Digital"  fill="#0D9488" radius={[4,4,0,0]} />
+                      <Bar dataKey="Digital"  fill="#2563EB" radius={[4,4,0,0]} />
                       <Bar dataKey="Gastos"   fill="#D97706" radius={[4,4,0,0]} />
                     </>
                   ) : (
@@ -314,7 +314,7 @@ export default function Reportes() {
                 {separarCaja ? (
                   <>
                     <Bar dataKey="recaudadoEfectivo" name="Efectivo" fill="#059669" radius={[3,3,0,0]} />
-                    <Bar dataKey="recaudadoDigital"  name="Digital"  fill="#0D9488" radius={[3,3,0,0]} />
+                    <Bar dataKey="recaudadoDigital"  name="Digital"  fill="#2563EB" radius={[3,3,0,0]} />
                     <Bar dataKey="gastos"            name="Gastos"  fill="#D97706" radius={[3,3,0,0]} />
                   </>
                 ) : (
