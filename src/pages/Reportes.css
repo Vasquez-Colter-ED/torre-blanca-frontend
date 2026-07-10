@@ -84,18 +84,46 @@
 .rc-orange  { background: #FFFBEB; }
 .rc-red     { background: #FEF2F2; }
 .rc-neutral { background: #F1F5F9; }
+
+.rep-stat-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rep-stat-icon {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rsi-blue    { background: rgba(37,99,235,0.14);  color: #2563EB; }
+.rsi-green   { background: rgba(5,150,105,0.14);   color: #059669; }
+.rsi-indigo  { background: rgba(79,70,229,0.14);   color: #4F46E5; }
+.rsi-orange  { background: rgba(217,119,6,0.14);   color: #D97706; }
+.rsi-red     { background: rgba(220,38,38,0.14);   color: #DC2626; }
+.rsi-neutral { background: rgba(71,85,105,0.14);   color: #475569; }
+
 .rep-stat-label {
-  display: flex; align-items: center; gap: 5px;
   font-size: 0.72rem; font-weight: 700; color: #64748B;
-  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: 0.05em; margin: 0;
 }
 .rep-stat-valor { font-size: 1.2rem; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; }
+
+.rep-trend {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.68rem; font-weight: 700; margin-top: 5px;
+}
+.rep-trend-up   { color: #059669; }
+.rep-trend-down { color: #DC2626; }
+.rep-trend-flat { color: #94A3B8; font-weight: 600; }
 
 /* Charts */
 .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
 .chart-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 20px; }
 .chart-full { grid-column: 1 / -1; margin-bottom: 16px; }
 .chart-title { font-size: 0.92rem; font-weight: 700; color: #0F172A; margin-bottom: 14px; }
+
+.pie-wrap { position: relative; }
+.pie-center-total {
+  position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; pointer-events: none;
+}
+.pie-center-lbl { font-size: 0.68rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; }
+.pie-center-val { font-size: 1.15rem; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; }
 
 .chart-tooltip { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px; font-family: inherit; box-shadow: 0 4px 16px rgba(15,23,42,0.08); }
 .tooltip-label { font-weight: 700; color: #0F172A; margin-bottom: 4px; font-size: 0.82rem; }

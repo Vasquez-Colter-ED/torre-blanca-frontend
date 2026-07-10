@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react'
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts'
 import * as XLSX from 'xlsx'
 import api from '../services/api'
 import './Reportes.css'
@@ -40,6 +40,25 @@ const IcoBarChart = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const IcoCalendar = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 const IcoClipboard= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
 const IcoActivity = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+const IcoTarget    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+const IcoWallet    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+const IcoTag       = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+const IcoScale     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 7l-3 7a3.5 3.5 0 0 0 7 0z"/><path d="M19 7l-3 7a3.5 3.5 0 0 0 7 0z"/><path d="M5 7h14"/><path d="M9 3h6"/></svg>
+const IcoBuilding2 = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+const IcoTrendUp   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+const IcoTrendDown = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+
+function Tendencia({ actual, anterior }) {
+  if (anterior == null || anterior === 0 || actual == null) return null
+  const pct = ((actual - anterior) / Math.abs(anterior)) * 100
+  if (Math.abs(pct) < 0.5) return <span className="rep-trend rep-trend-flat">Igual que el mes anterior</span>
+  const sube = pct > 0
+  return (
+    <span className={`rep-trend ${sube ? 'rep-trend-up' : 'rep-trend-down'}`}>
+      {sube ? <IcoTrendUp /> : <IcoTrendDown />} {Math.abs(pct).toFixed(0)}% vs mes anterior
+    </span>
+  )
+}
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -61,6 +80,7 @@ export default function Reportes() {
   const [mes,         setMes]         = useState(ahora.getMonth() + 1)
   const [anio,        setAnio]        = useState(ahora.getFullYear())
   const [reporteMes,  setReporteMes]  = useState(null)
+  const [reporteMesAnt, setReporteMesAnt] = useState(null)
   const [reporteAnio, setReporteAnio] = useState(null)
   const [auditoria,   setAuditoria]   = useState([])
   const [filtroAuditoria, setFiltroAuditoria] = useState('TODOS')
@@ -83,6 +103,13 @@ export default function Reportes() {
       if (tab === 'mensual') {
         const r = await api.get('/api/reportes/mes/' + anio + '/' + mes)
         setReporteMes(r.data)
+        // Mes anterior, solo para calcular la tendencia de las tarjetas (silencioso si falla)
+        const mesAnt  = mes === 1 ? 12 : mes - 1
+        const anioAnt = mes === 1 ? anio - 1 : anio
+        try {
+          const rAnt = await api.get('/api/reportes/mes/' + anioAnt + '/' + mesAnt)
+          setReporteMesAnt(rAnt.data)
+        } catch { setReporteMesAnt(null) }
       } else if (tab === 'anual') {
         const r = await api.get('/api/reportes/anio/' + anio)
         setReporteAnio(r.data)
@@ -217,61 +244,151 @@ export default function Reportes() {
       {tab === 'mensual' && reporteMes && !loading && (
         <div>
           <div className="rep-stats">
-            <div className="rep-stat rc-blue"><p className="rep-stat-label">Total esperado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalEsperado).toFixed(2)}</p></div>
+            <div className="rep-stat rc-blue">
+              <div className="rep-stat-top">
+                <span className="rep-stat-icon rsi-blue"><IcoTarget /></span>
+                <p className="rep-stat-label">Total esperado</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteMes.totalEsperado).toFixed(2)}</p>
+            </div>
 
             {separarCaja ? (
               <>
-                <div className="rep-stat rc-green"><p className="rep-stat-label"><IcoCash /> Efectivo</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoEfectivo||0).toFixed(2)}</p></div>
-                <div className="rep-stat rc-indigo"><p className="rep-stat-label"><IcoBank /> Digital</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoDigital||0).toFixed(2)}</p></div>
+                <div className="rep-stat rc-green">
+                  <div className="rep-stat-top">
+                    <span className="rep-stat-icon rsi-green"><IcoCash /></span>
+                    <p className="rep-stat-label">Efectivo</p>
+                  </div>
+                  <p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoEfectivo||0).toFixed(2)}</p>
+                  <Tendencia actual={Number(reporteMes.recaudadoEfectivo||0)} anterior={reporteMesAnt ? Number(reporteMesAnt.recaudadoEfectivo||0) : null} />
+                </div>
+                <div className="rep-stat rc-indigo">
+                  <div className="rep-stat-top">
+                    <span className="rep-stat-icon rsi-indigo"><IcoBank /></span>
+                    <p className="rep-stat-label">Digital</p>
+                  </div>
+                  <p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoDigital||0).toFixed(2)}</p>
+                  <Tendencia actual={Number(reporteMes.recaudadoDigital||0)} anterior={reporteMesAnt ? Number(reporteMesAnt.recaudadoDigital||0) : null} />
+                </div>
               </>
             ) : (
-              <div className="rep-stat rc-green"><p className="rep-stat-label">Recaudado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalRecaudado).toFixed(2)}</p></div>
+              <div className="rep-stat rc-green">
+                <div className="rep-stat-top">
+                  <span className="rep-stat-icon rsi-green"><IcoWallet /></span>
+                  <p className="rep-stat-label">Recaudado</p>
+                </div>
+                <p className="rep-stat-valor">S/ {Number(reporteMes.totalRecaudado).toFixed(2)}</p>
+                <Tendencia actual={Number(reporteMes.totalRecaudado)} anterior={reporteMesAnt ? Number(reporteMesAnt.totalRecaudado) : null} />
+              </div>
             )}
 
-            <div className="rep-stat rc-orange"><p className="rep-stat-label">Gastos</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalGastos).toFixed(2)}</p></div>
-            <div className={'rep-stat ' + (Number(reporteMes.balance)>=0?'rc-green':'rc-red')}><p className="rep-stat-label">Balance</p><p className="rep-stat-valor">S/ {Number(reporteMes.balance).toFixed(2)}</p></div>
-            <div className="rep-stat rc-neutral"><p className="rep-stat-label">Deptos pagados</p><p className="rep-stat-valor">{reporteMes.deptosPagados} / {reporteMes.deptosTotal}</p></div>
+            <div className="rep-stat rc-orange">
+              <div className="rep-stat-top">
+                <span className="rep-stat-icon rsi-orange"><IcoTag /></span>
+                <p className="rep-stat-label">Gastos</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteMes.totalGastos).toFixed(2)}</p>
+              <Tendencia actual={Number(reporteMes.totalGastos)} anterior={reporteMesAnt ? Number(reporteMesAnt.totalGastos) : null} />
+            </div>
+            <div className={'rep-stat ' + (Number(reporteMes.balance)>=0?'rc-green':'rc-red')}>
+              <div className="rep-stat-top">
+                <span className={'rep-stat-icon ' + (Number(reporteMes.balance)>=0?'rsi-green':'rsi-red')}><IcoScale /></span>
+                <p className="rep-stat-label">Balance</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteMes.balance).toFixed(2)}</p>
+              <Tendencia actual={Number(reporteMes.balance)} anterior={reporteMesAnt ? Number(reporteMesAnt.balance) : null} />
+            </div>
+            <div className="rep-stat rc-neutral">
+              <div className="rep-stat-top">
+                <span className="rep-stat-icon rsi-neutral"><IcoBuilding2 /></span>
+                <p className="rep-stat-label">Deptos pagados</p>
+              </div>
+              <p className="rep-stat-valor">{reporteMes.deptosPagados} / {reporteMes.deptosTotal}</p>
+            </div>
           </div>
 
           <div className="charts-row">
             {pieData.length > 0 && (
               <div className="chart-card">
                 <h3 className="chart-title">Gastos por categoría</h3>
-                <ResponsiveContainer width="100%" height={260}>
+                <div className="pie-wrap">
+                <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" nameKey="name" paddingAngle={2}>
-                      {pieData.map((_,i) => <Cell key={i} fill={PIE_COLORS[i%PIE_COLORS.length]} />)}
+                    <defs>
+                      {PIE_COLORS.map((c, i) => (
+                        <linearGradient key={i} id={`pieGrad${i}`} x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor={c} stopOpacity={1} />
+                          <stop offset="100%" stopColor={c} stopOpacity={0.72} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <Pie
+                      data={pieData} cx="50%" cy="50%" innerRadius={62} outerRadius={95}
+                      dataKey="value" nameKey="name" paddingAngle={3} stroke="#fff" strokeWidth={2}
+                      label={({ percent }) => `${(percent*100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {pieData.map((_,i) => <Cell key={i} fill={`url(#pieGrad${i%PIE_COLORS.length})`} />)}
                     </Pie>
-                    <Tooltip formatter={(v) => 'S/ ' + Number(v).toFixed(2)} />
-                    <Legend iconType="circle" iconSize={10} />
+                    <Tooltip formatter={(v) => 'S/ ' + Number(v).toFixed(2)} contentStyle={{ borderRadius: 10, border: '1px solid #E2E8F0' }} />
+                    <Legend iconType="circle" iconSize={9} wrapperStyle={{ fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="pie-center-total">
+                  <span className="pie-center-lbl">Total gastos</span>
+                  <span className="pie-center-val">S/ {Number(reporteMes.totalGastos).toFixed(0)}</span>
+                </div>
+                </div>
               </div>
             )}
             <div className="chart-card">
               <h3 className="chart-title">Resumen financiero</h3>
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart
                   data={separarCaja
                     ? [{ name: MESES[mes-1], Efectivo: Number(reporteMes.recaudadoEfectivo||0), Digital: Number(reporteMes.recaudadoDigital||0), Gastos: Number(reporteMes.totalGastos) }]
                     : [{ name: MESES[mes-1], Recaudado: Number(reporteMes.totalRecaudado), Gastos: Number(reporteMes.totalGastos) }]
                   }
-                  margin={{top:10,right:10,left:0,bottom:0}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="name" tick={{fontSize:12}} />
-                  <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/ '+v} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
+                  margin={{top:24,right:10,left:0,bottom:0}} barGap={10}>
+                  <defs>
+                    <linearGradient id="gradEfectivo" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" stopOpacity={1} /><stop offset="100%" stopColor="#059669" stopOpacity={0.85} />
+                    </linearGradient>
+                    <linearGradient id="gradDigital" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity={1} /><stop offset="100%" stopColor="#2563EB" stopOpacity={0.85} />
+                    </linearGradient>
+                    <linearGradient id="gradRecaudado" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity={1} /><stop offset="100%" stopColor="#2563EB" stopOpacity={0.85} />
+                    </linearGradient>
+                    <linearGradient id="gradGastos" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FBBF24" stopOpacity={1} /><stop offset="100%" stopColor="#D97706" stopOpacity={0.85} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                  <XAxis dataKey="name" tick={{fontSize:12}} axisLine={{stroke:'#E2E8F0'}} tickLine={false} />
+                  <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/ '+v} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F8FAFC' }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   {separarCaja ? (
                     <>
-                      <Bar dataKey="Efectivo" fill="#059669" radius={[4,4,0,0]} />
-                      <Bar dataKey="Digital"  fill="#2563EB" radius={[4,4,0,0]} />
-                      <Bar dataKey="Gastos"   fill="#D97706" radius={[4,4,0,0]} />
+                      <Bar dataKey="Efectivo" fill="url(#gradEfectivo)" radius={[6,6,0,0]} maxBarSize={64}>
+                        <LabelList dataKey="Efectivo" position="top" formatter={v => 'S/'+Number(v).toFixed(0)} style={{ fontSize: 11, fontWeight: 700, fill: '#0F172A' }} />
+                      </Bar>
+                      <Bar dataKey="Digital" fill="url(#gradDigital)" radius={[6,6,0,0]} maxBarSize={64}>
+                        <LabelList dataKey="Digital" position="top" formatter={v => 'S/'+Number(v).toFixed(0)} style={{ fontSize: 11, fontWeight: 700, fill: '#0F172A' }} />
+                      </Bar>
+                      <Bar dataKey="Gastos" fill="url(#gradGastos)" radius={[6,6,0,0]} maxBarSize={64}>
+                        <LabelList dataKey="Gastos" position="top" formatter={v => 'S/'+Number(v).toFixed(0)} style={{ fontSize: 11, fontWeight: 700, fill: '#0F172A' }} />
+                      </Bar>
                     </>
                   ) : (
                     <>
-                      <Bar dataKey="Recaudado" fill="#2563EB" radius={[4,4,0,0]} />
-                      <Bar dataKey="Gastos"    fill="#D97706" radius={[4,4,0,0]} />
+                      <Bar dataKey="Recaudado" fill="url(#gradRecaudado)" radius={[6,6,0,0]} maxBarSize={72}>
+                        <LabelList dataKey="Recaudado" position="top" formatter={v => 'S/'+Number(v).toFixed(0)} style={{ fontSize: 11, fontWeight: 700, fill: '#0F172A' }} />
+                      </Bar>
+                      <Bar dataKey="Gastos" fill="url(#gradGastos)" radius={[6,6,0,0]} maxBarSize={72}>
+                        <LabelList dataKey="Gastos" position="top" formatter={v => 'S/'+Number(v).toFixed(0)} style={{ fontSize: 11, fontWeight: 700, fill: '#0F172A' }} />
+                      </Bar>
                     </>
                   )}
                 </BarChart>
@@ -301,30 +418,54 @@ export default function Reportes() {
       {tab === 'anual' && reporteAnio && !loading && (
         <div>
           <div className="rep-stats">
-            <div className="rep-stat rc-blue"><p className="rep-stat-label">Recaudado {anio}</p><p className="rep-stat-valor">S/ {Number(reporteAnio.totalRecaudadoAnio).toFixed(2)}</p></div>
-            <div className="rep-stat rc-orange"><p className="rep-stat-label">Gastos {anio}</p><p className="rep-stat-valor">S/ {Number(reporteAnio.totalGastosAnio).toFixed(2)}</p></div>
-            <div className={'rep-stat ' + (Number(reporteAnio.balanceAnio)>=0?'rc-green':'rc-red')}><p className="rep-stat-label">Balance {anio}</p><p className="rep-stat-valor">S/ {Number(reporteAnio.balanceAnio).toFixed(2)}</p></div>
+            <div className="rep-stat rc-blue">
+              <div className="rep-stat-top">
+                <span className="rep-stat-icon rsi-blue"><IcoWallet /></span>
+                <p className="rep-stat-label">Recaudado {anio}</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteAnio.totalRecaudadoAnio).toFixed(2)}</p>
+            </div>
+            <div className="rep-stat rc-orange">
+              <div className="rep-stat-top">
+                <span className="rep-stat-icon rsi-orange"><IcoTag /></span>
+                <p className="rep-stat-label">Gastos {anio}</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteAnio.totalGastosAnio).toFixed(2)}</p>
+            </div>
+            <div className={'rep-stat ' + (Number(reporteAnio.balanceAnio)>=0?'rc-green':'rc-red')}>
+              <div className="rep-stat-top">
+                <span className={'rep-stat-icon ' + (Number(reporteAnio.balanceAnio)>=0?'rsi-green':'rsi-red')}><IcoScale /></span>
+                <p className="rep-stat-label">Balance {anio}</p>
+              </div>
+              <p className="rep-stat-valor">S/ {Number(reporteAnio.balanceAnio).toFixed(2)}</p>
+            </div>
           </div>
 
           <div className="chart-card chart-full">
             <h3 className="chart-title">{separarCaja ? 'Efectivo vs Digital vs Gastos por mes' : 'Recaudado vs Gastos por mes'} — {anio}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="mes" tick={{fontSize:11}} />
-                <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}} barGap={6}>
+                <defs>
+                  <linearGradient id="gradEfectivoA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10B981"/><stop offset="100%" stopColor="#059669" stopOpacity={0.85}/></linearGradient>
+                  <linearGradient id="gradDigitalA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3B82F6"/><stop offset="100%" stopColor="#2563EB" stopOpacity={0.85}/></linearGradient>
+                  <linearGradient id="gradRecaudadoA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3B82F6"/><stop offset="100%" stopColor="#2563EB" stopOpacity={0.85}/></linearGradient>
+                  <linearGradient id="gradGastosA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#D97706" stopOpacity={0.85}/></linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                <XAxis dataKey="mes" tick={{fontSize:11}} axisLine={{stroke:'#E2E8F0'}} tickLine={false} />
+                <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F8FAFC' }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 {separarCaja ? (
                   <>
-                    <Bar dataKey="recaudadoEfectivo" name="Efectivo" fill="#059669" radius={[3,3,0,0]} />
-                    <Bar dataKey="recaudadoDigital"  name="Digital"  fill="#2563EB" radius={[3,3,0,0]} />
-                    <Bar dataKey="gastos"            name="Gastos"  fill="#D97706" radius={[3,3,0,0]} />
+                    <Bar dataKey="recaudadoEfectivo" name="Efectivo" fill="url(#gradEfectivoA)" radius={[3,3,0,0]} maxBarSize={28} />
+                    <Bar dataKey="recaudadoDigital"  name="Digital"  fill="url(#gradDigitalA)"  radius={[3,3,0,0]} maxBarSize={28} />
+                    <Bar dataKey="gastos"            name="Gastos"  fill="url(#gradGastosA)"   radius={[3,3,0,0]} maxBarSize={28} />
                   </>
                 ) : (
                   <>
-                    <Bar dataKey="recaudado" name="Recaudado" fill="#2563EB" radius={[3,3,0,0]} />
-                    <Bar dataKey="gastos"    name="Gastos"    fill="#D97706" radius={[3,3,0,0]} />
+                    <Bar dataKey="recaudado" name="Recaudado" fill="url(#gradRecaudadoA)" radius={[4,4,0,0]} maxBarSize={36} />
+                    <Bar dataKey="gastos"    name="Gastos"    fill="url(#gradGastosA)"    radius={[4,4,0,0]} maxBarSize={36} />
                   </>
                 )}
               </BarChart>
@@ -333,15 +474,22 @@ export default function Reportes() {
 
           <div className="chart-card chart-full">
             <h3 className="chart-title">Tendencia de balance — {anio}</h3>
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="mes" tick={{fontSize:11}} />
-                <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} />
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
+                <defs>
+                  <linearGradient id="gradBalanceArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                <XAxis dataKey="mes" tick={{fontSize:11}} axisLine={{stroke:'#E2E8F0'}} tickLine={false} />
+                <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Line type="monotone" dataKey="balance" name="Balance" stroke="#059669" strokeWidth={2.5} dot={{r:4,fill:'#059669'}} />
-              </LineChart>
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area type="monotone" dataKey="balance" name="Balance" stroke="#059669" strokeWidth={2.5}
+                  fill="url(#gradBalanceArea)" activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} dot={{ r: 3.5, fill: '#059669', strokeWidth: 0 }} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
