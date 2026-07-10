@@ -307,7 +307,8 @@
   padding: 13px 18px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
   white-space: nowrap;
 }
-.rb-th-monto, .rb-th-voucher { text-align: right; }
+.rb-th-monto { text-align: right; }
+.rb-th-accion { text-align: left; white-space: nowrap; }
 
 .rb-dir-tabla tbody tr {
   border-bottom: 1px solid #F1F5F9; cursor: pointer;
@@ -323,7 +324,16 @@
 .rb-td-muted   { color: #64748B; white-space: nowrap; }
 .rb-dir-nombre { color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
 .rb-td-monto   { text-align: right; font-weight: 800; color: #0F172A; white-space: nowrap; }
-.rb-td-voucher { text-align: right; white-space: nowrap; }
+.rb-td-accion  { white-space: nowrap; display: flex; align-items: center; gap: 12px; }
+
+.rb-btn-ver-recibo-fila {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: 1.5px solid #E2E8F0; color: #334155;
+  font-size: 0.78rem; font-weight: 700; font-family: inherit;
+  padding: 6px 12px; border-radius: 7px; cursor: pointer;
+  transition: all 0.15s ease; white-space: nowrap;
+}
+.rb-btn-ver-recibo-fila:hover { background: #0F172A; border-color: #0F172A; color: #fff; }
 
 .rb-metodo-chip {
   display: inline-flex; align-items: center; gap: 6px;

@@ -298,6 +298,7 @@ function DirectivoRecibos() {
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [busqueda,      setBusqueda]    = useState('')
   const [selected,     setSelected]     = useState(null)
+  const [reciboOpen,   setReciboOpen]   = useState(null)
   const [error,        setError]        = useState('')
 
   useEffect(() => {
@@ -377,7 +378,7 @@ function DirectivoRecibos() {
                 <th>Residente</th>
                 <th>Método</th>
                 <th className="rb-th-monto">Monto</th>
-                <th className="rb-th-voucher">Voucher</th>
+                <th className="rb-th-accion">Recibo</th>
               </tr>
             </thead>
             <tbody>
@@ -396,11 +397,15 @@ function DirectivoRecibos() {
                       </span>
                     </td>
                     <td className="rb-td-monto">S/ {Number(b.monto).toFixed(2)}</td>
-                    <td className="rb-td-voucher">
-                      {b.voucherUrl
-                        ? <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}><IcoDoc /> Ver</a>
-                        : <span className="rb-dir-sin-voucher">—</span>
-                      }
+                    <td className="rb-td-accion">
+                      <button className="rb-btn-ver-recibo-fila" onClick={e => { e.stopPropagation(); setReciboOpen(b) }}>
+                        <IcoDoc /> Ver recibo
+                      </button>
+                      {b.voucherUrl && (
+                        <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}>
+                          Voucher
+                        </a>
+                      )}
                     </td>
                   </tr>
                 )
@@ -419,6 +424,15 @@ function DirectivoRecibos() {
           </div>
           <img src={selected.voucherUrl} alt="Comprobante" className="rb-dir-preview-img" />
         </div>
+      )}
+
+      {/* Recibo oficial completo, con descarga en PDF — mismo componente que usa el residente */}
+      {reciboOpen && (
+        <ReciboDetalle
+          boleta={reciboOpen}
+          anio={reciboOpen.anio}
+          onCerrar={() => setReciboOpen(null)}
+        />
       )}
     </div>
   )
