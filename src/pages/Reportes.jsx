@@ -1,13 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import * as XLSX from 'xlsx'
 import api from '../services/api'
 import './Reportes.css'
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
-const PIE_COLORS = ['#1B4F8A','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#F97316','#EF4444','#6B7280']
+const PIE_COLORS = ['#2563EB','#059669','#D97706','#7C3AED','#DB2777','#0D9488','#DC2626','#475569','#EA580C']
 
 const CARGO_LABEL = { PRESIDENTE: 'Presidente', SECRETARIO: 'Secretario', TESORERO: 'Tesorero' }
+
+const TABLA_LABEL = {
+  gastos: 'Gastos',
+  usuarios: 'Usuarios',
+  usuarios_roles: 'Roles',
+  usuarios_permisos: 'Permisos',
+  propietarios_departamentos: 'Propietarios',
+  inquilinos_departamentos: 'Inquilinos',
+  cocheras_departamentos: 'Cocheras',
+  configuracion_mantenimiento: 'Config. mantenimiento',
+}
+const tablaLabel = (t) => TABLA_LABEL[t] || t
 
 const formatearFechaHora = (iso) => {
   if (!iso) return '—'
@@ -15,6 +27,15 @@ const formatearFechaHora = (iso) => {
   return f.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) +
     ' · ' + f.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
 }
+
+const parseJson = (s) => { try { return s ? JSON.parse(s) : null } catch { return null } }
+
+// ── Íconos ──────────────────────────────────────────────────────
+const IcoDownload = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+const IcoChev     = ({ open }) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}><polyline points="6 9 12 15 18 9"/></svg>
+const IcoSearch   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+const IcoCash     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+const IcoBank     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -39,8 +60,16 @@ export default function Reportes() {
   const [reporteAnio, setReporteAnio] = useState(null)
   const [auditoria,   setAuditoria]   = useState([])
   const [filtroAuditoria, setFiltroAuditoria] = useState('TODOS')
+  const [auditoriaGeneral, setAuditoriaGeneral] = useState([])
   const [loading,     setLoading]     = useState(false)
   const [error,       setError]       = useState('')
+  const [separarCaja, setSepararCaja] = useState(false)
+
+  // Auditoría general — filtros
+  const [agBusqueda, setAgBusqueda] = useState('')
+  const [agUsuario,  setAgUsuario]  = useState('')
+  const [agTabla,    setAgTabla]    = useState('')
+  const [agExpandId, setAgExpandId] = useState(null)
 
   useEffect(() => { cargarDatos() }, [tab, mes, anio])
 
@@ -56,6 +85,9 @@ export default function Reportes() {
       } else if (tab === 'auditoria') {
         const r = await api.get('/api/reportes/auditoria', { params: { mes, anio } })
         setAuditoria(r.data)
+      } else if (tab === 'auditoria-general') {
+        const r = await api.get('/api/reportes/auditoria-sistema')
+        setAuditoriaGeneral(r.data)
       }
     } catch (e) {
       setError(e.response?.data || 'Error al cargar reportes')
@@ -72,6 +104,8 @@ export default function Reportes() {
       ['Concepto', 'Monto (S/)'],
       ['Total esperado',  reporteMes.totalEsperado],
       ['Total recaudado', reporteMes.totalRecaudado],
+      ['  · Efectivo',    reporteMes.recaudadoEfectivo],
+      ['  · Digital',     reporteMes.recaudadoDigital],
       ['Total gastos',    reporteMes.totalGastos],
       ['Balance',         reporteMes.balance],
       [],
@@ -106,44 +140,71 @@ export default function Reportes() {
       ['Total gastos año',    reporteAnio.totalGastosAnio],
       ['Balance año',         reporteAnio.balanceAnio],
       [],
-      ['Mes','Recaudado (S/)','Gastos (S/)','Balance (S/)','Deptos pagados','Total deptos'],
-      ...(reporteAnio.datosMensuales||[]).map(d => [d.mes, Number(d.recaudado).toFixed(2), Number(d.gastos).toFixed(2), Number(d.balance).toFixed(2), d.pagados, d.total])
+      ['Mes','Recaudado (S/)','Efectivo (S/)','Digital (S/)','Gastos (S/)','Balance (S/)','Deptos pagados','Total deptos'],
+      ...(reporteAnio.datosMensuales||[]).map(d => [d.mes, Number(d.recaudado).toFixed(2), Number(d.recaudadoEfectivo||0).toFixed(2), Number(d.recaudadoDigital||0).toFixed(2), Number(d.gastos).toFixed(2), Number(d.balance).toFixed(2), d.pagados, d.total])
     ]), 'Resumen anual')
     XLSX.writeFile(wb, 'Reporte_TorreBlanca_' + anio + '.xlsx')
   }
 
   const pieData = reporteMes ? Object.entries(reporteMes.gastosPorCategoria||{}).map(([name,value]) => ({ name, value: Number(value) })) : []
 
+  // ── Auditoría general: listas para filtros + filtrado ──────────
+  const agUsuarios = [...new Set(auditoriaGeneral.map(a => a.usuarioNombre).filter(Boolean))].sort()
+  const agTablas    = [...new Set(auditoriaGeneral.map(a => a.tablaAfectada).filter(Boolean))].sort()
+  const auditoriaGeneralFiltrada = auditoriaGeneral.filter(a => {
+    if (agUsuario && a.usuarioNombre !== agUsuario) return false
+    if (agTabla   && a.tablaAfectada !== agTabla)   return false
+    if (agBusqueda && !`${a.accion} ${a.usuarioNombre || ''}`.toLowerCase().includes(agBusqueda.toLowerCase())) return false
+    return true
+  })
+
   return (
     <div className="reportes-page">
       <div className="reportes-header">
         <div>
-          <h1 className="page-title">Reportes</h1>
-          <p className="page-subtitle">Análisis financiero de Torre Blanca</p>
+          <h1 className="rep-page-titulo">Reportes</h1>
+          <p className="rep-page-sub">Análisis financiero y actividad administrativa de Torre Blanca</p>
         </div>
-        <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading || tab === 'auditoria'} style={tab === 'auditoria' ? { visibility: 'hidden' } : {}}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Exportar Excel
-        </button>
+        {(tab === 'mensual' || tab === 'anual') && (
+          <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading}>
+            <IcoDownload /> Exportar Excel
+          </button>
+        )}
       </div>
 
       <div className="pagos-tabs">
         <button className={'pagos-tab ' + (tab==='mensual'?'pagos-tab-active':'')} onClick={() => setTab('mensual')}>Reporte mensual</button>
         <button className={'pagos-tab ' + (tab==='anual'?'pagos-tab-active':'')} onClick={() => setTab('anual')}>Reporte anual</button>
-        <button className={'pagos-tab ' + (tab==='auditoria'?'pagos-tab-active':'')} onClick={() => setTab('auditoria')}>Auditoría</button>
+        <button className={'pagos-tab ' + (tab==='auditoria'?'pagos-tab-active':'')} onClick={() => setTab('auditoria')}>Auditoría de pagos</button>
+        <button className={'pagos-tab ' + (tab==='auditoria-general'?'pagos-tab-active':'')} onClick={() => setTab('auditoria-general')}>Auditoría general</button>
       </div>
 
-      <div className="mes-selector" style={{marginBottom:20}}>
+      <div className="rep-controls-row">
         {(tab === 'mensual' || tab === 'auditoria') && (
-          <select className="mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
-            {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
-          </select>
+          <div className="mes-selector">
+            <select className="mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
+              {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
+            </select>
+            <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
+              {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
         )}
-        <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
-          {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+        {tab === 'anual' && (
+          <div className="mes-selector">
+            <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
+              {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+        )}
+
+        {(tab === 'mensual' || tab === 'anual') && (
+          <label className="rep-toggle">
+            <input type="checkbox" checked={separarCaja} onChange={e => setSepararCaja(e.target.checked)} />
+            <span className="rep-toggle-track"><span className="rep-toggle-thumb" /></span>
+            Separar caja: Efectivo / Digital
+          </label>
+        )}
       </div>
 
       {loading && <div className="loading-msg">Cargando reporte...</div>}
@@ -153,7 +214,16 @@ export default function Reportes() {
         <div>
           <div className="rep-stats">
             <div className="rep-stat rc-blue"><p className="rep-stat-label">Total esperado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalEsperado).toFixed(2)}</p></div>
-            <div className="rep-stat rc-green"><p className="rep-stat-label">Recaudado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalRecaudado).toFixed(2)}</p></div>
+
+            {separarCaja ? (
+              <>
+                <div className="rep-stat rc-green"><p className="rep-stat-label"><IcoCash /> Efectivo</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoEfectivo||0).toFixed(2)}</p></div>
+                <div className="rep-stat rc-teal"><p className="rep-stat-label"><IcoBank /> Digital</p><p className="rep-stat-valor">S/ {Number(reporteMes.recaudadoDigital||0).toFixed(2)}</p></div>
+              </>
+            ) : (
+              <div className="rep-stat rc-green"><p className="rep-stat-label">Recaudado</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalRecaudado).toFixed(2)}</p></div>
+            )}
+
             <div className="rep-stat rc-orange"><p className="rep-stat-label">Gastos</p><p className="rep-stat-valor">S/ {Number(reporteMes.totalGastos).toFixed(2)}</p></div>
             <div className={'rep-stat ' + (Number(reporteMes.balance)>=0?'rc-green':'rc-red')}><p className="rep-stat-label">Balance</p><p className="rep-stat-valor">S/ {Number(reporteMes.balance).toFixed(2)}</p></div>
             <div className="rep-stat rc-neutral"><p className="rep-stat-label">Deptos pagados</p><p className="rep-stat-valor">{reporteMes.deptosPagados} / {reporteMes.deptosTotal}</p></div>
@@ -177,14 +247,29 @@ export default function Reportes() {
             <div className="chart-card">
               <h3 className="chart-title">Resumen financiero</h3>
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={[{ name: MESES[mes-1], Recaudado: Number(reporteMes.totalRecaudado), Gastos: Number(reporteMes.totalGastos) }]} margin={{top:10,right:10,left:0,bottom:0}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F0ECE6" />
+                <BarChart
+                  data={separarCaja
+                    ? [{ name: MESES[mes-1], Efectivo: Number(reporteMes.recaudadoEfectivo||0), Digital: Number(reporteMes.recaudadoDigital||0), Gastos: Number(reporteMes.totalGastos) }]
+                    : [{ name: MESES[mes-1], Recaudado: Number(reporteMes.totalRecaudado), Gastos: Number(reporteMes.totalGastos) }]
+                  }
+                  margin={{top:10,right:10,left:0,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                   <XAxis dataKey="name" tick={{fontSize:12}} />
                   <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/ '+v} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar dataKey="Recaudado" fill="#1B4F8A" radius={[4,4,0,0]} />
-                  <Bar dataKey="Gastos"    fill="#F97316" radius={[4,4,0,0]} />
+                  {separarCaja ? (
+                    <>
+                      <Bar dataKey="Efectivo" fill="#059669" radius={[4,4,0,0]} />
+                      <Bar dataKey="Digital"  fill="#0D9488" radius={[4,4,0,0]} />
+                      <Bar dataKey="Gastos"   fill="#D97706" radius={[4,4,0,0]} />
+                    </>
+                  ) : (
+                    <>
+                      <Bar dataKey="Recaudado" fill="#2563EB" radius={[4,4,0,0]} />
+                      <Bar dataKey="Gastos"    fill="#D97706" radius={[4,4,0,0]} />
+                    </>
+                  )}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -218,16 +303,26 @@ export default function Reportes() {
           </div>
 
           <div className="chart-card chart-full">
-            <h3 className="chart-title">Recaudado vs Gastos por mes — {anio}</h3>
+            <h3 className="chart-title">{separarCaja ? 'Efectivo vs Digital vs Gastos por mes' : 'Recaudado vs Gastos por mes'} — {anio}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0ECE6" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis dataKey="mes" tick={{fontSize:11}} />
                 <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="recaudado" name="Recaudado" fill="#1B4F8A" radius={[3,3,0,0]} />
-                <Bar dataKey="gastos"    name="Gastos"    fill="#F97316" radius={[3,3,0,0]} />
+                {separarCaja ? (
+                  <>
+                    <Bar dataKey="recaudadoEfectivo" name="Efectivo" fill="#059669" radius={[3,3,0,0]} />
+                    <Bar dataKey="recaudadoDigital"  name="Digital"  fill="#0D9488" radius={[3,3,0,0]} />
+                    <Bar dataKey="gastos"            name="Gastos"  fill="#D97706" radius={[3,3,0,0]} />
+                  </>
+                ) : (
+                  <>
+                    <Bar dataKey="recaudado" name="Recaudado" fill="#2563EB" radius={[3,3,0,0]} />
+                    <Bar dataKey="gastos"    name="Gastos"    fill="#D97706" radius={[3,3,0,0]} />
+                  </>
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -236,12 +331,12 @@ export default function Reportes() {
             <h3 className="chart-title">Tendencia de balance — {anio}</h3>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0ECE6" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis dataKey="mes" tick={{fontSize:11}} />
                 <YAxis tick={{fontSize:11}} tickFormatter={v => 'S/'+v} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" dataKey="balance" name="Balance" stroke="#10B981" strokeWidth={2.5} dot={{r:4,fill:'#10B981'}} />
+                <Line type="monotone" dataKey="balance" name="Balance" stroke="#059669" strokeWidth={2.5} dot={{r:4,fill:'#059669'}} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -340,6 +435,93 @@ export default function Reportes() {
                 </div>
               ))}
           </div>
+        </div>
+      )}
+
+      {tab === 'auditoria-general' && !loading && (
+        <div>
+          <div className="ag-toolbar">
+            <div className="ag-search-wrap">
+              <IcoSearch />
+              <input className="ag-search" placeholder="Buscar por acción o usuario..."
+                value={agBusqueda} onChange={e => setAgBusqueda(e.target.value)} />
+            </div>
+            <select className="mes-select" value={agUsuario} onChange={e => setAgUsuario(e.target.value)}>
+              <option value="">Todos los usuarios</option>
+              {agUsuarios.map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+            <select className="mes-select" value={agTabla} onChange={e => setAgTabla(e.target.value)}>
+              <option value="">Todas las áreas</option>
+              {agTablas.map(t => <option key={t} value={t}>{tablaLabel(t)}</option>)}
+            </select>
+          </div>
+
+          <p className="ag-count">{auditoriaGeneralFiltrada.length} evento{auditoriaGeneralFiltrada.length !== 1 ? 's' : ''}</p>
+
+          {auditoriaGeneralFiltrada.length === 0 ? (
+            <div className="empty-state">No hay eventos de auditoría con ese filtro.</div>
+          ) : (
+            <div className="ag-tabla-wrap">
+              <table className="ag-tabla">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Área</th>
+                    <th className="ag-th-detalle">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditoriaGeneralFiltrada.map(a => {
+                    const abierto = agExpandId === a.id
+                    const antes   = parseJson(a.datosAnteriores)
+                    const despues = parseJson(a.datosNuevos)
+                    const tieneDetalle = antes || despues
+
+                    return (
+                      <Fragment key={a.id}>
+                        <tr className={tieneDetalle ? 'ag-row-clickable' : ''}
+                          onClick={() => tieneDetalle && setAgExpandId(abierto ? null : a.id)}>
+                          <td className="ag-td-muted">{formatearFechaHora(a.fecha)}</td>
+                          <td className="ag-td-usuario">{a.usuarioNombre || 'Sistema'}</td>
+                          <td className="ag-td-accion">{a.accion}</td>
+                          <td><span className="ag-tabla-chip">{tablaLabel(a.tablaAfectada)}</span></td>
+                          <td className="ag-th-detalle">
+                            {tieneDetalle && <IcoChev open={abierto} />}
+                          </td>
+                        </tr>
+                        {abierto && tieneDetalle && (
+                          <tr className="ag-row-detalle">
+                            <td colSpan={5}>
+                              <div className="ag-detalle-grid">
+                                {antes && (
+                                  <div className="ag-detalle-col">
+                                    <p className="ag-detalle-titulo">Antes</p>
+                                    {Object.entries(antes).map(([k,v]) => (
+                                      <p key={k} className="ag-detalle-item"><span>{k}</span>{String(v)}</p>
+                                    ))}
+                                  </div>
+                                )}
+                                {despues && (
+                                  <div className="ag-detalle-col">
+                                    <p className="ag-detalle-titulo">{antes ? 'Después' : 'Datos'}</p>
+                                    {Object.entries(despues).map(([k,v]) => (
+                                      <p key={k} className="ag-detalle-item"><span>{k}</span>{String(v)}</p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
