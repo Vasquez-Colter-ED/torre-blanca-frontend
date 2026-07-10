@@ -10,7 +10,7 @@ const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct'
 
 const METODO_LABEL = {
   TRANSFERENCIA: 'Transferencia', DEPOSITO: 'Depósito',
-  PLIN: 'Plin', EFECTIVO: 'Efectivo',
+  YAPE: 'Yape', PLIN: 'Plin', EFECTIVO: 'Efectivo',
   OTRO: 'Otro', TARJETA: 'Tarjeta', TRANSFERENCIA_BANCARIA: 'Transferencia'
 }
 
@@ -270,35 +270,72 @@ function ResidenteRecibos({ user }) {
   )
 }
 
+// Método de pago → color + ícono, mismo lenguaje visual que las
+// categorías de Gastos (chip con color, sin emojis)
+const METODO_META = {
+  TRANSFERENCIA: { color: '#2563EB', bg: '#EFF6FF', Icon: IcoBank },
+  DEPOSITO:      { color: '#2563EB', bg: '#EFF6FF', Icon: IcoBank },
+  YAPE:          { color: '#7C3AED', bg: '#F5F3FF', Icon: IcoCash },
+  PLIN:          { color: '#0D9488', bg: '#F0FDFA', Icon: IcoCash },
+  EFECTIVO:      { color: '#059669', bg: '#F0FDF4', Icon: IcoCash },
+  TARJETA:       { color: '#DB2777', bg: '#FDF2F8', Icon: IcoCard },
+  OTRO:          { color: '#475569', bg: '#F1F5F9', Icon: IcoBank },
+}
+const metodoMeta = (m) => METODO_META[m] || METODO_META['OTRO']
+
+const IcoSearch = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+
 // ══════════════════════════════════════════════════════════════════
-//  VISTA DIRECTIVO — tabla simple con filtros
+//  VISTA DIRECTIVO — tabla con filtros
 // ══════════════════════════════════════════════════════════════════
 function DirectivoRecibos() {
-  const [boletas,    setBoletas]    = useState([])
-  const [loading,    setLoading]    = useState(true)
-  const [filtroMes,  setFiltroMes]  = useState('')
-  const [filtroAnio, setFiltroAnio] = useState('')
-  const [selected,   setSelected]   = useState(null)
-  const [error,      setError]      = useState('')
+  const ahora = new Date()
+
+  const [boletas,      setBoletas]      = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [filtroMes,    setFiltroMes]    = useState(ahora.getMonth() + 1)  // mes actual por defecto
+  const [filtroAnio,   setFiltroAnio]   = useState(ahora.getFullYear())   // año actual por defecto
+  const [filtroMetodo, setFiltroMetodo] = useState('')
+  const [busqueda,      setBusqueda]    = useState('')
+  const [selected,     setSelected]     = useState(null)
+  const [error,        setError]        = useState('')
 
   useEffect(() => {
     api.get('/api/boletas').then(r => setBoletas(r.data)).catch(() => setError('Error al cargar')).finally(() => setLoading(false))
   }, [])
 
   const filtradas = boletas.filter(b => {
-    if (filtroMes  && b.mes  !== Number(filtroMes))  return false
-    if (filtroAnio && b.anio !== Number(filtroAnio)) return false
+    if (filtroMes    !== '' && b.mes         !== Number(filtroMes))  return false
+    if (filtroAnio   !== '' && b.anio        !== Number(filtroAnio)) return false
+    if (filtroMetodo !== '' && b.metodoPago  !== filtroMetodo)       return false
+    if (busqueda && !`${b.pagadorNombre} ${b.numeroDepartamento}`.toLowerCase().includes(busqueda.toLowerCase())) return false
     return true
-  })
+  }).sort((a, b) => (b.anio - a.anio) || (b.mes - a.mes) || Number(a.numeroDepartamento) - Number(b.numeroDepartamento))
 
-  const aniosDisp = [...new Set(boletas.map(b => b.anio))].sort((a,b) => b-a)
+  // Rango de años: 5 atrás, el actual, y 5 adelante — independiente de qué años tengan datos
+  const anioActual = ahora.getFullYear()
+  const aniosDisp = Array.from({ length: 11 }, (_, i) => anioActual - 5 + i)
+
+  // Métodos de pago realmente presentes en los recibos, para no mostrar opciones vacías
+  const metodosDisp = [...new Set(boletas.map(b => b.metodoPago))].sort()
 
   return (
     <div className="rb-dir-page">
-      <h1 className="rb-titulo">Recibos emitidos</h1>
-      <p className="rb-subtitulo">Historial de recibos de todos los departamentos</p>
+      <div className="rb-dir-header">
+        <div>
+          <h1 className="rb-titulo">Recibos emitidos</h1>
+          <p className="rb-subtitulo">Historial de recibos verificados de todos los departamentos</p>
+        </div>
+      </div>
+
+      {error && <div className="rb-error">{error}</div>}
 
       <div className="rb-dir-toolbar">
+        <div className="rb-dir-search-wrap">
+          <IcoSearch />
+          <input className="rb-dir-search" placeholder="Buscar por residente o departamento..."
+            value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+        </div>
         <select className="rb-dir-select" value={filtroMes} onChange={e => setFiltroMes(e.target.value)}>
           <option value="">Todos los meses</option>
           {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
@@ -307,46 +344,73 @@ function DirectivoRecibos() {
           <option value="">Todos los años</option>
           {aniosDisp.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <span className="rb-dir-count">{filtradas.length} recibo{filtradas.length !== 1 ? 's' : ''}</span>
+        <select className="rb-dir-select" value={filtroMetodo} onChange={e => setFiltroMetodo(e.target.value)}>
+          <option value="">Todos los métodos</option>
+          {metodosDisp.map(m => <option key={m} value={m}>{METODO_LABEL[m] || m}</option>)}
+        </select>
       </div>
 
-      {error && <div className="rb-error">{error}</div>}
-      {loading && <div className="rb-loading">Cargando...</div>}
-
-      <div className="rb-dir-tabla">
-        <div className="rb-dir-head">
-          <span>Período</span>
-          <span>Departamento</span>
-          <span>Residente</span>
-          <span>Monto</span>
-          <span>Método</span>
-          <span>Voucher</span>
-        </div>
-        {filtradas.map(b => (
-          <div key={b.boletaId} className={`rb-dir-row ${selected?.boletaId === b.boletaId ? 'rb-dir-row-active' : ''}`}
-            onClick={() => setSelected(selected?.boletaId === b.boletaId ? null : b)}>
-            <span className="rb-dir-mes">{MESES[b.mes-1]} {b.anio}</span>
-            <span>Depto {b.numeroDepartamento} · P{b.piso}</span>
-            <span className="rb-dir-nombre">{b.pagadorNombre}</span>
-            <span className="rb-dir-monto">S/ {Number(b.monto).toFixed(2)}</span>
-            <span className="rb-dir-metodo">
-              <MetodoIcon metodo={b.metodoPago} />
-              {METODO_LABEL[b.metodoPago] || b.metodoPago}
-            </span>
-            <span>
-              {b.voucherUrl
-                ? <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}>Ver</a>
-                : <span className="rb-dir-sin-voucher">—</span>
-              }
-            </span>
-          </div>
-        ))}
-        {filtradas.length === 0 && !loading && (
-          <div className="rb-dir-empty">No hay recibos con ese filtro.</div>
+      <div className="rb-dir-tabla-bar">
+        <span className="rb-dir-count">{filtradas.length} recibo{filtradas.length !== 1 ? 's' : ''}</span>
+        {filtroMes && filtroAnio && (
+          <span className="rb-dir-periodo-actual">{MESES[Number(filtroMes) - 1]} {filtroAnio}</span>
         )}
       </div>
 
-      {/* Preview voucher si está seleccionado y tiene foto */}
+      {loading ? (
+        <div className="rb-dir-skeleton">
+          {[...Array(5)].map((_, i) => <div key={i} className="rb-dir-skeleton-row" />)}
+        </div>
+      ) : filtradas.length === 0 ? (
+        <div className="rb-empty">
+          <IcoDoc />
+          <p className="rb-empty-t">No hay recibos con ese filtro</p>
+          <p className="rb-empty-s">Prueba cambiando el mes, el año o el método de pago.</p>
+        </div>
+      ) : (
+        <div className="rb-dir-tabla-wrap">
+          <table className="rb-dir-tabla">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th>Departamento</th>
+                <th>Residente</th>
+                <th>Método</th>
+                <th className="rb-th-monto">Monto</th>
+                <th className="rb-th-voucher">Voucher</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtradas.map(b => {
+                const { Icon, color, bg } = metodoMeta(b.metodoPago)
+                const activa = selected?.boletaId === b.boletaId
+                return (
+                  <tr key={b.boletaId} className={activa ? 'rb-dir-row-active' : ''}
+                    onClick={() => setSelected(activa ? null : b)}>
+                    <td className="rb-dir-mes">{MESES[b.mes-1]} {b.anio}</td>
+                    <td className="rb-td-muted">Depto {b.numeroDepartamento} · Piso {b.piso}</td>
+                    <td className="rb-dir-nombre">{b.pagadorNombre}</td>
+                    <td>
+                      <span className="rb-metodo-chip" style={{ background: bg, color }}>
+                        <Icon /> {METODO_LABEL[b.metodoPago] || b.metodoPago}
+                      </span>
+                    </td>
+                    <td className="rb-td-monto">S/ {Number(b.monto).toFixed(2)}</td>
+                    <td className="rb-td-voucher">
+                      {b.voucherUrl
+                        ? <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}><IcoDoc /> Ver</a>
+                        : <span className="rb-dir-sin-voucher">—</span>
+                      }
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Preview del voucher, se abre debajo de la tabla al hacer clic en la fila */}
       {selected?.voucherUrl && (
         <div className="rb-dir-preview">
           <div className="rb-dir-preview-header">
