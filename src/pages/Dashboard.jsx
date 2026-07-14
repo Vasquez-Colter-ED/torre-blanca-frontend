@@ -353,6 +353,7 @@ function ResidenteDashboard({ user }) {
   const cuotasFuturas        = verMasFuturas ? todasCuotasFuturas : todasCuotasFuturas.slice(0,3)
   const totalPagado          = cuotasPagadas.reduce((s,c) => s + Number(c.montoCalculado), 0)
   const totalPendiente       = cuotasUrgentes.reduce((s,c) => s + Number(c.montoCalculado), 0)
+  const totalEnVerificacion  = cuotasEnVerificacion.reduce((s,c) => s + Number(c.montoCalculado), 0)
 
   return (
     <div className="db-page">
@@ -367,7 +368,7 @@ function ResidenteDashboard({ user }) {
         <>
           <div className="db-kpis">
             <div className="db-kpi db-kpi-pending"><div className="db-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div className="db-kpi-body"><p className="db-kpi-value">S/ {totalPendiente.toFixed(2)}</p><p className="db-kpi-label">Por pagar</p></div></div>
-            <div className="db-kpi db-kpi-verify"><div className="db-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div className="db-kpi-body"><p className="db-kpi-value">{cuotasEnVerificacion.length}</p><p className="db-kpi-label">En verificación</p></div></div>
+            <div className="db-kpi db-kpi-verify"><div className="db-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div className="db-kpi-body"><p className="db-kpi-value">S/ {totalEnVerificacion.toFixed(2)}</p><p className="db-kpi-label">En verificación{cuotasEnVerificacion.length > 0 ? ` (${cuotasEnVerificacion.length})` : ''}</p></div></div>
             <div className="db-kpi db-kpi-paid"><div className="db-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div className="db-kpi-body"><p className="db-kpi-value">S/ {totalPagado.toFixed(2)}</p><p className="db-kpi-label">Total pagado</p></div></div>
           </div>
 
