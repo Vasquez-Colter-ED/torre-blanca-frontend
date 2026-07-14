@@ -98,7 +98,8 @@ function DirectivoDashboard({ user }) {
   // Mis cuotas como residente
   const misCuotasUrgentes = misCuotas.filter(c =>
     (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') &&
-    !(c.anio > anio || (c.anio === anio && c.mes > mes))
+    !(c.anio > anio || (c.anio === anio && c.mes > mes)) &&
+    !c.pagos?.some(p => p.estado === 'PENDIENTE_VERIFICACION')
   )
 
   // Fecha formateada
@@ -346,14 +347,18 @@ function ResidenteDashboard({ user }) {
   }, [])
 
   const esFuturo = c => c.anio > anioActual || (c.anio === anioActual && c.mes > mesActual)
+  const tienePagoPendiente   = c => c.pagos?.some(p => p.estado === 'PENDIENTE_VERIFICACION')
   const cuotasPagadas        = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
-  const cuotasEnVerificacion = cuotas.filter(c => c.estadoCuota === 'PENDIENTE_VERIFICACION')
-  const cuotasUrgentes       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c))
-  const todasCuotasFuturas   = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c)).sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
+  const cuotasEnVerificacion = cuotas.filter(tienePagoPendiente)
+  const cuotasUrgentes       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c) && !tienePagoPendiente(c))
+  const todasCuotasFuturas   = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c) && !tienePagoPendiente(c)).sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
   const cuotasFuturas        = verMasFuturas ? todasCuotasFuturas : todasCuotasFuturas.slice(0,3)
   const totalPagado          = cuotasPagadas.reduce((s,c) => s + Number(c.montoCalculado), 0)
   const totalPendiente       = cuotasUrgentes.reduce((s,c) => s + Number(c.montoCalculado), 0)
-  const totalEnVerificacion  = cuotasEnVerificacion.reduce((s,c) => s + Number(c.montoCalculado), 0)
+  const totalEnVerificacion  = cuotasEnVerificacion.reduce((s,c) => {
+    const pagoPend = c.pagos.find(p => p.estado === 'PENDIENTE_VERIFICACION')
+    return s + Number(pagoPend?.monto || 0)
+  }, 0)
 
   return (
     <div className="db-page">
