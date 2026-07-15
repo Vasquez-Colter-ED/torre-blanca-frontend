@@ -169,6 +169,7 @@
 .us-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .us-edit-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #F1F5F9; }
 .us-edit-nota { font-size: 0.75rem; color: #94A3B8; margin: 8px 0 0 0; font-style: italic; }
+.us-edit-nota-warn { color: #D97706; font-weight: 600; font-style: normal; background: #FFFBEB; border: 1px solid #FDE68A; padding: 8px 12px; border-radius: 8px; }
 
 /* Campos */
 .us-field  { display: flex; flex-direction: column; gap: 5px; }

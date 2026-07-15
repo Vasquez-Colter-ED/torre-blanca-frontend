@@ -130,7 +130,7 @@ export default function Usuarios() {
 
   const toggleEstado = async (u) => {
     const cargo = cargoDirectivo(u)
-    if (cargo) return // No desactivar directivos
+    if (cargo && u.estado === 'ACTIVO') return // no se puede desactivar a un directivo activo (primero hay que quitarle el cargo)
     try {
       const accion = u.estado === 'ACTIVO' ? 'desactivar' : 'reactivar'
       await api.patch(`/api/usuarios/${u.id}/${accion}`)
@@ -372,7 +372,7 @@ export default function Usuarios() {
                       <button className={`us-btn-edit ${abierto ? 'us-btn-edit-on' : ''}`} onClick={() => abrirEditar(u)}>
                         {abierto ? <IcoX /> : <IcoEdit />}
                       </button>
-                      {!esDir && (
+                      {(!esDir || !activo) && (
                         <button className={`us-btn-toggle ${activo ? 'us-btn-desact' : 'us-btn-react'}`} onClick={() => toggleEstado(u)}>
                           {activo ? 'Desactivar' : 'Reactivar'}
                         </button>
@@ -418,13 +418,17 @@ export default function Usuarios() {
                         <div className="us-edit-grid">
                           <div className="us-field">
                             <label className="us-label">Cargo</label>
-                            <select className="us-input" value={formEdit.cargoDirectivoId || ''} onChange={e => setFormEdit({ ...formEdit, cargoDirectivoId: e.target.value })}>
+                            <select className="us-input" value={formEdit.cargoDirectivoId || ''} disabled={!activo}
+                              onChange={e => setFormEdit({ ...formEdit, cargoDirectivoId: e.target.value })}>
                               <option value="">Sin cargo directivo</option>
                               {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
                             </select>
                           </div>
                         </div>
-                        <p className="us-edit-nota">El tipo de residencia (propietario/inquilino) se gestiona desde el módulo de Departamentos.</p>
+                        {!activo
+                          ? <p className="us-edit-nota us-edit-nota-warn">Este usuario está inactivo — reactívalo primero para poder asignarle un cargo directivo.</p>
+                          : <p className="us-edit-nota">El tipo de residencia (propietario/inquilino) se gestiona desde el módulo de Departamentos.</p>
+                        }
                       </>
                     )}
 
