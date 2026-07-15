@@ -386,8 +386,8 @@ export default function Departamentos() {
         </div>
         <div className="dpt-leyenda">
           <span className="dpt-ley-item"><span className="dpt-dot dpt-dot-ocupado" />Con propietario</span>
-          <span className="dpt-ley-item"><span className="dpt-dot dpt-dot-parcial" />Sin propietario</span>
-          <span className="dpt-ley-item"><span className="dpt-dot dpt-dot-vacio" />Vacío</span>
+          <span className="dpt-ley-item"><span className="dpt-dot dpt-dot-parcial" />Con inquilino, sin propietario</span>
+          <span className="dpt-ley-item"><span className="dpt-dot dpt-dot-vacio" />Sin nadie asignado</span>
         </div>
       </div>
 
