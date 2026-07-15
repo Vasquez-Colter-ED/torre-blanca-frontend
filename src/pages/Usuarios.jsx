@@ -46,7 +46,7 @@ const avatarColor    = u => {
 }
 
 const FORM_NUEVO_VACIO = {
-  nombre: '', apellido: '', email: '', dni: '', telefono: '+51',
+  nombre: '', apellido: '', email: '', dni: '', telefono: '',
   password: '', departamentoId: '', tipoResidencia: 'PROPIETARIO', cargoDirectivoId: '',
 }
 
@@ -89,16 +89,21 @@ function TelefonoInput({ value, onChange }) {
     actualizar(limpio.slice(0, 5), tel.num)
   }
 
+  // Perú (+51) siempre son 9 dígitos; para cualquier otro código de país
+  // dejamos un rango más amplio (6 a 12), ya que varía según el país
+  const esPeru = tel.cod === '+51'
+  const maxDigitos = esPeru ? 9 : 12
+
   return (
     <div className="us-tel-wrap">
       <div className="us-tel-cod-wrap">
-        {tel.cod === '+51' && <span className="us-tel-flag"><IcoFlagPE /></span>}
+        {esPeru && <span className="us-tel-flag"><IcoFlagPE /></span>}
         <input className="us-tel-cod" value={tel.cod} onChange={e => handleCod(e.target.value)}
           maxLength={5} placeholder="+51" />
       </div>
       <input className="us-input us-tel-num" value={tel.num}
-        onChange={e => actualizar(tel.cod, e.target.value.replace(/\D/g, '').slice(0, 9))}
-        placeholder="987654321" inputMode="numeric" />
+        onChange={e => actualizar(tel.cod, e.target.value.replace(/\D/g, '').slice(0, maxDigitos))}
+        placeholder={esPeru ? '987654321' : 'Número'} inputMode="numeric" />
     </div>
   )
 }
@@ -159,11 +164,15 @@ export default function Usuarios() {
     if (editId === u.id) { setEditId(null); return }
     setEditId(u.id)
     const cargo = cargoDirectivo(u)
+    // Normaliza teléfonos guardados antes de tener código de país (ej. "987654321"
+    // sin +51) para que la validación no falle aunque el usuario no toque ese campo
+    let tel = u.telefono || ''
+    if (tel && !tel.startsWith('+')) tel = '+51' + tel
     setFormEdit({
       nombre:         u.nombre,
       apellido:       u.apellido,
       email:          u.email || '',
-      telefono:       u.telefono || '+51',
+      telefono:       tel,
       dni:            u.dni || '',
       cargoDirectivoId: cargo?.rolId || '',
       cargoOriginalId:  cargo?.rolId || null, // para detectar si se quiere quitar
