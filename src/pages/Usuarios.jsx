@@ -222,8 +222,6 @@ export default function Usuarios() {
     if (!formNuevo.password.trim())  return 'La contraseña es obligatoria'
     if (!formNuevo.email.trim() && !formNuevo.dni.trim())
       return 'Debe ingresar al menos un correo o DNI'
-    if (!formNuevo.departamentoId)   return 'El departamento es obligatorio'
-    if (!formNuevo.tipoResidencia)   return 'El tipo de residencia es obligatorio'
     return null
   }
 
@@ -239,8 +237,8 @@ export default function Usuarios() {
         email:            formNuevo.email || null,
         telefono:         formNuevo.telefono || null,
         password:         formNuevo.password,
-        departamentoId:   Number(formNuevo.departamentoId),
-        tipoResidencia:   formNuevo.tipoResidencia,
+        departamentoId:   formNuevo.departamentoId ? Number(formNuevo.departamentoId) : null,
+        tipoResidencia:   formNuevo.departamentoId ? formNuevo.tipoResidencia : null,
         cargoDirectivoId: formNuevo.cargoDirectivoId ? Number(formNuevo.cargoDirectivoId) : null,
       })
       setMsgNuevo('Usuario creado correctamente')
@@ -250,8 +248,9 @@ export default function Usuarios() {
     } catch (e) { setErrNuevo(e.response?.data || 'Error al crear') }
   }
 
-  const sortedDeptos = [...deptos].sort((a, b) =>
-    a.numero.localeCompare(b.numero, undefined, { numeric: true }))
+  const sortedDeptos = [...deptos]
+    .filter(d => d.tipo !== 'ESTACIONAMIENTO') // las cocheras no se asignan como vivienda directa
+    .sort((a, b) => a.numero.localeCompare(b.numero, undefined, { numeric: true }))
 
   if (loading) return (
     <div className="us-page">
@@ -326,24 +325,26 @@ export default function Usuarios() {
             </div>
           </div>
 
-          <p className="us-crear-sec us-crear-sec-top">Asignación al edificio <span className="us-req">*</span></p>
+          <p className="us-crear-sec us-crear-sec-top">Asignación al edificio <span className="us-label-hint">(opcional — puedes crear personal sin depto asignado)</span></p>
           <div className="us-crear-grid">
             <div className="us-field">
-              <label className="us-label">Departamento <span className="us-req">*</span></label>
+              <label className="us-label">Departamento</label>
               <select className="us-input" value={formNuevo.departamentoId} onChange={e => setFormNuevo({ ...formNuevo, departamentoId: e.target.value })}>
-                <option value="">Seleccionar...</option>
+                <option value="">Sin departamento</option>
                 {sortedDeptos.map(d => (
                   <option key={d.id} value={d.id}>Depto {d.numero} · Piso {d.piso}</option>
                 ))}
               </select>
             </div>
-            <div className="us-field">
-              <label className="us-label">Tipo de residencia <span className="us-req">*</span></label>
-              <select className="us-input" value={formNuevo.tipoResidencia} onChange={e => setFormNuevo({ ...formNuevo, tipoResidencia: e.target.value })}>
-                <option value="PROPIETARIO">Propietario</option>
-                <option value="INQUILINO">Inquilino</option>
-              </select>
-            </div>
+            {formNuevo.departamentoId && (
+              <div className="us-field">
+                <label className="us-label">Tipo de residencia <span className="us-req">*</span></label>
+                <select className="us-input" value={formNuevo.tipoResidencia} onChange={e => setFormNuevo({ ...formNuevo, tipoResidencia: e.target.value })}>
+                  <option value="PROPIETARIO">Propietario</option>
+                  <option value="INQUILINO">Inquilino</option>
+                </select>
+              </div>
+            )}
             <div className="us-field">
               <label className="us-label">
                 Cargo directivo
