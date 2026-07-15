@@ -1,0 +1,63 @@
+.bu-wrap { position: relative; }
+
+.bu-input-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1.5px solid #E2E8F0; border-radius: 9px;
+  padding: 0 12px; color: #94A3B8;
+  transition: border-color 0.15s ease;
+}
+.bu-input-wrap:focus-within { border-color: #2563EB; }
+.bu-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  padding: 10px 0; font-size: 0.875rem; font-family: inherit; color: #0F172A;
+  min-width: 0;
+}
+.bu-btn-clear {
+  background: none; border: none; color: #94A3B8; cursor: pointer;
+  padding: 4px; display: flex; border-radius: 6px; flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.bu-btn-clear:hover { background: #F1F5F9; color: #475569; }
+
+/* Lista de resultados */
+.bu-lista {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+  max-height: 280px; overflow-y: auto; z-index: 30;
+  padding: 6px;
+}
+.bu-sin-resultados { padding: 14px; text-align: center; font-size: 0.82rem; color: #94A3B8; margin: 0; }
+.bu-hint-mas { padding: 8px 10px 4px; font-size: 0.72rem; color: #94A3B8; font-style: italic; margin: 0; text-align: center; }
+
+.bu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 8px 10px; border-radius: 8px; border: none; background: none;
+  cursor: pointer; text-align: left; font-family: inherit;
+  transition: background 0.12s ease;
+}
+.bu-item:hover { background: #F0F7FF; }
+
+.bu-item-avatar, .bu-sel-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: #0F172A; color: #fff; font-size: 0.68rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px;
+}
+
+.bu-item-info, .bu-sel-info { min-width: 0; flex: 1; }
+.bu-item-nombre, .bu-sel-nombre { font-size: 0.85rem; font-weight: 700; color: #0F172A; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bu-item-meta, .bu-sel-meta { font-size: 0.74rem; color: #94A3B8; margin: 1px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Tarjeta de usuario ya seleccionado */
+.bu-seleccionado {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: #F0F7FF; border: 1.5px solid #BFDBFE; border-radius: 9px;
+  padding: 8px 12px; cursor: pointer; text-align: left; font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+.bu-seleccionado:hover { border-color: #2563EB; }
+.bu-sel-avatar { background: #2563EB; }
+.bu-btn-cambiar {
+  display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+  font-size: 0.74rem; font-weight: 700; color: #2563EB;
+}

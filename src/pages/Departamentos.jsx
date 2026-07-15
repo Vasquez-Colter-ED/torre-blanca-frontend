@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import BuscadorUsuario from '../components/BuscadorUsuario'
 import './Departamentos.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE', 'SECRETARIO', 'TESORERO']
@@ -15,8 +16,6 @@ const IcoUser   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="no
 const IcoTrash  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
 const IcoHome   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
 const IcoCar    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M14 7h5a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-5"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 11h14"/></svg>
-
-const nombreUsuario = u => `${u.nombre} ${u.apellido}${u.dni ? ` · DNI ${u.dni}` : ''}${u.email ? ` · ${u.email}` : ''}`
 
 export default function Departamentos() {
   const { user }    = useAuth()
@@ -271,11 +270,12 @@ export default function Departamentos() {
                 )}
                 {formPropDeptoId === depto.id && esDirectivo && (
                   <div className="dpt-form-inline">
-                    <select className="dpt-select" value={selPropUsuario} onChange={e => setSelPropUsuario(e.target.value)}>
-                      <option value="">Seleccionar usuario...</option>
-                      {usuarios.filter(u => u.id !== depto.propietarioId && !(depto.inquilinos || []).some(i => i.usuarioId === u.id))
-                        .map(u => <option key={u.id} value={u.id}>{nombreUsuario(u)}</option>)}
-                    </select>
+                    <BuscadorUsuario
+                      usuarios={usuarios.filter(u => u.id !== depto.propietarioId && !(depto.inquilinos || []).some(i => i.usuarioId === u.id))}
+                      value={selPropUsuario}
+                      onChange={setSelPropUsuario}
+                      placeholder="Buscar propietario por nombre, DNI o correo..."
+                    />
                     <div className="dpt-form-btns">
                       <button className="dpt-btn-cancelar" onClick={() => setFormPropDeptoId(null)}>Cancelar</button>
                       <button className="dpt-btn-confirmar" onClick={() => guardarPropietario(depto.id)}><IcoCheck /> Asignar</button>
@@ -307,7 +307,7 @@ export default function Departamentos() {
                   ))}
                   {esDirectivo && cocherasLibres.length > 0 && (
                     <button className="dpt-btn-agregar" onClick={() => { setFormCocheraDeptoId(formCocheraDeptoId === depto.id ? null : depto.id); setSelCochera('') }}>
-                      <IcoPlus /> Asignar cochera
+                      <IcoPlus /> {cocheras.length > 0 ? 'Asignar otra cochera' : 'Asignar cochera'}
                     </button>
                   )}
                   {esDirectivo && cocherasLibres.length === 0 && cocheras.length === 0 && (
@@ -354,11 +354,12 @@ export default function Departamentos() {
                   )}
                   {formInqDeptoId === depto.id && esDirectivo && (
                     <div className="dpt-form-inline">
-                      <select className="dpt-select" value={selInqUsuario} onChange={e => setSelInqUsuario(e.target.value)}>
-                        <option value="">Seleccionar usuario...</option>
-                        {usuarios.filter(u => u.id !== depto.propietarioId && !(depto.inquilinos || []).some(i => i.usuarioId === u.id))
-                          .map(u => <option key={u.id} value={u.id}>{nombreUsuario(u)}</option>)}
-                      </select>
+                      <BuscadorUsuario
+                        usuarios={usuarios.filter(u => u.id !== depto.propietarioId && !(depto.inquilinos || []).some(i => i.usuarioId === u.id))}
+                        value={selInqUsuario}
+                        onChange={setSelInqUsuario}
+                        placeholder="Buscar inquilino por nombre, DNI o correo..."
+                      />
                       <div className="dpt-form-btns">
                         <button className="dpt-btn-cancelar" onClick={() => setFormInqDeptoId(null)}>Cancelar</button>
                         <button className="dpt-btn-confirmar" onClick={() => guardarInquilino(depto.id)}><IcoCheck /> Agregar</button>
