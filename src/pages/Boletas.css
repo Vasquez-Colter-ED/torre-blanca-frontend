@@ -140,6 +140,11 @@
   font-size: 0.78rem; font-weight: 700; color: #059669;
 }
 
+.rb-mes-multi {
+  font-size: 0.65rem; font-weight: 700; color: #2563EB;
+  background: #EFF6FF; padding: 1px 7px; border-radius: 20px;
+}
+
 .rb-mes-dash { font-size: 0.9rem; color: #CBD5E1; }
 
 /* ── Panel de detalle del recibo ── */
@@ -185,6 +190,19 @@
 
 .rb-detalle-body { padding: 20px 24px; }
 
+.rb-detalle-subtitulo {
+  font-size: 0.7rem; font-weight: 700; color: #2563EB;
+  text-transform: uppercase; letter-spacing: 0.07em; margin: 0 0 14px 0;
+}
+
+.rb-detalle-sep { height: 1px; background: #F1F5F9; margin: 20px 0 0 0; }
+
+.rb-lote-nota {
+  background: #F5F3FF; border: 1px solid #DDD6FE; color: #6D28D9;
+  font-size: 0.78rem; font-weight: 600; padding: 9px 14px;
+  border-radius: 8px; margin: 0 0 16px 0;
+}
+
 .rb-detalle-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -225,6 +243,8 @@
   transition: opacity 0.15s ease; display: block;
 }
 .rb-voucher-img:hover { opacity: 0.85; }
+
+.rb-detalle-body .rb-btn-ver-recibo { margin-top: 18px; }
 
 /* Footer del recibo */
 .rb-detalle-footer {

@@ -54,9 +54,14 @@ function ResidenteRecibos({ user }) {
     finally { setLoading(false) }
   }
 
-  // Boletas del año seleccionado indexadas por mes
+  // Boletas del año seleccionado, agrupadas por mes (un mes puede tener
+  // más de un recibo si hubo pago parcial + saldo, por ejemplo)
   const boletasPorMes = {}
-  boletas.filter(b => b.anio === anio).forEach(b => { boletasPorMes[b.mes] = b })
+  boletas.filter(b => b.anio === anio).forEach(b => {
+    if (!boletasPorMes[b.mes]) boletasPorMes[b.mes] = []
+    boletasPorMes[b.mes].push(b)
+  })
+  Object.values(boletasPorMes).forEach(lista => lista.sort((a, b) => new Date(a.fechaPago) - new Date(b.fechaPago)))
 
   // Años disponibles
   const aniosDisp = [...new Set(boletas.map(b => b.anio))].sort((a,b) => b - a)
@@ -65,10 +70,10 @@ function ResidenteRecibos({ user }) {
   // Resumen del año
   const boletasAnio  = boletas.filter(b => b.anio === anio)
   const totalAnio    = boletasAnio.reduce((s,b) => s + Number(b.monto || 0), 0)
-  const mesesPagados = boletasAnio.length
+  const mesesPagados = Object.keys(boletasPorMes).length
 
-  // Recibo seleccionado
-  const reciboSelec = mesSelec ? boletasPorMes[mesSelec] : null
+  // Recibos del mes seleccionado
+  const recibosDelMes = mesSelec ? (boletasPorMes[mesSelec] || []) : []
 
   const handleMesClick = (mes) => {
     if (!boletasPorMes[mes]) return // mes sin recibo, no hace nada
@@ -139,8 +144,9 @@ function ResidenteRecibos({ user }) {
       <div className="rb-grid">
         {MESES.map((mes, i) => {
           const numMes   = i + 1
-          const boleta   = boletasPorMes[numMes]
-          const esPagado = !!boleta
+          const recibosMes = boletasPorMes[numMes] || []
+          const esPagado = recibosMes.length > 0
+          const montoMes = recibosMes.reduce((s, b) => s + Number(b.monto || 0), 0)
           const esActivo = mesSelec === numMes
           const esPasado = numMes < ahora.getMonth() + 1 && anio === ahora.getFullYear()
           const esFuturo = anio > ahora.getFullYear() || (anio === ahora.getFullYear() && numMes > ahora.getMonth() + 1)
@@ -161,7 +167,8 @@ function ResidenteRecibos({ user }) {
               {esPagado ? (
                 <>
                   <span className="rb-mes-check"><IcoCheck /></span>
-                  <span className="rb-mes-monto">S/ {Number(boleta.monto).toFixed(2)}</span>
+                  <span className="rb-mes-monto">S/ {montoMes.toFixed(2)}</span>
+                  {recibosMes.length > 1 && <span className="rb-mes-multi">{recibosMes.length} pagos</span>}
                 </>
               ) : (
                 <span className="rb-mes-dash">—</span>
@@ -171,77 +178,89 @@ function ResidenteRecibos({ user }) {
         })}
       </div>
 
-      {/* Panel de detalle del recibo */}
+      {/* Panel de detalle del recibo (uno o varios, si el mes tuvo más de un pago) */}
       <div ref={detalleRef}>
-        {mesSelec && reciboSelec && (
+        {mesSelec && recibosDelMes.length > 0 && (
           <div className="rb-detalle">
             <div className="rb-detalle-header">
               <div>
-                <h2 className="rb-detalle-titulo">Recibo de pago</h2>
+                <h2 className="rb-detalle-titulo">
+                  {recibosDelMes.length > 1 ? `Recibos de pago (${recibosDelMes.length})` : 'Recibo de pago'}
+                </h2>
                 <p className="rb-detalle-periodo">{MESES[mesSelec-1]} {anio}</p>
               </div>
-              <div className="rb-detalle-acciones">
-                <button className="rb-btn-ver-recibo" onClick={() => setReciboOpen(reciboSelec)}>
+              <button className="rb-btn-cerrar" onClick={() => setMesSelec(null)}>
+                <IcoX />
+              </button>
+            </div>
+
+            {recibosDelMes.map((recibo, idx) => (
+              <div key={recibo.id || idx} className="rb-detalle-body">
+                {recibosDelMes.length > 1 && (
+                  <p className="rb-detalle-subtitulo">Pago {idx + 1} de {recibosDelMes.length}</p>
+                )}
+                <div className="rb-detalle-grid">
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Período</span>
+                    <span className="rb-detalle-val">{MESES[mesSelec-1]} {anio}</span>
+                  </div>
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Departamento</span>
+                    <span className="rb-detalle-val">Depto {recibo.numeroDepartamento} · Piso {recibo.piso}</span>
+                  </div>
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Monto pagado</span>
+                    <span className="rb-detalle-val rb-detalle-monto">S/ {Number(recibo.monto).toFixed(2)}</span>
+                  </div>
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Método de pago</span>
+                    <span className="rb-detalle-val rb-detalle-metodo">
+                      <MetodoIcon metodo={recibo.metodoPago} />
+                      {METODO_LABEL[recibo.metodoPago] || recibo.metodoPago}
+                    </span>
+                  </div>
+                  {recibo.fechaPago && (
+                    <div className="rb-detalle-campo">
+                      <span className="rb-detalle-lbl">Fecha de pago</span>
+                      <span className="rb-detalle-val">{new Date(recibo.fechaPago).toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' })}</span>
+                    </div>
+                  )}
+                  {recibo.numeroOperacion && (
+                    <div className="rb-detalle-campo">
+                      <span className="rb-detalle-lbl">N° de operación</span>
+                      <span className="rb-detalle-val rb-codigo">{recibo.numeroOperacion}</span>
+                    </div>
+                  )}
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Estado</span>
+                    <span className="rb-badge-ok"><IcoCheck /> Verificado</span>
+                  </div>
+                  <div className="rb-detalle-campo">
+                    <span className="rb-detalle-lbl">Titular</span>
+                    <span className="rb-detalle-val">{recibo.pagadorNombre || `${user?.nombre} ${user?.apellido}`}</span>
+                  </div>
+                </div>
+
+                {recibo.pagadoJuntoCon?.length > 0 && (
+                  <p className="rb-lote-nota">Este comprobante también cubre: {recibo.pagadoJuntoCon.join(' · ')}</p>
+                )}
+
+                {/* Voucher foto */}
+                {recibo.voucherUrl && (
+                  <div className="rb-voucher">
+                    <p className="rb-voucher-lbl"><IcoImg /> Comprobante adjunto</p>
+                    <img src={recibo.voucherUrl} alt="Comprobante" className="rb-voucher-img"
+                      onClick={() => window.open(recibo.voucherUrl, '_blank')} />
+                  </div>
+                )}
+
+                <button className="rb-btn-ver-recibo" onClick={() => setReciboOpen(recibo)}>
                   <IcoDoc /> Ver recibo completo
                 </button>
-                <button className="rb-btn-cerrar" onClick={() => setMesSelec(null)}>
-                  <IcoX />
-                </button>
-              </div>
-            </div>
 
-            <div className="rb-detalle-body">
-              <div className="rb-detalle-grid">
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Período</span>
-                  <span className="rb-detalle-val">{MESES[mesSelec-1]} {anio}</span>
-                </div>
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Departamento</span>
-                  <span className="rb-detalle-val">Depto {reciboSelec.numeroDepartamento} · Piso {reciboSelec.piso}</span>
-                </div>
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Monto pagado</span>
-                  <span className="rb-detalle-val rb-detalle-monto">S/ {Number(reciboSelec.monto).toFixed(2)}</span>
-                </div>
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Método de pago</span>
-                  <span className="rb-detalle-val rb-detalle-metodo">
-                    <MetodoIcon metodo={reciboSelec.metodoPago} />
-                    {METODO_LABEL[reciboSelec.metodoPago] || reciboSelec.metodoPago}
-                  </span>
-                </div>
-                {reciboSelec.fechaPago && (
-                  <div className="rb-detalle-campo">
-                    <span className="rb-detalle-lbl">Fecha de pago</span>
-                    <span className="rb-detalle-val">{new Date(reciboSelec.fechaPago).toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' })}</span>
-                  </div>
-                )}
-                {reciboSelec.numeroOperacion && (
-                  <div className="rb-detalle-campo">
-                    <span className="rb-detalle-lbl">N° de operación</span>
-                    <span className="rb-detalle-val rb-codigo">{reciboSelec.numeroOperacion}</span>
-                  </div>
-                )}
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Estado</span>
-                  <span className="rb-badge-ok"><IcoCheck /> Verificado</span>
-                </div>
-                <div className="rb-detalle-campo">
-                  <span className="rb-detalle-lbl">Titular</span>
-                  <span className="rb-detalle-val">{reciboSelec.pagadorNombre || `${user?.nombre} ${user?.apellido}`}</span>
-                </div>
+                {idx < recibosDelMes.length - 1 && <div className="rb-detalle-sep" />}
               </div>
-
-              {/* Voucher foto */}
-              {reciboSelec.voucherUrl && (
-                <div className="rb-voucher">
-                  <p className="rb-voucher-lbl"><IcoImg /> Comprobante adjunto</p>
-                  <img src={reciboSelec.voucherUrl} alt="Comprobante" className="rb-voucher-img"
-                    onClick={() => window.open(reciboSelec.voucherUrl, '_blank')} />
-                </div>
-              )}
-            </div>
+            ))}
 
             <div className="rb-detalle-footer">
               Residencial Torre Blanca · Chiclayo, Perú · Este recibo es un comprobante interno de pago.
