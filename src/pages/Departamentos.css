@@ -60,7 +60,7 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .dpt-card:hover    { box-shadow: 0 2px 12px rgba(15,23,42,0.07); }
-.dpt-card-open     { border-color: #BFDBFE; box-shadow: 0 2px 16px rgba(37,99,235,0.1); }
+.dpt-card-open     { border-color: #BFDBFE; box-shadow: 0 2px 16px rgba(37,99,235,0.1); overflow: visible; }
 
 /* Cabecera clickeable */
 .dpt-card-head {
@@ -70,7 +70,7 @@
   transition: background 0.12s ease;
 }
 .dpt-card-head:hover { background: #F8FAFC; }
-.dpt-card-open .dpt-card-head { background: #F0F7FF; }
+.dpt-card-open .dpt-card-head { background: #F0F7FF; border-radius: 12px 12px 0 0; }
 
 .dpt-card-left  { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .dpt-card-mid   { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 0; flex-wrap: wrap; }
@@ -92,7 +92,9 @@
 
 /* ── Panel expandible ── */
 .dpt-panel { max-height: 0; overflow: hidden; transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1); }
-.dpt-panel-open { max-height: 1200px; }
+/* overflow: visible una vez abierto — si no, el buscador de usuarios (que
+   se despliega hacia abajo) queda cortado por este mismo contenedor */
+.dpt-panel-open { max-height: 1200px; overflow: visible; }
 
 .dpt-panel-body { padding: 0 18px 18px; border-top: 1px solid #EFF6FF; }
 
