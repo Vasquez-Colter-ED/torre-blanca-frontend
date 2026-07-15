@@ -25,6 +25,15 @@ const IcoEye   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="non
 const IcoEyeOff= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
 const IcoAlert = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
 
+// Bandera de Perú en SVG (no emoji) — 3 franjas rojo-blanco-rojo
+const IcoFlagPE = () => (
+  <svg width="18" height="13" viewBox="0 0 18 13" className="us-flag-svg">
+    <rect width="18" height="13" fill="#fff"/>
+    <rect width="6" height="13" fill="#D91023"/>
+    <rect x="12" width="6" height="13" fill="#D91023"/>
+  </svg>
+)
+
 // Solo letras y tildes
 const soloLetras = v => v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')
 
@@ -37,8 +46,61 @@ const avatarColor    = u => {
 }
 
 const FORM_NUEVO_VACIO = {
-  nombre: '', apellido: '', email: '', dni: '', telefono: '',
+  nombre: '', apellido: '', email: '', dni: '', telefono: '+51',
   password: '', departamentoId: '', tipoResidencia: 'PROPIETARIO', cargoDirectivoId: '',
+}
+
+// Ordena: 1º directivos, 2º propietarios/inquilinos vinculados a algún depto,
+// 3º usuarios sin ningún depto vinculado — cada grupo en orden alfabético
+const collatorEs = new Intl.Collator('es', { sensitivity: 'base' })
+const ordenarUsuarios = (lista) => {
+  const grupo = (u) => {
+    if (cargoDirectivo(u)) return 0
+    if ((u.departamentos?.length || 0) > 0) return 1
+    return 2
+  }
+  return [...lista].sort((a, b) => {
+    const ga = grupo(a), gb = grupo(b)
+    if (ga !== gb) return ga - gb
+    return collatorEs.compare(`${a.nombre} ${a.apellido}`, `${b.nombre} ${b.apellido}`)
+  })
+}
+
+// ═════════════════════════════════════════════════════════════════════
+//  INPUT DE TELÉFONO — código de país editable (+51 por defecto) + número
+// ═════════════════════════════════════════════════════════════════════
+function TelefonoInput({ value, onChange }) {
+  const parseInicial = () => {
+    if (value && value.startsWith('+')) {
+      const m = value.match(/^(\+\d{1,4})(\d*)$/)
+      if (m) return { cod: m[1], num: m[2] }
+    }
+    return { cod: '+51', num: (value || '').replace(/\D/g, '') }
+  }
+  const [tel, setTel] = useState(parseInicial)
+
+  const actualizar = (cod, num) => {
+    setTel({ cod, num })
+    onChange(cod + num)
+  }
+
+  const handleCod = (v) => {
+    let limpio = '+' + v.replace(/[^\d]/g, '') // siempre empieza con +, solo dígitos después
+    actualizar(limpio.slice(0, 5), tel.num)
+  }
+
+  return (
+    <div className="us-tel-wrap">
+      <div className="us-tel-cod-wrap">
+        {tel.cod === '+51' && <span className="us-tel-flag"><IcoFlagPE /></span>}
+        <input className="us-tel-cod" value={tel.cod} onChange={e => handleCod(e.target.value)}
+          maxLength={5} placeholder="+51" />
+      </div>
+      <input className="us-input us-tel-num" value={tel.num}
+        onChange={e => actualizar(tel.cod, e.target.value.replace(/\D/g, '').slice(0, 9))}
+        placeholder="987654321" inputMode="numeric" />
+    </div>
+  )
 }
 
 export default function Usuarios() {
@@ -86,12 +148,12 @@ export default function Usuarios() {
     finally { setLoading(false) }
   }
 
-  const filtrados = usuarios.filter(u => {
+  const filtrados = ordenarUsuarios(usuarios.filter(u => {
     const texto = `${u.nombre} ${u.apellido} ${u.email || ''} ${u.dni || ''}`.toLowerCase()
     if (busqueda && !texto.includes(busqueda.toLowerCase())) return false
     if (filtroEst && u.estado !== filtroEst) return false
     return true
-  })
+  }))
 
   const abrirEditar = (u) => {
     if (editId === u.id) { setEditId(null); return }
@@ -101,7 +163,7 @@ export default function Usuarios() {
       nombre:         u.nombre,
       apellido:       u.apellido,
       email:          u.email || '',
-      telefono:       u.telefono || '',
+      telefono:       u.telefono || '+51',
       dni:            u.dni || '',
       cargoDirectivoId: cargo?.rolId || '',
       cargoOriginalId:  cargo?.rolId || null, // para detectar si se quiere quitar
@@ -110,6 +172,8 @@ export default function Usuarios() {
   }
 
   const guardarEditar = async (u) => {
+    if (!formEdit.nombre?.trim())   { setMsg(prev => ({ ...prev, [u.id]: 'El nombre no puede quedar vacío' })); return }
+    if (!formEdit.apellido?.trim()) { setMsg(prev => ({ ...prev, [u.id]: 'El apellido no puede quedar vacío' })); return }
     try {
       const payload = { ...formEdit }
       const teniaCargo = !!payload.cargoOriginalId
@@ -248,7 +312,7 @@ export default function Usuarios() {
             </div>
             <div className="us-field">
               <label className="us-label">Teléfono</label>
-              <input className="us-input" value={formNuevo.telefono} onChange={e => setFormNuevo({ ...formNuevo, telefono: e.target.value.replace(/\D/g, '') })} />
+              <TelefonoInput value={formNuevo.telefono} onChange={v => setFormNuevo({ ...formNuevo, telefono: v })} />
             </div>
             <div className="us-field">
               <label className="us-label">Contraseña <span className="us-req">*</span></label>
@@ -416,11 +480,11 @@ export default function Usuarios() {
                     <div className="us-edit-grid">
                       <div className="us-field">
                         <label className="us-label">Nombre</label>
-                        <input className="us-input" value={formEdit.nombre || ''} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
+                        <input className="us-input" value={formEdit.nombre || ''} onChange={e => setFormEdit({ ...formEdit, nombre: soloLetras(e.target.value) })} />
                       </div>
                       <div className="us-field">
                         <label className="us-label">Apellido</label>
-                        <input className="us-input" value={formEdit.apellido || ''} onChange={e => setFormEdit({ ...formEdit, apellido: e.target.value })} />
+                        <input className="us-input" value={formEdit.apellido || ''} onChange={e => setFormEdit({ ...formEdit, apellido: soloLetras(e.target.value) })} />
                       </div>
                       <div className="us-field">
                         <label className="us-label">Correo</label>
@@ -428,7 +492,7 @@ export default function Usuarios() {
                       </div>
                       <div className="us-field">
                         <label className="us-label">Teléfono</label>
-                        <input className="us-input" value={formEdit.telefono || ''} onChange={e => setFormEdit({ ...formEdit, telefono: e.target.value.replace(/\D/g, '') })} />
+                        <TelefonoInput value={formEdit.telefono} onChange={v => setFormEdit({ ...formEdit, telefono: v })} />
                       </div>
                       {esDirectivo && (
                         <div className="us-field">

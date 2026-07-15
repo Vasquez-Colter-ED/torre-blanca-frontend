@@ -223,6 +223,23 @@
 }
 .us-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
+/* Teléfono con código de país */
+.us-tel-wrap { display: flex; gap: 6px; }
+.us-tel-cod-wrap {
+  display: flex; align-items: center; gap: 5px;
+  border: 1.5px solid #E2E8F0; border-radius: 8px;
+  padding: 0 8px; background: #fff; flex-shrink: 0; width: 78px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.us-tel-cod-wrap:focus-within { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.us-flag-svg { border-radius: 2px; flex-shrink: 0; display: block; }
+.us-tel-cod {
+  border: none; outline: none; font-family: inherit;
+  font-size: 0.875rem; color: #0F172A; background: transparent;
+  padding: 9px 0; width: 100%; min-width: 0;
+}
+.us-tel-num { flex: 1; min-width: 0; }
+
 /* Toggle contraseña */
 .us-pass-wrap   { position: relative; }
 .us-pass-input  { padding-right: 40px; }
