@@ -421,6 +421,10 @@
 }
 .pendiente-voucher-thumb:hover { opacity: 0.85; }
 
+/* Pago múltiple pendiente de verificar — tarjeta de lote */
+.pendiente-card-lote { border-color: #BFDBFE; background: #F8FBFF; }
+.pendiente-lote-meses { font-size: 0.78rem; color: #2563EB; font-weight: 600; margin: 4px 0 0 0; }
+
 /* ══════════════════════════════════════════════════════════════
    VISTA DIRECTIVO — estilos existentes
 ══════════════════════════════════════════════════════════════ */

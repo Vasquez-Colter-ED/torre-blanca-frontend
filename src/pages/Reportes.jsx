@@ -549,6 +549,11 @@ export default function Reportes() {
                           )}
                           {!a.registradoPorNombre && a.registradoPor === 'RESIDENTE' && <> · Autorregistrado por el residente</>}
                         </p>
+                        {a.loteId && a.loteMesesCubre?.length > 0 && (
+                          <p className="audit-lote-nota">
+                            Pago múltiple — el mismo comprobante también cubre: {a.loteMesesCubre.join(' · ')}
+                          </p>
+                        )}
                       </div>
                     </div>
 

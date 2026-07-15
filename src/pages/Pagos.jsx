@@ -137,6 +137,83 @@ function FormPagoManual({ cuota, metodo, onExito, onCancelar }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+//  FORMULARIO — Pago MÚLTIPLE por Transferencia / Efectivo
+//  Sin monto editable (se paga el total exacto), un solo comprobante
+//  para todas las cuotas seleccionadas.
+// ══════════════════════════════════════════════════════════════════
+function FormPagoMultipleManual({ cuotasSelArray, totalSel, metodo, onExito, onCancelar }) {
+  const [numOp,      setNumOp]      = useState('')
+  const [voucherUrl, setVoucherUrl] = useState('')
+  const [obs,        setObs]        = useState('')
+  const [guardando,  setGuardando]  = useState(false)
+  const [error,      setError]      = useState('')
+
+  const fotoObligatoria = metodo === 'TRANSFERENCIA'
+
+  const enviar = async () => {
+    if (fotoObligatoria && !voucherUrl) { setError('La foto del comprobante es obligatoria'); return }
+    setGuardando(true); setError('')
+    try {
+      await api.post('/api/pagos/registrar-multiple', {
+        cuotaIds:        cuotasSelArray.map(c => c.cuotaId),
+        metodoPago:      metodo,
+        numeroOperacion: numOp || null,
+        voucherUrl:      voucherUrl || null,
+        observaciones:   obs || null,
+      })
+      onExito()
+    } catch (e) { setError(e.response?.data || 'Error al registrar el pago') }
+    finally { setGuardando(false) }
+  }
+
+  return (
+    <div className="pm-form">
+      <div className="pgr-pm-resumen">
+        {cuotasSelArray.map(c => (
+          <div key={c.cuotaId} className="pgr-pm-fila">
+            <span>{etiquetaMes(c.mes, c.anio)}</span>
+            <span>S/ {Number(c.saldoPendiente != null ? c.saldoPendiente : c.montoCalculado).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="pgr-pm-fila pgr-pm-total">
+          <span>Total a pagar</span>
+          <span>S/ {totalSel.toFixed(2)}</span>
+        </div>
+      </div>
+      <p className="pm-monto-hint">
+        No se admite pago parcial en pagos múltiples — este comprobante debe cubrir el total exacto de las cuotas seleccionadas.
+      </p>
+      <SubirFoto
+        onSubida={url => setVoucherUrl(url)}
+        obligatorio={fotoObligatoria}
+        label={metodo === 'EFECTIVO' ? 'Foto del recibo (opcional)' : 'Foto del comprobante'}
+      />
+      <div className="pm-field">
+        <label className="pm-label">N° de operación (opcional)</label>
+        <input className="pm-input" value={numOp} onChange={e => setNumOp(textoLibreEstricto(e.target.value))} />
+      </div>
+      <div className="pm-field">
+        <label className="pm-label">Observaciones (opcional)</label>
+        <input
+          className="pm-input"
+          value={obs}
+          onChange={e => setObs(textoLibreEstricto(e.target.value))}
+          placeholder={metodo === 'EFECTIVO' ? 'Ej: Entregado al tesorero' : 'Ej: Transferencia BCP'}
+          maxLength={200}
+        />
+      </div>
+      {error && <p className="pm-error">{error}</p>}
+      <div className="pm-acciones">
+        <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
+        <button className="pm-btn-enviar" onClick={enviar} disabled={guardando}>
+          {guardando ? 'Enviando...' : `Enviar S/ ${totalSel.toFixed(2)} para verificación`}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 //  SELECTOR DE MÉTODO DE PAGO (se expande dentro de la cuota)
 // ══════════════════════════════════════════════════════════════════
 function PanelPago({ cuota, onExito, onCancelar }) {
@@ -254,6 +331,7 @@ function ResidentePagos({ user }) {
   const [pagandoId,     setPagandoId]     = useState(null)
   const [seleccionadas, setSeleccionadas] = useState(new Set())
   const [pagMultiple,   setPagMultiple]   = useState(false)
+  const [metodoMultiple, setMetodoMultiple] = useState(null) // null | 'TARJETA' | 'TRANSFERENCIA' | 'EFECTIVO'
   const [verMas,        setVerMas]        = useState(false)
   const [msg,           setMsg]           = useState('')
   const [error,         setError]         = useState('')
@@ -290,7 +368,7 @@ function ResidentePagos({ user }) {
   const iniciales = user ? user.nombre?.[0]?.toUpperCase() + user.apellido?.[0]?.toUpperCase() : 'U'
 
   const handleExito = (msg) => {
-    setPagandoId(null); setPagMultiple(false); setSeleccionadas(new Set())
+    setPagandoId(null); setPagMultiple(false); setMetodoMultiple(null); setSeleccionadas(new Set())
     setMsg(msg || 'Pago registrado correctamente.')
     cargarCuotas()
     setTimeout(() => setMsg(''), 5000)
@@ -301,7 +379,7 @@ function ResidentePagos({ user }) {
   }
 
   const cuotasSelArray = cuotas.filter(c => seleccionadas.has(c.cuotaId))
-  const totalSel = cuotasSelArray.reduce((s,c) => s + Number(c.montoCalculado), 0)
+  const totalSel = cuotasSelArray.reduce((s,c) => s + Number(c.saldoPendiente != null ? c.saldoPendiente : c.montoCalculado), 0)
 
   if (loading) return (
     <div className="pgr-skeleton-wrap">
@@ -496,16 +574,42 @@ function ResidentePagos({ user }) {
             </div>
             <span className="pgr-barra-total">S/ {totalSel.toFixed(2)}</span>
             <button className="pgr-barra-btn" onClick={() => setPagMultiple(true)}>
-              <IcoCard /> Pagar todo
+              Pagar
             </button>
           </div>
         )}
 
-        {pagMultiple && cuotasSelArray.length > 0 && (
+        {pagMultiple && cuotasSelArray.length > 0 && !metodoMultiple && (
+          <div className="pgr-panel-multiple">
+            <div className="pgr-pm-header">
+              <h3 className="pgr-pm-titulo">¿Cómo vas a pagar {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}?</h3>
+              <button className="pgr-pm-close" onClick={() => { setPagMultiple(false); setMetodoMultiple(null) }}><IcoX /></button>
+            </div>
+            <div className="pp-metodos">
+              <button className="pp-metodo" onClick={() => setMetodoMultiple('TARJETA')}>
+                <div className="pp-metodo-icon pp-icon-blue"><IcoCard /></div>
+                <span className="pp-metodo-nombre">Tarjeta</span>
+                <span className="pp-metodo-sub">Pago inmediato</span>
+              </button>
+              <button className="pp-metodo" onClick={() => setMetodoMultiple('TRANSFERENCIA')}>
+                <div className="pp-metodo-icon pp-icon-green"><IcoBank /></div>
+                <span className="pp-metodo-nombre">Transferencia</span>
+                <span className="pp-metodo-sub">Sube tu voucher</span>
+              </button>
+              <button className="pp-metodo" onClick={() => setMetodoMultiple('EFECTIVO')}>
+                <div className="pp-metodo-icon pp-icon-amber"><IcoCash /></div>
+                <span className="pp-metodo-nombre">Efectivo</span>
+                <span className="pp-metodo-sub">Pendiente verificación</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {pagMultiple && cuotasSelArray.length > 0 && metodoMultiple === 'TARJETA' && (
           <div className="pgr-panel-multiple">
             <div className="pgr-pm-header">
               <h3 className="pgr-pm-titulo">Pago de {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}</h3>
-              <button className="pgr-pm-close" onClick={() => setPagMultiple(false)}><IcoX /></button>
+              <button className="pgr-pm-close" onClick={() => setMetodoMultiple(null)}><IcoX /></button>
             </div>
             <div className="pgr-pm-resumen">
               {cuotasSelArray.map(c => (
@@ -531,7 +635,26 @@ function ResidentePagos({ user }) {
               residentesDepto={[]}
               esDirectivo={false}
               onExito={() => handleExito('Pago múltiple procesado correctamente.')}
-              onCancelar={() => setPagMultiple(false)}
+              onCancelar={() => setMetodoMultiple(null)}
+            />
+          </div>
+        )}
+
+        {pagMultiple && cuotasSelArray.length > 0 && (metodoMultiple === 'TRANSFERENCIA' || metodoMultiple === 'EFECTIVO') && (
+          <div className="pgr-panel-multiple">
+            <div className="pgr-pm-header">
+              <h3 className="pgr-pm-titulo">
+                {metodoMultiple === 'TRANSFERENCIA' ? <><IcoBank /> Transferencia</> : <><IcoCash /> Efectivo</>}
+                {' '}— {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}
+              </h3>
+              <button className="pgr-pm-close" onClick={() => setMetodoMultiple(null)}><IcoX /></button>
+            </div>
+            <FormPagoMultipleManual
+              cuotasSelArray={cuotasSelArray}
+              totalSel={totalSel}
+              metodo={metodoMultiple}
+              onExito={() => handleExito('Pago múltiple enviado para verificación.')}
+              onCancelar={() => setMetodoMultiple(null)}
             />
           </div>
         )}
@@ -638,7 +761,11 @@ function PanelPagoBloqueado({ pago, onResuelto }) {
   const resolver = async (accion) => {
     setProcesando(true)
     try {
-      await api.patch(`/api/pagos/${pago.pagoId}/verificar`, { accion, observaciones: '' })
+      if (pago.loteId) {
+        await api.patch(`/api/pagos/lote/${pago.loteId}/verificar`, { accion, observaciones: '' })
+      } else {
+        await api.patch(`/api/pagos/${pago.pagoId}/verificar`, { accion, observaciones: '' })
+      }
       onResuelto()
     } catch (e) { alert(e.response?.data || 'Error') }
     finally { setProcesando(false) }
@@ -648,7 +775,11 @@ function PanelPagoBloqueado({ pago, onResuelto }) {
     <div className="drp-bloqueo">
       <div className="drp-bloqueo-aviso">
         <IcoAlert />
-        <p>Este departamento tiene un pago esperando revisión. Apruébalo o recházalo para poder registrar uno nuevo.</p>
+        <p>
+          {pago.loteId
+            ? 'Este departamento tiene un pago múltiple esperando revisión (cubre varias cuotas con el mismo comprobante). Apruébalo o recházalo para poder registrar uno nuevo.'
+            : 'Este departamento tiene un pago esperando revisión. Apruébalo o recházalo para poder registrar uno nuevo.'}
+        </p>
       </div>
       <div className="drp-bloqueo-info">
         <div className="drp-bloqueo-fila"><span>Pagador</span><strong>{pago.pagadorNombre}</strong></div>
@@ -657,6 +788,7 @@ function PanelPagoBloqueado({ pago, onResuelto }) {
           <span>Método</span>
           <strong>{pago.metodoPago}{pago.numeroOperacion ? ' · Op: ' + pago.numeroOperacion : ''}</strong>
         </div>
+        {pago.loteId && <div className="drp-bloqueo-fila"><span>Pago múltiple</span><strong>Se aprobará/rechazará junto a las demás cuotas de este comprobante</strong></div>}
         {pago.voucherUrl && (
           <a href={pago.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
         )}
@@ -1052,6 +1184,30 @@ function DirectivoPagos({ user }) {
     } catch (e) { alert(e.response?.data || 'Error') }
   }
 
+  const verificarLotePendiente = async (loteId, accion) => {
+    try {
+      await api.patch(`/api/pagos/lote/${loteId}/verificar`, { accion, observaciones: '' })
+      cargarDatos()
+    } catch (e) { alert(e.response?.data || 'Error') }
+  }
+
+  // Agrupa la lista plana de pendientes por loteId (pagos múltiples),
+  // dejando los pagos normales (sin lote) como grupos de 1
+  const gruposPendientes = (() => {
+    const grupos = []
+    const vistos = new Set()
+    pendientes.forEach(p => {
+      if (p.loteId) {
+        if (vistos.has(p.loteId)) return
+        vistos.add(p.loteId)
+        grupos.push({ loteId: p.loteId, items: pendientes.filter(x => x.loteId === p.loteId) })
+      } else {
+        grupos.push({ loteId: null, items: [p] })
+      }
+    })
+    return grupos
+  })()
+
   const estadoColor = e => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', PARCIAL:'pill-warning', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
   const estadoLabel = e => ({ PENDIENTE:'Pendiente', PARCIAL:'Parcial', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
 
@@ -1150,27 +1306,62 @@ function DirectivoPagos({ user }) {
             </div>
           )}
           <div className="pendientes-lista">
-            {pendientes.map(p => (
-              <div key={p.pagoId} className="pendiente-card">
-                <div className="pendiente-depto"><span className="depto-num">{p.numeroDepartamento}</span><span className="depto-piso">Piso {p.piso}</span></div>
-                <div className="pendiente-info">
-                  <p className="pendiente-pagador">{p.pagadorNombre}</p>
-                  <p className="pendiente-meta">{p.metodoPago}{p.numeroOperacion ? ' · Op: ' + p.numeroOperacion : ''}</p>
-                  {p.observaciones && <p className="pendiente-obs">{p.observaciones}</p>}
-                  {p.voucherUrl && (
-                    <div className="pendiente-voucher">
-                      <a href={p.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
-                      <img src={p.voucherUrl} alt="Comprobante" className="pendiente-voucher-thumb" />
+            {gruposPendientes.map(grupo => {
+              if (!grupo.loteId) {
+                const p = grupo.items[0]
+                return (
+                  <div key={p.pagoId} className="pendiente-card">
+                    <div className="pendiente-depto"><span className="depto-num">{p.numeroDepartamento}</span><span className="depto-piso">Piso {p.piso}</span></div>
+                    <div className="pendiente-info">
+                      <p className="pendiente-pagador">{p.pagadorNombre}</p>
+                      <p className="pendiente-meta">{p.metodoPago}{p.numeroOperacion ? ' · Op: ' + p.numeroOperacion : ''}</p>
+                      {p.observaciones && <p className="pendiente-obs">{p.observaciones}</p>}
+                      {p.voucherUrl && (
+                        <div className="pendiente-voucher">
+                          <a href={p.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
+                          <img src={p.voucherUrl} alt="Comprobante" className="pendiente-voucher-thumb" />
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <div className="pendiente-monto">S/ {p.monto?.toFixed(2)}</div>
+                    <div className="pendiente-actions">
+                      <button className="btn-rechazar-inline" onClick={() => verificarPendiente(p.pagoId, 'RECHAZAR')}>Rechazar</button>
+                      <button className="btn btn-primary btn-sm" onClick={() => verificarPendiente(p.pagoId, 'APROBAR')}>Aprobar</button>
+                    </div>
+                  </div>
+                )
+              }
+
+              // Grupo de pago múltiple: una tarjeta con el total y los meses cubiertos
+              const primero = grupo.items[0]
+              const totalLote = grupo.items.reduce((s, x) => s + Number(x.monto), 0)
+              return (
+                <div key={grupo.loteId} className="pendiente-card pendiente-card-lote">
+                  <div className="pendiente-depto"><span className="depto-num">{primero.numeroDepartamento}</span><span className="depto-piso">Piso {primero.piso}</span></div>
+                  <div className="pendiente-info">
+                    <p className="pendiente-pagador">{primero.pagadorNombre}</p>
+                    <p className="pendiente-meta">
+                      Pago múltiple · {grupo.items.length} cuotas · {primero.metodoPago}{primero.numeroOperacion ? ' · Op: ' + primero.numeroOperacion : ''}
+                    </p>
+                    <p className="pendiente-lote-meses">
+                      Cubre: {grupo.items.map(x => etiquetaMes(x.mes, x.anio)).join(' · ')}
+                    </p>
+                    {primero.observaciones && <p className="pendiente-obs">{primero.observaciones}</p>}
+                    {primero.voucherUrl && (
+                      <div className="pendiente-voucher">
+                        <a href={primero.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
+                        <img src={primero.voucherUrl} alt="Comprobante" className="pendiente-voucher-thumb" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="pendiente-monto">S/ {totalLote.toFixed(2)}</div>
+                  <div className="pendiente-actions">
+                    <button className="btn-rechazar-inline" onClick={() => verificarLotePendiente(grupo.loteId, 'RECHAZAR')}>Rechazar todo</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => verificarLotePendiente(grupo.loteId, 'APROBAR')}>Aprobar todo</button>
+                  </div>
                 </div>
-                <div className="pendiente-monto">S/ {p.monto?.toFixed(2)}</div>
-                <div className="pendiente-actions">
-                  <button className="btn-rechazar-inline" onClick={() => verificarPendiente(p.pagoId, 'RECHAZAR')}>Rechazar</button>
-                  <button className="btn btn-primary btn-sm" onClick={() => verificarPendiente(p.pagoId, 'APROBAR')}>Aprobar</button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

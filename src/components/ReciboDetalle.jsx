@@ -140,6 +140,12 @@ export default function ReciboDetalle({ boleta, anio, onCerrar }) {
             )}
           </div>
 
+          {boleta.pagadoJuntoCon?.length > 0 && (
+            <div className="rd-lote-nota">
+              Este comprobante también cubre: {boleta.pagadoJuntoCon.join(' · ')}
+            </div>
+          )}
+
           {/* Voucher si existe */}
           {boleta.voucherUrl && (
             <div className="rd-voucher-sec">
