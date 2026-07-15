@@ -348,10 +348,13 @@ function ResidenteDashboard({ user }) {
 
   const esFuturo = c => c.anio > anioActual || (c.anio === anioActual && c.mes > mesActual)
   const tienePagoPendiente   = c => c.pagos?.some(p => p.estado === 'PENDIENTE_VERIFICACION')
+  const ordenDesc = (a, b) => b.anio !== a.anio ? b.anio - a.anio : b.mes - a.mes // reciente → antiguo
+  const ordenAsc  = (a, b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes // cercano → lejano
+
   const cuotasPagadas        = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
-  const cuotasEnVerificacion = cuotas.filter(tienePagoPendiente)
-  const cuotasUrgentes       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c) && !tienePagoPendiente(c))
-  const todasCuotasFuturas   = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c) && !tienePagoPendiente(c)).sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
+  const cuotasEnVerificacion = cuotas.filter(tienePagoPendiente).sort(ordenDesc)
+  const cuotasUrgentes       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO') && !esFuturo(c) && !tienePagoPendiente(c)).sort(ordenDesc)
+  const todasCuotasFuturas   = cuotas.filter(c => c.estadoCuota === 'PENDIENTE' && esFuturo(c) && !tienePagoPendiente(c)).sort(ordenAsc)
   const cuotasFuturas        = verMasFuturas ? todasCuotasFuturas : todasCuotasFuturas.slice(0,3)
   const totalPagado          = cuotasPagadas.reduce((s,c) => s + Number(c.montoCalculado), 0)
   const totalPendiente       = cuotasUrgentes.reduce((s,c) => s + Number(c.montoCalculado), 0)

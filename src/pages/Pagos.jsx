@@ -271,11 +271,14 @@ function ResidentePagos({ user }) {
 
   const tienePagoPendiente = c => (c.pagos || []).some(p => p.estado === 'PENDIENTE_VERIFICACION')
 
-  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PARCIAL') && !esFuturo(c) && !tienePagoPendiente(c))
-  const enVerif      = cuotas.filter(c => tienePagoPendiente(c) && !esFuturo(c))
+  const ordenDesc = (a, b) => b.anio !== a.anio ? b.anio - a.anio : b.mes - a.mes // reciente → antiguo
+  const ordenAsc  = (a, b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes // cercano → lejano
+
+  const deudas       = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'VENCIDO' || c.estadoCuota === 'PARCIAL') && !esFuturo(c) && !tienePagoPendiente(c)).sort(ordenDesc)
+  const enVerif      = cuotas.filter(c => tienePagoPendiente(c) && !esFuturo(c)).sort(ordenDesc)
   const todasFuturas = cuotas.filter(c => (c.estadoCuota === 'PENDIENTE' || c.estadoCuota === 'PARCIAL') && esFuturo(c) && !tienePagoPendiente(c))
-    .sort((a,b) => a.anio !== b.anio ? a.anio - b.anio : a.mes - b.mes)
-  const enVerifFuturas = cuotas.filter(c => tienePagoPendiente(c) && esFuturo(c))
+    .sort(ordenAsc)
+  const enVerifFuturas = cuotas.filter(c => tienePagoPendiente(c) && esFuturo(c)).sort(ordenAsc)
   const futuras      = verMas ? todasFuturas : todasFuturas.slice(0, 3)
   const pagadas      = cuotas.filter(c => c.estadoCuota === 'PAGADO' || c.estadoCuota === 'VERIFICADO')
 
