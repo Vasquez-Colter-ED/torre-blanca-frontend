@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
-import { soloLetras, soloNumeros, esEmailValido } from '../utils/validaciones'
+import { soloLetras, esEmailValido } from '../utils/validaciones'
+import TelefonoInput from '../components/TelefonoInput'
 import './Perfil.css'
 
 function IconBuilding() {
@@ -67,7 +68,12 @@ export default function Perfil() {
     try {
       const r = await api.get('/api/usuarios/' + user.id)
       setDatos(r.data)
-      setForm({ nombre: r.data.nombre, apellido: r.data.apellido, telefono: r.data.telefono || '', email: r.data.email })
+      // Si el teléfono es de un formato viejo (sin código de país), se normaliza
+      // en el formulario de edición para que guardar sin tocarlo no falle — pero
+      // la vista de solo lectura sigue mostrando el valor original tal cual.
+      let tel = r.data.telefono || ''
+      if (tel && !tel.startsWith('+')) tel = '+51 ' + tel
+      setForm({ nombre: r.data.nombre, apellido: r.data.apellido, telefono: tel, email: r.data.email })
     } catch { setError('No se pudo cargar el perfil') }
     finally { setLoading(false) }
   }
@@ -102,7 +108,9 @@ export default function Perfil() {
 
   const cancelarEdicion = () => {
     setEditando(false); setError(''); setMsg('')
-    setForm({ nombre: datos.nombre, apellido: datos.apellido, telefono: datos.telefono || '', email: datos.email })
+    let tel = datos.telefono || ''
+    if (tel && !tel.startsWith('+')) tel = '+51 ' + tel
+    setForm({ nombre: datos.nombre, apellido: datos.apellido, telefono: tel, email: datos.email })
   }
 
   const cancelarPassword = () => {
@@ -174,7 +182,6 @@ export default function Perfil() {
             {[
               { key: 'nombre',   label: 'Nombre',    editable: true,  tipo: 'text',  change: v => soloLetras(v) },
               { key: 'apellido', label: 'Apellido',  editable: true,  tipo: 'text',  change: v => soloLetras(v) },
-              { key: 'telefono', label: 'Teléfono',  editable: true,  tipo: 'text',  change: v => soloNumeros(v).slice(0,9), placeholder: '987654321' },
               { key: 'email',    label: 'Correo electrónico', editable: true, tipo: 'email', change: v => v },
             ].map(({ key, label, editable, tipo, change, placeholder }) => (
               <div className="perfil-campo" key={key}>
@@ -185,6 +192,14 @@ export default function Perfil() {
                 }
               </div>
             ))}
+
+            <div className="perfil-campo">
+              <label className="perfil-campo-label">Teléfono</label>
+              {editando
+                ? <TelefonoInput value={form.telefono} onChange={v => setForm({ ...form, telefono: v })} />
+                : <p className="perfil-campo-valor">{datos?.telefono || '—'}</p>
+              }
+            </div>
 
             <div className="perfil-campo">
               <label className="perfil-campo-label">
