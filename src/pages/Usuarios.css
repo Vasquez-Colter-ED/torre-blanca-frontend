@@ -192,6 +192,11 @@
 }
 .us-btn-confirmar-desact:hover { background: #B91C1C; }
 
+.us-confirm-self {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px;
+  padding: 16px 18px; margin: 14px 0;
+}
+
 /* ── Panel edición inline ── */
 .us-edit-panel {
   max-height: 0; overflow: hidden;

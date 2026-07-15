@@ -60,7 +60,7 @@ const ordenarUsuarios = (lista) => {
 
 // ═════════════════════════════════════════════════════════════════════
 export default function Usuarios() {
-  const { user }    = useAuth()
+  const { user, logout } = useAuth()
   const esDirectivo = ROLES_DIRECTIVOS.includes(user?.rol)
 
   const [usuarios,   setUsuarios]   = useState([])
@@ -79,6 +79,7 @@ export default function Usuarios() {
   const [error,      setError]      = useState('')
   const [verPass,    setVerPass]    = useState(false)
   const [confirmDesactivar, setConfirmDesactivar] = useState(null) // id del usuario a confirmar
+  const [confirmAutoQuitar, setConfirmAutoQuitar] = useState(false) // te estás quitando tu propio cargo
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -114,6 +115,7 @@ export default function Usuarios() {
   const abrirEditar = (u) => {
     if (editId === u.id) { setEditId(null); return }
     setEditId(u.id)
+    setConfirmAutoQuitar(false)
     const cargo = cargoDirectivo(u)
     // Normaliza teléfonos guardados antes de tener código de país (ej. "987654321"
     // sin +51) para que la validación no falle aunque el usuario no toque ese campo
@@ -134,6 +136,21 @@ export default function Usuarios() {
   const guardarEditar = async (u) => {
     if (!formEdit.nombre?.trim())   { setMsg(prev => ({ ...prev, [u.id]: 'El nombre no puede quedar vacío' })); return }
     if (!formEdit.apellido?.trim()) { setMsg(prev => ({ ...prev, [u.id]: 'El apellido no puede quedar vacío' })); return }
+
+    // Si te estás quitando tu propio cargo directivo, primero se pide
+    // confirmación aparte — perderías acceso al instante
+    const esMiPropiaFila = u.id === user.id
+    const teniaCargo = !!formEdit.cargoOriginalId
+    const quiereQuitarCargo = teniaCargo && !formEdit.cargoDirectivoId
+    if (esMiPropiaFila && quiereQuitarCargo && !confirmAutoQuitar) {
+      setConfirmAutoQuitar(true)
+      return
+    }
+
+    await ejecutarGuardado(u, esMiPropiaFila && quiereQuitarCargo)
+  }
+
+  const ejecutarGuardado = async (u, cerrarSesionAlTerminar) => {
     try {
       const payload = { ...formEdit }
       const teniaCargo = !!payload.cargoOriginalId
@@ -148,9 +165,18 @@ export default function Usuarios() {
       }
 
       await api.put(`/api/usuarios/${u.id}`, payload)
+
+      if (cerrarSesionAlTerminar) {
+        // Te quitaste tu propio cargo: tu sesión actual ya no debe tener
+        // acceso a los módulos de directivo — se cierra para que el próximo
+        // inicio de sesión refleje los permisos correctos
+        logout()
+        return
+      }
+
       setMsg(prev => ({ ...prev, [u.id]: 'ok' }))
       cargarDatos()
-      setTimeout(() => { setEditId(null); setMsg({}) }, 1200)
+      setTimeout(() => { setEditId(null); setMsg({}); setConfirmAutoQuitar(false) }, 1200)
     } catch (e) { setMsg(prev => ({ ...prev, [u.id]: e.response?.data || 'Error al guardar' })) }
   }
 
@@ -485,11 +511,39 @@ export default function Usuarios() {
                     {msg[u.id] && msg[u.id] !== 'ok' && <p className="us-err">{msg[u.id]}</p>}
                     {msg[u.id] === 'ok' && <p className="us-ok">Guardado correctamente</p>}
 
+                    {confirmAutoQuitar && u.id === user.id && (
+                      <div className="us-confirm-self">
+                        <div className="us-confirm-titulo">
+                          <IcoAlert />
+                          ¿Quitarte tu propio cargo directivo?
+                        </div>
+                        <ul className="us-confirm-lista">
+                          <li>Perderás acceso inmediato a Usuarios, Departamentos, Gastos, Reportes y Fondo de Contingencia</li>
+                          <li>Tu sesión se cerrará automáticamente para aplicar el cambio</li>
+                          <li>Tendrás que pedirle a otro directivo que te vuelva a asignar un cargo si lo necesitas de nuevo</li>
+                        </ul>
+                      </div>
+                    )}
+
                     <div className="us-edit-footer">
-                      <button className="us-btn-cancelar" onClick={() => setEditId(null)}>Cancelar</button>
-                      <button className="us-btn-guardar" onClick={() => guardarEditar(u)}>
-                        <IcoCheck /> Guardar cambios
-                      </button>
+                      {confirmAutoQuitar && u.id === user.id ? (
+                        <>
+                          <button className="us-btn-cancelar" onClick={() => {
+                            setConfirmAutoQuitar(false)
+                            setFormEdit({ ...formEdit, cargoDirectivoId: formEdit.cargoOriginalId || '' })
+                          }}>Cancelar</button>
+                          <button className="us-btn-confirmar-desact" onClick={() => ejecutarGuardado(u, true)}>
+                            Sí, quitar mi cargo y cerrar sesión
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="us-btn-cancelar" onClick={() => setEditId(null)}>Cancelar</button>
+                          <button className="us-btn-guardar" onClick={() => guardarEditar(u)}>
+                            <IcoCheck /> Guardar cambios
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
