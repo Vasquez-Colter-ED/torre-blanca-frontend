@@ -70,18 +70,26 @@ const ordenarUsuarios = (lista) => {
 //  INPUT DE TELÉFONO — código de país editable (+51 por defecto) + número
 // ═════════════════════════════════════════════════════════════════════
 function TelefonoInput({ value, onChange }) {
+  // El código y el número se guardan separados por un espacio ("+51 987654321"),
+  // nunca pegados — así no hay ambigüedad de dónde termina el código de país
+  // al momento de volver a leerlo (códigos válidos van de 1 a 4 dígitos).
   const parseInicial = () => {
-    if (value && value.startsWith('+')) {
-      const m = value.match(/^(\+\d{1,4})(\d*)$/)
-      if (m) return { cod: m[1], num: m[2] }
+    if (!value) return { cod: '+51', num: '' }
+    if (value.includes(' ')) {
+      const [cod, ...resto] = value.trim().split(' ')
+      return { cod, num: resto.join('').replace(/\D/g, '') }
     }
-    return { cod: '+51', num: (value || '').replace(/\D/g, '') }
+    // Valor viejo guardado sin espacio (de antes de este arreglo) — no hay
+    // forma confiable de saber dónde cortaba el código, así que se deja todo
+    // como número con +51 por defecto para que el usuario lo corrija una vez.
+    if (value.startsWith('+51')) return { cod: '+51', num: value.slice(3) }
+    return { cod: '+51', num: value.replace(/\D/g, '') }
   }
   const [tel, setTel] = useState(parseInicial)
 
   const actualizar = (cod, num) => {
     setTel({ cod, num })
-    onChange(cod + num)
+    onChange(num ? `${cod} ${num}` : '') // sin número, no se manda teléfono vacío con solo el código
   }
 
   const handleCod = (v) => {
@@ -167,7 +175,7 @@ export default function Usuarios() {
     // Normaliza teléfonos guardados antes de tener código de país (ej. "987654321"
     // sin +51) para que la validación no falle aunque el usuario no toque ese campo
     let tel = u.telefono || ''
-    if (tel && !tel.startsWith('+')) tel = '+51' + tel
+    if (tel && !tel.startsWith('+')) tel = '+51 ' + tel
     setFormEdit({
       nombre:         u.nombre,
       apellido:       u.apellido,
