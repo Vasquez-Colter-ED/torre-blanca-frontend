@@ -38,6 +38,8 @@ function MetodoIcon({ metodo }) {
 function ResidenteRecibos({ user }) {
   const ahora = new Date()
   const [boletas,    setBoletas]    = useState([])
+  const [misDeptos,  setMisDeptos]  = useState([])
+  const [deptoSelec, setDeptoSelec] = useState('') // numero del depto elegido (solo relevante si hay más de 1)
   const [loading,    setLoading]    = useState(true)
   const [anio,       setAnio]       = useState(ahora.getFullYear())
   const [mesSelec,   setMesSelec]   = useState(null)
@@ -45,7 +47,7 @@ function ResidenteRecibos({ user }) {
   const [error,      setError]      = useState('')
   const detalleRef = useRef()
 
-  useEffect(() => { cargarBoletas() }, [])
+  useEffect(() => { cargarBoletas(); cargarMisDeptos() }, [])
 
   const cargarBoletas = async () => {
     setLoading(true)
@@ -54,21 +56,40 @@ function ResidenteRecibos({ user }) {
     finally { setLoading(false) }
   }
 
+  // Para saber TODOS los deptos del usuario (incluso los que aún no tienen
+  // ningún recibo) hay que consultar su perfil, no solo derivarlo de boletas
+  const cargarMisDeptos = async () => {
+    try {
+      const r = await api.get('/api/usuarios/' + user.id)
+      const deptos = r.data.departamentos || []
+      setMisDeptos(deptos)
+      if (deptos.length > 1) setDeptoSelec(deptos[0].numero)
+    } catch { /* silencioso, no bloquea el calendario */ }
+  }
+
+  // Si tiene más de un depto, todo lo demás (calendario, resumen) se
+  // calcula SOLO sobre el depto seleccionado en la pestaña — si no, un
+  // mes con un depto pagado y otro sin pagar se vería engañosamente
+  // como "pagado" en el calendario combinado.
+  const boletasVisibles = misDeptos.length > 1 && deptoSelec
+    ? boletas.filter(b => b.numeroDepartamento === deptoSelec)
+    : boletas
+
   // Boletas del año seleccionado, agrupadas por mes (un mes puede tener
   // más de un recibo si hubo pago parcial + saldo, por ejemplo)
   const boletasPorMes = {}
-  boletas.filter(b => b.anio === anio).forEach(b => {
+  boletasVisibles.filter(b => b.anio === anio).forEach(b => {
     if (!boletasPorMes[b.mes]) boletasPorMes[b.mes] = []
     boletasPorMes[b.mes].push(b)
   })
   Object.values(boletasPorMes).forEach(lista => lista.sort((a, b) => new Date(a.fechaPago) - new Date(b.fechaPago)))
 
-  // Años disponibles
+  // Años disponibles (de TODOS los deptos, para que no "salten" al cambiar de pestaña)
   const aniosDisp = [...new Set(boletas.map(b => b.anio))].sort((a,b) => b - a)
   if (!aniosDisp.includes(ahora.getFullYear())) aniosDisp.unshift(ahora.getFullYear())
 
-  // Resumen del año
-  const boletasAnio  = boletas.filter(b => b.anio === anio)
+  // Resumen del año (del depto seleccionado, si aplica)
+  const boletasAnio  = boletasVisibles.filter(b => b.anio === anio)
   const totalAnio    = boletasAnio.reduce((s,b) => s + Number(b.monto || 0), 0)
   const mesesPagados = Object.keys(boletasPorMes).length
 
@@ -106,14 +127,22 @@ function ResidenteRecibos({ user }) {
       {error && <div className="rb-error">{error}</div>}
 
       {/* Selector de año */}
-      <div className="rb-anio-tabs">
-        {aniosDisp.map(a => (
-          <button key={a} className={`rb-anio-tab ${anio === a ? 'rb-anio-tab-active' : ''}`}
-            onClick={() => { setAnio(a); setMesSelec(null) }}>
-            {a}
-          </button>
-        ))}
-      </div>
+      <select className="rb-anio-select" value={anio} onChange={e => { setAnio(Number(e.target.value)); setMesSelec(null) }}>
+        {aniosDisp.map(a => <option key={a} value={a}>{a}</option>)}
+      </select>
+
+      {/* Pestañas de departamento — solo si el propietario/inquilino tiene más de uno */}
+      {misDeptos.length > 1 && (
+        <div className="rb-depto-tabs">
+          {misDeptos.map(d => (
+            <button key={d.departamentoId}
+              className={`rb-depto-tab ${deptoSelec === d.numero ? 'rb-depto-tab-active' : ''}`}
+              onClick={() => { setDeptoSelec(d.numero); setMesSelec(null) }}>
+              Depto {d.numero} · Piso {d.piso}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Resumen del año */}
       <div className="rb-resumen">
@@ -275,7 +304,7 @@ function ResidenteRecibos({ user }) {
         )}
       </div>
 
-      {boletas.length === 0 && !loading && (
+      {boletasVisibles.length === 0 && !loading && (
         <div className="rb-empty">
           <IcoDoc />
           <p className="rb-empty-t">Sin recibos aún</p>

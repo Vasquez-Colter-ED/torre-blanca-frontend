@@ -24,18 +24,24 @@
 .rb-loading { padding: 32px; text-align: center; color: #64748B; }
 
 /* Selector de año */
-.rb-anio-tabs {
-  display: flex; gap: 4px; margin-bottom: 20px;
-  background: #F1F5F9; padding: 4px; border-radius: 12px; width: fit-content;
+.rb-anio-select {
+  padding: 9px 14px; border: 1.5px solid #E2E8F0; border-radius: 9px;
+  font-family: inherit; font-size: 0.85rem; font-weight: 600; color: #0F172A;
+  background: #fff; cursor: pointer; margin-bottom: 14px;
+  transition: border-color 0.15s ease;
 }
-.rb-anio-tab {
-  padding: 8px 20px; border-radius: 9px; border: none;
-  background: transparent; color: #64748B;
-  font-size: 0.875rem; font-weight: 600; font-family: inherit;
-  cursor: pointer; transition: all 0.18s ease;
+.rb-anio-select:focus { border-color: #2563EB; outline: none; }
+
+/* Pestañas de departamento (solo si hay más de uno) */
+.rb-depto-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.rb-depto-tab {
+  padding: 8px 16px; border-radius: 9px; border: 1.5px solid #E2E8F0;
+  background: #fff; color: #64748B; font-family: inherit;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s ease;
 }
-.rb-anio-tab:hover { color: #0F172A; }
-.rb-anio-tab-active { background: #fff; color: #0F172A; box-shadow: 0 1px 4px rgba(15,23,42,0.1); }
+.rb-depto-tab:hover { border-color: #2563EB; color: #2563EB; }
+.rb-depto-tab-active { background: #0F172A; color: #fff; border-color: #0F172A; }
 
 /* Resumen del año */
 .rb-resumen {
@@ -396,7 +402,7 @@
 
 /* Print */
 @media print {
-  .rb-anio-tabs, .rb-btn-imprimir, .rb-btn-cerrar,
+  .rb-anio-select, .rb-depto-tabs, .rb-btn-imprimir, .rb-btn-cerrar,
   .rb-resumen, .rb-grid, .rb-dir-toolbar { display: none !important; }
   .rb-detalle { box-shadow: none; border: 1px solid #ccc; }
 }
