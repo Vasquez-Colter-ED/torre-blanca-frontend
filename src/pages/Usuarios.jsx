@@ -23,6 +23,7 @@ const IcoX     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="non
 const IcoPlus  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 const IcoEye   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 const IcoEyeOff= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+const IcoAlert = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
 
 // Solo letras y tildes
 const soloLetras = v => v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')
@@ -59,6 +60,7 @@ export default function Usuarios() {
   const [errNuevo,   setErrNuevo]   = useState('')
   const [error,      setError]      = useState('')
   const [verPass,    setVerPass]    = useState(false)
+  const [confirmDesactivar, setConfirmDesactivar] = useState(null) // id del usuario a confirmar
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -131,9 +133,22 @@ export default function Usuarios() {
   const toggleEstado = async (u) => {
     const cargo = cargoDirectivo(u)
     if (cargo && u.estado === 'ACTIVO') return // no se puede desactivar a un directivo activo (primero hay que quitarle el cargo)
+
+    // Reactivar no tiene implicancias que confirmar — se hace directo
+    if (u.estado !== 'ACTIVO') {
+      try { await api.patch(`/api/usuarios/${u.id}/reactivar`); cargarDatos() }
+      catch (e) { alert(e.response?.data || 'Error') }
+      return
+    }
+
+    // Desactivar sí tiene implicancias (desvincula departamentos) — pide confirmación inline
+    setConfirmDesactivar(confirmDesactivar === u.id ? null : u.id)
+  }
+
+  const confirmarDesactivar = async (u) => {
     try {
-      const accion = u.estado === 'ACTIVO' ? 'desactivar' : 'reactivar'
-      await api.patch(`/api/usuarios/${u.id}/${accion}`)
+      await api.patch(`/api/usuarios/${u.id}/desactivar`)
+      setConfirmDesactivar(null)
       cargarDatos()
     } catch (e) { alert(e.response?.data || 'Error') }
   }
@@ -319,10 +334,13 @@ export default function Usuarios() {
         {filtrados.map(u => {
           const cargo   = cargoDirectivo(u)
           const tipo    = tipoResidencia(u)
-          const depto   = u.departamentos?.[0]
+          const deptosDelUsuario = u.departamentos || []
           const esDir   = !!cargo
           const abierto = editId === u.id
+          const confirmando = confirmDesactivar === u.id
           const activo  = u.estado === 'ACTIVO'
+          const deptosPropietario = deptosDelUsuario.filter(d => d.tipo === 'PROPIETARIO')
+          const deptosInquilino   = deptosDelUsuario.filter(d => d.tipo === 'INQUILINO')
 
           return (
             <div key={u.id} className={`us-fila-wrap ${abierto ? 'us-fila-wrap-open' : ''}`}>
@@ -343,7 +361,15 @@ export default function Usuarios() {
                 <span className="us-col-dni us-mono">{u.dni || <span className="us-vacio">—</span>}</span>
 
                 {/* Departamento */}
-                <span className="us-col-depto-num">{depto ? `Depto ${depto.numero} · P${depto.piso}` : <span className="us-vacio">—</span>}</span>
+                <span className="us-col-depto-num">
+                  {deptosDelUsuario.length === 0 && <span className="us-vacio">—</span>}
+                  {deptosDelUsuario.length === 1 && `Depto ${deptosDelUsuario[0].numero} · P${deptosDelUsuario[0].piso}`}
+                  {deptosDelUsuario.length > 1 && (
+                    <>
+                      Depto {deptosDelUsuario[0].numero} <span className="us-depto-mas">+{deptosDelUsuario.length - 1} más</span>
+                    </>
+                  )}
+                </span>
 
                 {/* Tipo de residencia */}
                 <span className={`us-tipo-badge ${tipo === 'PROPIETARIO' ? 'us-tipo-prop' : tipo === 'INQUILINO' ? 'us-tipo-inq' : ''}`}>
@@ -440,6 +466,37 @@ export default function Usuarios() {
                       <button className="us-btn-guardar" onClick={() => guardarEditar(u)}>
                         <IcoCheck /> Guardar cambios
                       </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Panel de confirmación al desactivar — muestra las implicancias antes de aplicar */}
+              <div className={`us-confirm-panel ${confirmando ? 'us-confirm-panel-open' : ''}`}>
+                {confirmando && (
+                  <div className="us-confirm-body">
+                    <div className="us-confirm-titulo">
+                      <IcoAlert />
+                      ¿Desactivar a {u.nombre} {u.apellido}?
+                    </div>
+                    <ul className="us-confirm-lista">
+                      <li>Ya no podrá iniciar sesión en el sistema</li>
+                      {deptosPropietario.length > 0 && (
+                        <li>
+                          Se desvinculará como <strong>propietario</strong> de: {deptosPropietario.map(d => `Depto ${d.numero}`).join(', ')}
+                        </li>
+                      )}
+                      {deptosInquilino.length > 0 && (
+                        <li>
+                          Se desvinculará como <strong>inquilino</strong> de: {deptosInquilino.map(d => `Depto ${d.numero}`).join(', ')}
+                        </li>
+                      )}
+                      <li>Sus recibos, pagos e historial se mantienen intactos en Reportes</li>
+                      <li>Esta acción queda registrada en Auditoría con tu nombre y la fecha/hora exacta</li>
+                    </ul>
+                    <div className="us-confirm-footer">
+                      <button className="us-btn-cancelar" onClick={() => setConfirmDesactivar(null)}>Cancelar</button>
+                      <button className="us-btn-confirmar-desact" onClick={() => confirmarDesactivar(u)}>Sí, desactivar</button>
                     </div>
                   </div>
                 )}

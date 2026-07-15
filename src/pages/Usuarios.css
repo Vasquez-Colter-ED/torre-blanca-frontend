@@ -110,6 +110,11 @@
 
 /* Departamento */
 .us-col-depto-num { font-size: 0.78rem; font-weight: 600; color: #0F172A; }
+.us-depto-mas {
+  display: inline-block; margin-left: 5px;
+  font-size: 0.66rem; font-weight: 700; color: #2563EB;
+  background: #EFF6FF; padding: 1px 7px; border-radius: 20px;
+}
 
 /* Tipo de residencia */
 .us-tipo-badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; width: fit-content; }
@@ -154,6 +159,38 @@
 .us-btn-desact:hover { background: #DC2626; color: #fff; }
 .us-btn-react  { background: #F0FDF4; color: #059669; }
 .us-btn-react:hover  { background: #059669; color: #fff; }
+
+/* ── Panel de confirmación al desactivar ── */
+.us-confirm-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+  border-top: 0 solid #FDE68A;
+}
+.us-confirm-panel-open { max-height: 500px; border-top-width: 1px; background: #FFFBEB; }
+
+.us-confirm-body { padding: 18px 24px; }
+
+.us-confirm-titulo {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.92rem; font-weight: 800; color: #92400E;
+  margin: 0 0 12px 0;
+}
+
+.us-confirm-lista {
+  margin: 0 0 16px 0; padding-left: 20px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.us-confirm-lista li { font-size: 0.82rem; color: #78350F; line-height: 1.4; }
+.us-confirm-lista strong { color: #451A03; }
+
+.us-confirm-footer { display: flex; justify-content: flex-end; gap: 10px; }
+
+.us-btn-confirmar-desact {
+  padding: 9px 18px; background: #DC2626; border: none; color: #fff;
+  font-size: 0.875rem; font-weight: 700; font-family: inherit;
+  border-radius: 8px; cursor: pointer; transition: background 0.18s ease;
+}
+.us-btn-confirmar-desact:hover { background: #B91C1C; }
 
 /* ── Panel edición inline ── */
 .us-edit-panel {
