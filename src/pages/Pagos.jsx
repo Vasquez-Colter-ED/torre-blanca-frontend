@@ -649,13 +649,15 @@ function ResidentePagos({ user }) {
               </h3>
               <button className="pgr-pm-close" onClick={() => setMetodoMultiple(null)}><IcoX /></button>
             </div>
-            <FormPagoMultipleManual
-              cuotasSelArray={cuotasSelArray}
-              totalSel={totalSel}
-              metodo={metodoMultiple}
-              onExito={() => handleExito('Pago múltiple enviado para verificación.')}
-              onCancelar={() => setMetodoMultiple(null)}
-            />
+            <div className="pp-form-wrap pgr-pm-form-pad">
+              <FormPagoMultipleManual
+                cuotasSelArray={cuotasSelArray}
+                totalSel={totalSel}
+                metodo={metodoMultiple}
+                onExito={() => handleExito('Pago múltiple enviado para verificación.')}
+                onCancelar={() => setMetodoMultiple(null)}
+              />
+            </div>
           </div>
         )}
       </div>
