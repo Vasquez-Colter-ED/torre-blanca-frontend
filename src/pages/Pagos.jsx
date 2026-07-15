@@ -565,7 +565,7 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {seleccionadas.size > 0 && (
+        {seleccionadas.size > 1 && (
           <div className="pgr-barra">
             <button className="pgr-barra-close" onClick={() => setSeleccionadas(new Set())}><IcoX /></button>
             <div className="pgr-barra-info">
@@ -579,7 +579,7 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {pagMultiple && cuotasSelArray.length > 0 && !metodoMultiple && (
+        {pagMultiple && cuotasSelArray.length > 1 && !metodoMultiple && (
           <div className="pgr-panel-multiple">
             <div className="pgr-pm-header">
               <h3 className="pgr-pm-titulo">¿Cómo vas a pagar {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}?</h3>
@@ -605,7 +605,7 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {pagMultiple && cuotasSelArray.length > 0 && metodoMultiple === 'TARJETA' && (
+        {pagMultiple && cuotasSelArray.length > 1 && metodoMultiple === 'TARJETA' && (
           <div className="pgr-panel-multiple">
             <div className="pgr-pm-header">
               <h3 className="pgr-pm-titulo">Pago de {cuotasSelArray.length} cuota{cuotasSelArray.length > 1 ? 's' : ''}</h3>
@@ -640,7 +640,7 @@ function ResidentePagos({ user }) {
           </div>
         )}
 
-        {pagMultiple && cuotasSelArray.length > 0 && (metodoMultiple === 'TRANSFERENCIA' || metodoMultiple === 'EFECTIVO') && (
+        {pagMultiple && cuotasSelArray.length > 1 && (metodoMultiple === 'TRANSFERENCIA' || metodoMultiple === 'EFECTIVO') && (
           <div className="pgr-panel-multiple">
             <div className="pgr-pm-header">
               <h3 className="pgr-pm-titulo">
