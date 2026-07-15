@@ -147,6 +147,8 @@ function ResidenteRecibos({ user }) {
           const recibosMes = boletasPorMes[numMes] || []
           const esPagado = recibosMes.length > 0
           const montoMes = recibosMes.reduce((s, b) => s + Number(b.monto || 0), 0)
+          const miNombreCompleto = `${user?.nombre} ${user?.apellido}`
+          const pagadoPorOtro = esPagado && recibosMes.every(b => b.pagadorNombre && b.pagadorNombre !== miNombreCompleto)
           const esActivo = mesSelec === numMes
           const esPasado = numMes < ahora.getMonth() + 1 && anio === ahora.getFullYear()
           const esFuturo = anio > ahora.getFullYear() || (anio === ahora.getFullYear() && numMes > ahora.getMonth() + 1)
@@ -169,6 +171,7 @@ function ResidenteRecibos({ user }) {
                   <span className="rb-mes-check"><IcoCheck /></span>
                   <span className="rb-mes-monto">S/ {montoMes.toFixed(2)}</span>
                   {recibosMes.length > 1 && <span className="rb-mes-multi">{recibosMes.length} pagos</span>}
+                  {pagadoPorOtro && <span className="rb-mes-otro">Pagado por otro</span>}
                 </>
               ) : (
                 <span className="rb-mes-dash">—</span>

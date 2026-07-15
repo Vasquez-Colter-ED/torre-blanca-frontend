@@ -145,6 +145,11 @@
   background: #EFF6FF; padding: 1px 7px; border-radius: 20px;
 }
 
+.rb-mes-otro {
+  font-size: 0.63rem; font-weight: 700; color: #7C3AED;
+  background: #F5F3FF; padding: 1px 7px; border-radius: 20px;
+}
+
 .rb-mes-dash { font-size: 0.9rem; color: #CBD5E1; }
 
 /* ── Panel de detalle del recibo ── */
