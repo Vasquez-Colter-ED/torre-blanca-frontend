@@ -137,11 +137,24 @@ export default function Usuarios() {
     if (!formEdit.nombre?.trim())   { setMsg(prev => ({ ...prev, [u.id]: 'El nombre no puede quedar vacío' })); return }
     if (!formEdit.apellido?.trim()) { setMsg(prev => ({ ...prev, [u.id]: 'El apellido no puede quedar vacío' })); return }
 
-    // Si te estás quitando tu propio cargo directivo, primero se pide
-    // confirmación aparte — perderías acceso al instante
     const esMiPropiaFila = u.id === user.id
     const teniaCargo = !!formEdit.cargoOriginalId
     const quiereQuitarCargo = teniaCargo && !formEdit.cargoDirectivoId
+
+    if (quiereQuitarCargo) {
+      // Primero valida si esto es viable: ¿hay alguien más con ese mismo cargo?
+      // Si es el único, ni siquiera tiene sentido mostrar el aviso de "vas a
+      // perder tu propio acceso" — la acción de por sí no se puede hacer.
+      const cargoActual = cargoDirectivo(u)
+      const hayOtroConEseCargo = usuarios.some(x => x.id !== u.id && cargoDirectivo(x)?.rolId === cargoActual?.rolId)
+      if (!hayOtroConEseCargo) {
+        setMsg(prev => ({ ...prev, [u.id]: `No puedes quitar el cargo de ${CARGO_LABEL[cargoActual?.nombre] || cargoActual?.nombre} porque es el único activo en ese puesto. Primero asigna ese cargo a otra persona.` }))
+        return
+      }
+    }
+
+    // Recién aquí, si es viable Y es tu propia fila, se pide la confirmación
+    // fuerte de que vas a perder tu propio acceso
     if (esMiPropiaFila && quiereQuitarCargo && !confirmAutoQuitar) {
       setConfirmAutoQuitar(true)
       return
