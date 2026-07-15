@@ -425,6 +425,13 @@
 .pendiente-card-lote { border-color: #BFDBFE; background: #F8FBFF; }
 .pendiente-lote-meses { font-size: 0.78rem; color: #2563EB; font-weight: 600; margin: 4px 0 0 0; }
 
+.rb-voucher-privado {
+  margin-top: 6px;
+  background: #F8FAFC; border: 1px dashed #E2E8F0;
+  color: #94A3B8; font-size: 0.78rem; font-style: italic;
+  padding: 8px 12px; border-radius: 8px;
+}
+
 /* ══════════════════════════════════════════════════════════════
    VISTA DIRECTIVO — estilos existentes
 ══════════════════════════════════════════════════════════════ */

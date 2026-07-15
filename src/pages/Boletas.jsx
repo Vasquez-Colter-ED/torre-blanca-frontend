@@ -248,13 +248,16 @@ function ResidenteRecibos({ user }) {
                   <p className="rb-lote-nota">Este comprobante también cubre: {recibo.pagadoJuntoCon.join(' · ')}</p>
                 )}
 
-                {/* Voucher foto */}
-                {recibo.voucherUrl && (
+                {/* Voucher foto — solo visible para quien hizo el pago */}
+                {recibo.voucherUrl && recibo.pagadorNombre === `${user?.nombre} ${user?.apellido}` && (
                   <div className="rb-voucher">
                     <p className="rb-voucher-lbl"><IcoImg /> Comprobante adjunto</p>
                     <img src={recibo.voucherUrl} alt="Comprobante" className="rb-voucher-img"
                       onClick={() => window.open(recibo.voucherUrl, '_blank')} />
                   </div>
+                )}
+                {recibo.voucherUrl && recibo.pagadorNombre !== `${user?.nombre} ${user?.apellido}` && (
+                  <p className="rb-voucher-privado">El comprobante de este pago solo puede verlo quien lo realizó.</p>
                 )}
 
                 <button className="rb-btn-ver-recibo" onClick={() => setReciboOpen(recibo)}>
@@ -286,6 +289,7 @@ function ResidenteRecibos({ user }) {
           boleta={reciboOpen}
           anio={anio}
           onCerrar={() => setReciboOpen(null)}
+          puedeVerComprobante={reciboOpen.pagadorNombre === `${user?.nombre} ${user?.apellido}`}
         />
       )}
     </div>
@@ -448,12 +452,14 @@ function DirectivoRecibos() {
         </div>
       )}
 
-      {/* Recibo oficial completo, con descarga en PDF — mismo componente que usa el residente */}
+      {/* Recibo oficial completo, con descarga en PDF — mismo componente que usa el residente.
+          El directivo siempre puede ver el comprobante, lo necesita para auditar. */}
       {reciboOpen && (
         <ReciboDetalle
           boleta={reciboOpen}
           anio={reciboOpen.anio}
           onCerrar={() => setReciboOpen(null)}
+          puedeVerComprobante={true}
         />
       )}
     </div>

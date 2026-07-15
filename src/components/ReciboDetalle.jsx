@@ -8,7 +8,7 @@ const METODO_LABEL = {
   TARJETA:'Tarjeta de crédito/débito', TRANSFERENCIA_MP:'Tarjeta (Mercado Pago)'
 }
 
-export default function ReciboDetalle({ boleta, anio, onCerrar }) {
+export default function ReciboDetalle({ boleta, anio, onCerrar, puedeVerComprobante = true }) {
   const ref = useRef()
 
   const descargar = async () => {
@@ -146,12 +146,15 @@ export default function ReciboDetalle({ boleta, anio, onCerrar }) {
             </div>
           )}
 
-          {/* Voucher si existe */}
-          {boleta.voucherUrl && (
+          {/* Voucher solo visible para quien hizo el pago, o para directivos */}
+          {boleta.voucherUrl && puedeVerComprobante && (
             <div className="rd-voucher-sec">
               <p className="rd-voucher-lbl">Comprobante adjunto</p>
               <img src={boleta.voucherUrl} alt="Voucher" className="rd-voucher-img" crossOrigin="anonymous" />
             </div>
+          )}
+          {boleta.voucherUrl && !puedeVerComprobante && (
+            <p className="rd-voucher-privado">El comprobante de este pago solo puede verlo quien lo realizó.</p>
           )}
 
           {/* Pie de página */}

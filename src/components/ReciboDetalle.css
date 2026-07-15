@@ -193,6 +193,13 @@
   padding: 9px 14px; border-radius: 8px;
 }
 
+.rd-voucher-privado {
+  margin: 14px 32px 0;
+  background: #F8FAFC; border: 1px dashed #E2E8F0;
+  color: #94A3B8; font-size: 0.76rem; font-style: italic;
+  padding: 9px 14px; border-radius: 8px;
+}
+
 /* ── Pie de página ──────────────────────────────────────────── */
 .rd-footer { padding: 20px 32px 24px; margin-top: 20px; }
 .rd-footer-linea { height: 1px; background: #E2E8F0; margin-bottom: 14px; }
