@@ -1304,6 +1304,7 @@ function DirectivoPagos({ user }) {
   const [crearConfigOpen, setCrearConfigOpen] = useState(false)
   const [editConfigId,    setEditConfigId]    = useState(null)
   const [buscarDepto,     setBuscarDepto]     = useState('')
+  const [filtroAnioConfig, setFiltroAnioConfig] = useState(ahora.getFullYear())
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
@@ -1371,6 +1372,12 @@ function DirectivoPagos({ user }) {
     const texto = `${c.numeroDepartamento} ${(c.residentesNombres || []).join(' ')}`.toLowerCase()
     return texto.includes(buscarDepto.toLowerCase())
   })
+
+  // Años con al menos una configuración, más el año actual siempre visible
+  // aunque todavía no tenga ninguna — así el filtro no muestra años vacíos
+  // que nunca se usaron (ej. 2027 si nadie configuró nada ahí aún)
+  const aniosConConfig = [...new Set([ahora.getFullYear(), ...configs.map(c => c.anio)])].sort((a, b) => a - b)
+  const configsDelAnio = configs.filter(c => c.anio === filtroAnioConfig)
 
   return (
     <div className="drp-page">
@@ -1527,7 +1534,12 @@ function DirectivoPagos({ user }) {
       {tab === 'configuracion' && (
         <div className="drp-tab-content">
           <div className="drp-config-header">
-            <p className="drp-sub-lbl">{configs.length} mes{configs.length !== 1 ? 'es' : ''} configurado{configs.length !== 1 ? 's' : ''}</p>
+            <div className="drp-config-header-izq">
+              <p className="drp-sub-lbl">{configsDelAnio.length} mes{configsDelAnio.length !== 1 ? 'es' : ''} configurado{configsDelAnio.length !== 1 ? 's' : ''} en {filtroAnioConfig}</p>
+              <select className="drp-mes-select" value={filtroAnioConfig} onChange={e => setFiltroAnioConfig(Number(e.target.value))}>
+                {aniosConConfig.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
             <button className="us-btn-nuevo" onClick={() => { setCrearConfigOpen(!crearConfigOpen); setEditConfigId(null) }}>
               {crearConfigOpen ? <IcoX /> : <IcoPlus />}
               {crearConfigOpen ? 'Cancelar' : 'Configurar nuevo mes'}
@@ -1543,12 +1555,12 @@ function DirectivoPagos({ user }) {
           )}
 
           {loading && <div className="drp-skeleton">{[...Array(3)].map((_, i) => <div key={i} className="drp-skeleton-row" />)}</div>}
-          {!loading && configs.length === 0 && !crearConfigOpen && (
-            <div className="empty-state">No hay configuraciones registradas todavía.</div>
+          {!loading && configsDelAnio.length === 0 && !crearConfigOpen && (
+            <div className="empty-state">Aún no hay ninguna configuración para {filtroAnioConfig}.</div>
           )}
 
           <div className="configs-lista">
-            {configs.map(c => (
+            {configsDelAnio.map(c => (
               <div key={c.id} className="drp-config-card-wrap">
                 <div className="config-card">
                   <div>

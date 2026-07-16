@@ -819,7 +819,8 @@
 .drp-mi-cuenta { margin-top: 4px; }
 
 /* Configuracion */
-.drp-config-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.drp-config-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.drp-config-header-izq { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .drp-config-card-wrap { margin-bottom: 10px; }
 
 .drp-config-panel {
