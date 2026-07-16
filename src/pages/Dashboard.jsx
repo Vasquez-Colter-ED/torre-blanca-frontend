@@ -398,14 +398,26 @@ function ResidenteDashboard({ user }) {
             <div className="db-section">
               <h2 className="db-section-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pagos en proceso de verificación</h2>
               <div className="db-cuotas-list">
-                {cuotasEnVerificacion.map(c => (
-                  <div key={c.cuotaId} className="db-cuota-card db-cuota-info-card">
-                    <div className="db-cuota-info"><p className="db-cuota-mes">{etiquetaMes(c.mes,c.anio)}</p><p className="db-cuota-monto">S/ {Number(c.montoCalculado).toFixed(2)}</p></div>
-                    <div className="db-cuota-right"><span className="db-badge badge-info">En verificación</span></div>
-                  </div>
-                ))}
+                {cuotasEnVerificacion.map(c => {
+                  const pagoPend = c.pagos.find(p => p.estado === 'PENDIENTE_VERIFICACION')
+                  const esMiPago = pagoPend?.pagadorNombre === `${user?.nombre} ${user?.apellido}`
+                  return (
+                    <div key={c.cuotaId} className="db-cuota-card db-cuota-info-card">
+                      <div className="db-cuota-info">
+                        <p className="db-cuota-mes">{etiquetaMes(c.mes,c.anio)}</p>
+                        {!esMiPago && pagoPend && <p className="db-cuota-otro">Pago hecho por {pagoPend.pagadorNombre}</p>}
+                        <p className="db-cuota-monto">S/ {Number(pagoPend?.monto ?? c.montoCalculado).toFixed(2)}</p>
+                      </div>
+                      <div className="db-cuota-right"><span className="db-badge badge-info">En verificación</span></div>
+                    </div>
+                  )
+                })}
               </div>
-              <p className="db-verify-hint">El directivo revisará tu pago en breve.</p>
+              <p className="db-verify-hint">
+                {cuotasEnVerificacion.every(c => c.pagos.find(p => p.estado === 'PENDIENTE_VERIFICACION')?.pagadorNombre === `${user?.nombre} ${user?.apellido}`)
+                  ? 'El directivo revisará tu pago en breve.'
+                  : 'Estos pagos están pendientes de revisión del directivo.'}
+              </p>
             </div>
           )}
 

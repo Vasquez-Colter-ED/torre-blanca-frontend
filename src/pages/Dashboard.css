@@ -172,6 +172,13 @@
   letter-spacing: -0.5px;
 }
 
+.db-cuota-otro {
+  font-size: 0.75rem;
+  color: #7C3AED;
+  font-weight: 600;
+  margin: 0;
+}
+
 .db-cuota-right {
   display: flex;
   align-items: center;
