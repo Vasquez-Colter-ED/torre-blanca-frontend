@@ -21,6 +21,13 @@ const PIE_COLORS = ['#2563EB','#059669','#D97706','#7C3AED','#DB2777','#0D9488',
 
 const CARGO_LABEL = { PRESIDENTE: 'Presidente', SECRETARIO: 'Secretario', TESORERO: 'Tesorero' }
 
+const METODO_LABEL = {
+  TRANSFERENCIA: 'Transferencia', DEPOSITO: 'Depósito', YAPE: 'Yape', PLIN: 'Plin',
+  EFECTIVO: 'Efectivo', OTRO: 'Otro', TARJETA: 'Tarjeta', TRANSFERENCIA_MP: 'Mercado Pago',
+  MULTIPLE: 'Varios métodos',
+}
+const metodoLabel = (m) => METODO_LABEL[m] || m || '—'
+
 const TABLA_LABEL = {
   gastos: 'Gastos',
   usuarios: 'Usuarios',
@@ -265,7 +272,37 @@ export default function Reportes() {
       rowDeptos.getCell(2).alignment = { horizontal: 'center' }
       rowDeptos.eachCell(c => c.border = bordeCelda)
 
-      // ── Hoja 2: Deudores ─────────────────────────────────────
+      // ── Hoja 2: Pagadores ──────────────────────────────────────
+      const wsP = wb.addWorksheet('Pagadores', { views: [{ state: 'frozen', ySplit: 4 }] })
+      wsP.columns = [{ width: 14 }, { width: 10 }, { width: 30 }, { width: 22 }, { width: 16 }, { width: 18 }, { width: 18 }]
+      wsP.mergeCells('A1:G1')
+      estiloTituloHoja(wsP.getCell('A1'), 'DEPARTAMENTOS QUE PAGARON')
+      wsP.getRow(1).height = 28
+      wsP.mergeCells('A2:G2')
+      estiloSubtitulo(wsP.getCell('A2'), `${MESES[mes-1]} ${anio}  ·  ${(reporteMes.pagadores||[]).length} de ${reporteMes.deptosTotal} departamento(s) al día`)
+      wsP.addRow([])
+      estiloHeaderTabla(wsP.addRow(['Departamento', 'Piso', 'Residente(s)', 'Pagado por', 'Método', 'Fecha de pago', 'Monto pagado']))
+      ;(reporteMes.pagadores || []).forEach((p, i) => {
+        const row = wsP.addRow([
+          p.numeroDepartamento, p.piso, p.residentesNombres, p.pagadoPorNombre || '—',
+          metodoLabel(p.metodoPago),
+          p.fechaPago ? new Date(p.fechaPago) : null,
+          Number(p.montoPagado),
+        ])
+        row.getCell(6).numFmt = 'dd/mm/yyyy'
+        row.getCell(7).numFmt = FMT_MONEDA
+        row.getCell(7).font = { color: { argb: BRAND.verde }, bold: true }
+        row.getCell(1).alignment = { horizontal: 'center' }
+        row.getCell(2).alignment = { horizontal: 'center' }
+        zebra(row, i)
+      })
+      if ((reporteMes.pagadores || []).length === 0) {
+        wsP.mergeCells('A5:G5')
+        wsP.getCell('A5').value = 'Ningún departamento ha completado su cuota este mes todavía.'
+        wsP.getCell('A5').font = { italic: true, color: { argb: 'FF64748B' } }
+      }
+
+      // ── Hoja 3: Deudores ─────────────────────────────────────
       const wsD = wb.addWorksheet('Deudores', { views: [{ state: 'frozen', ySplit: 4 }] })
       wsD.columns = [{ width: 14 }, { width: 10 }, { width: 34 }, { width: 18 }]
       wsD.mergeCells('A1:D1')
@@ -289,7 +326,7 @@ export default function Reportes() {
         wsD.getCell('A5').font = { italic: true, color: { argb: 'FF64748B' } }
       }
 
-      // ── Hoja 3: Gastos por categoría ─────────────────────────
+      // ── Hoja 4: Gastos por categoría ─────────────────────────
       const wsG = wb.addWorksheet('Gastos', { views: [{ state: 'frozen', ySplit: 4 }] })
       wsG.columns = [{ width: 28 }, { width: 18 }]
       wsG.mergeCells('A1:B1')
@@ -305,7 +342,7 @@ export default function Reportes() {
         zebra(row, i)
       })
 
-      // ── Hoja 4: Gráficos — las mismas gráficas que se ven en pantalla,
+      // ── Hoja 5: Gráficos — las mismas gráficas que se ven en pantalla,
       // capturadas como imagen e insertadas en el Excel ────────────
       const [imgPie, imgBarra] = await Promise.all([
         capturarGrafica(refPie, html2canvas),
@@ -646,6 +683,43 @@ export default function Reportes() {
               </ResponsiveContainer>
             </div>
           </div>
+
+          {reporteMes.pagadores?.length > 0 && (
+            <div className="pagadores-section">
+              <h3 className="chart-title">Departamentos que pagaron ({reporteMes.pagadores.length})</h3>
+              <div className="pag-tabla-wrap">
+                <table className="pag-tabla">
+                  <thead>
+                    <tr>
+                      <th>Depto</th>
+                      <th>Piso</th>
+                      <th>Residente(s)</th>
+                      <th>Método</th>
+                      <th>Fecha de pago</th>
+                      <th>Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reporteMes.pagadores.map((p, i) => (
+                      <tr key={i}>
+                        <td className="depto-num">{p.numeroDepartamento}</td>
+                        <td>Piso {p.piso}</td>
+                        <td>
+                          {p.residentesNombres}
+                          {p.pagadoPorNombre && p.pagadoPorNombre !== p.residentesNombres && (
+                            <span className="pag-pagador-distinto">Pagado por: {p.pagadoPorNombre}</span>
+                          )}
+                        </td>
+                        <td><span className="pag-metodo-chip">{metodoLabel(p.metodoPago)}</span></td>
+                        <td className="pag-fecha">{p.fechaPago ? new Date(p.fechaPago).toLocaleDateString('es-PE', { day:'2-digit', month:'short', year:'numeric' }) : '—'}</td>
+                        <td className="pag-monto">S/ {Number(p.montoPagado).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {reporteMes.deudores?.length > 0 && (
             <div className="deudores-section">

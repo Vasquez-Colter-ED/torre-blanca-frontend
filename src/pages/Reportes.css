@@ -138,10 +138,33 @@
 .deudor-nombre { color: #475569; }
 .deudor-monto { font-weight: 700; color: #DC2626; text-align: right; }
 
+/* Pagadores — departamentos que ya completaron su cuota del mes */
+.pagadores-section { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+.pag-tabla-wrap { margin-top: 10px; overflow-x: auto; }
+.pag-tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.pag-tabla thead th {
+  text-align: left; font-size: 0.7rem; font-weight: 700; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 9px 12px; background: #F8FAFC; white-space: nowrap;
+}
+.pag-tabla thead th:first-child { border-radius: 8px 0 0 8px; }
+.pag-tabla thead th:last-child  { border-radius: 0 8px 8px 0; text-align: right; }
+.pag-tabla tbody td { padding: 11px 12px; border-bottom: 1px solid #F1F5F9; color: #334155; }
+.pag-tabla tbody tr:last-child td { border-bottom: none; }
+.pag-monto { font-weight: 700; color: #059669; text-align: right; white-space: nowrap; }
+.pag-metodo-chip {
+  display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 700;
+  background: #F0FDF4; color: #166534; padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+}
+.pag-fecha { color: #64748B; white-space: nowrap; }
+.pag-pagador-distinto { font-size: 0.72rem; color: #7C3AED; font-weight: 600; display: block; }
+
 @media (max-width: 700px) {
   .charts-row { grid-template-columns: 1fr; }
   .tabla-header, .tabla-row { grid-template-columns: 60px 60px 1fr; }
   .tabla-header span:last-child, .tabla-row span:last-child { display: none; }
+  .pag-tabla thead th:nth-child(3), .pag-tabla td:nth-child(3),
+  .pag-tabla thead th:nth-child(4), .pag-tabla td:nth-child(4) { display: none; }
 }
 
 /* ── Auditoría de pagos ── */
