@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import { textoLibreEstricto, sinNegativos } from '../utils/validaciones'
+import { formatearBadge } from '../utils/formato'
 import PagoTarjeta from '../components/PagoTarjeta'
 import SubirFoto   from '../components/SubirFoto'
 import './Pagos.css'
@@ -1174,6 +1175,14 @@ function DirectivoPagos({ user }) {
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
+  // Carga el contador de pendientes apenas se abre el módulo (sin esperar
+  // a que se haga clic en la pestaña "Verificaciones") para que el badge
+  // rojo ya se vea desde la pestaña "Resumen del mes", que es la que abre
+  // por defecto
+  useEffect(() => {
+    api.get('/api/pagos/pendientes').then(r => setPendientes(r.data)).catch(() => {})
+  }, [])
+
   const cargarDatos = async () => {
     setLoading(true); setError('')
     try {
@@ -1262,7 +1271,7 @@ function DirectivoPagos({ user }) {
         </button>
         <button className={`drp-tab ${tab === 'verificaciones' ? 'drp-tab-active' : ''}`} onClick={() => setTab('verificaciones')}>
           <IcoClipboard /> Verificaciones
-          {pendientes.length > 0 && <span className="drp-tab-badge">{pendientes.length}</span>}
+          {formatearBadge(pendientes.length) && <span className="drp-tab-badge">{formatearBadge(pendientes.length)}</span>}
         </button>
         <button className={`drp-tab ${tab === 'cuenta' ? 'drp-tab-active' : ''}`} onClick={() => setTab('cuenta')}>
           <IcoUsers /> Mi cuenta

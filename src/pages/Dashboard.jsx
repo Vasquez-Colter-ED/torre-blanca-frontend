@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { formatearBadge } from '../utils/formato'
 import './Dashboard.css'
 
 const ROLES_DIRECTIVOS = ['PRESIDENTE','SECRETARIO','TESORERO']
@@ -178,7 +179,7 @@ function DirectivoDashboard({ user }) {
             <p className="dbd-kpi-val">{pendientes.length}</p>
             <p className="dbd-kpi-lbl">Pendientes verificación</p>
           </div>
-          {pendientes.length > 0 && <span className="dbd-kpi-alerta">{pendientes.length}</span>}
+          {formatearBadge(pendientes.length) && <span className="dbd-kpi-alerta">{formatearBadge(pendientes.length)}</span>}
         </div>
 
         <div className="dbd-kpi" onClick={() => navigate('/pagos')}>

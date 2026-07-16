@@ -516,7 +516,7 @@
 .dbd-ico-blue    { background: #EFF6FF; color: #2563EB; }
 .dbd-kpi-val { font-size: 1.15rem; font-weight: 800; color: #0F172A; margin: 0 0 2px 0; letter-spacing: -0.3px; }
 .dbd-kpi-lbl { font-size: 0.72rem; color: #64748B; font-weight: 500; margin: 0; }
-.dbd-kpi-alerta { position: absolute; top: -6px; right: -6px; background: #DC2626; color: #fff; font-size: 0.65rem; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+.dbd-kpi-alerta { position: absolute; top: -6px; right: -6px; background: #DC2626; color: #fff; font-size: 0.65rem; font-weight: 800; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
 /* Grid 2 columnas */
 .dbd-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }

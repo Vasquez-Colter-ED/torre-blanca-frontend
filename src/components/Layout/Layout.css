@@ -178,6 +178,17 @@
 
 .sidebar-link-label { line-height: 1; }
 
+/* Burbuja de notificación (pagos pendientes de verificar, etc.) */
+.nav-badge {
+  margin-left: auto;
+  background: #DC2626; color: #fff;
+  font-size: 0.65rem; font-weight: 800;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; line-height: 1;
+}
+
 /* ── Nav ────────────────────────────────────────────────────── */
 .main-wrapper {
   flex: 1;
@@ -212,8 +223,19 @@
   border-radius: 8px;
   transition: background var(--transition);
   flex-shrink: 0;
+  position: relative;
 }
 .hamburger:hover { background: #F1F5F9; }
+
+.nav-badge-hamburger {
+  position: absolute; top: 2px; right: 2px;
+  background: #DC2626; color: #fff;
+  font-size: 0.6rem; font-weight: 800;
+  min-width: 16px; height: 16px; padding: 0 3px;
+  border-radius: 20px; border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
 
 /* Título de la página actual — cambia dinámicamente */
 .topbar-page-title {

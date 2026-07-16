@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import api from '../../services/api'
+import { formatearBadge } from '../../utils/formato'
 import './Layout.css'
 
 const NAV_ITEMS = [
@@ -51,6 +53,7 @@ const PAGE_TITLES = {
 export default function Layout() {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [pendientesVerif, setPendientesVerif] = useState(0)
   const dropdownRef = useRef(null)
 
   const { user, logout, permisosExtra } = useAuth()
@@ -58,6 +61,16 @@ export default function Layout() {
   const location  = useLocation()
 
   const esDirectivo    = ROLES_DIRECTIVOS.includes(user?.rol)
+
+  // Contador de pagos pendientes de verificar — solo directivos. Se recarga
+  // cada vez que cambias de página, así el número se mantiene al día sin
+  // depender de que hayas entrado al módulo de Pagos para que se actualice.
+  useEffect(() => {
+    if (!esDirectivo) return
+    api.get('/api/pagos/pendientes')
+      .then(r => setPendientesVerif(r.data.length))
+      .catch(() => {})
+  }, [location.pathname, esDirectivo])
   const modulosBase    = esDirectivo ? MODULOS_DIRECTIVO : MODULOS_RESIDENTE
   const modulosExtra   = permisosExtra?.map(p => p.modulo) || []
   const modulosVisible = [...new Set([...modulosBase, ...modulosExtra])]
@@ -108,6 +121,9 @@ export default function Layout() {
             >
               <span className="sidebar-link-icon">{item.icon}</span>
               <span className="sidebar-link-label">{item.label}</span>
+              {item.path === '/pagos' && formatearBadge(pendientesVerif) && (
+                <span className="nav-badge">{formatearBadge(pendientesVerif)}</span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -124,6 +140,9 @@ export default function Layout() {
               <line x1="3" y1="12" x2="21" y2="12"/>
               <line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
+            {formatearBadge(pendientesVerif) && (
+              <span className="nav-badge nav-badge-hamburger">{formatearBadge(pendientesVerif)}</span>
+            )}
           </button>
 
           <div className="topbar-page-title">{paginaActual}</div>
