@@ -188,6 +188,15 @@
 .pgr-cuota-verif     { border-left-color: #2563EB; }
 .pgr-cuota-abierta   { box-shadow: 0 4px 20px rgba(37,99,235,0.14); border-color: #BFDBFE; }
 
+.pgr-rechazo-aviso {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #FEF2F2; border-bottom: 1px solid #FECACA;
+  padding: 12px 18px; color: #B91C1C;
+}
+.pgr-rechazo-aviso svg { flex-shrink: 0; margin-top: 2px; }
+.pgr-rechazo-t { font-size: 0.82rem; font-weight: 700; margin: 0 0 2px 0; color: #991B1B; }
+.pgr-rechazo-motivo { font-size: 0.78rem; margin: 0; color: #B91C1C; }
+
 .pgr-cuota-fila {
   display: flex; align-items: center;
   justify-content: space-between;

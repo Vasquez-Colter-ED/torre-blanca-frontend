@@ -285,8 +285,24 @@ function PanelPago({ cuota, onExito, onCancelar }) {
 function CuotaCard({ cuota, seleccionada, onToggle, pagandoEste, onPagar, onExito, futura }) {
   const estaVencida = cuota.estadoCuota === 'VENCIDO'
   const esParcial   = cuota.estadoCuota === 'PARCIAL'
+
+  // Si el último intento de pago de esta cuota fue rechazado (y no hay uno
+  // nuevo en camino — si lo hubiera, la cuota estaría en "en verificación"
+  // y no llegaría aquí), se lo avisamos al residente con el motivo.
+  const ultimoPago = [...(cuota.pagos || [])].sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago))[0]
+  const fueRechazado = ultimoPago?.estado === 'RECHAZADO'
+
   return (
     <div className={`pgr-cuota ${futura ? 'pgr-cuota-futura' : estaVencida ? 'pgr-cuota-vencida' : esParcial ? 'pgr-cuota-parcial' : 'pgr-cuota-pendiente'} ${pagandoEste ? 'pgr-cuota-abierta' : ''}`}>
+      {fueRechazado && (
+        <div className="pgr-rechazo-aviso">
+          <IcoAlert />
+          <div>
+            <p className="pgr-rechazo-t">Tu pago anterior de S/ {Number(ultimoPago.monto).toFixed(2)} fue rechazado</p>
+            <p className="pgr-rechazo-motivo">{ultimoPago.observaciones ? `Motivo: ${ultimoPago.observaciones}` : 'Vuelve a intentarlo con un comprobante válido.'}</p>
+          </div>
+        </div>
+      )}
       <div className="pgr-cuota-fila">
         <label className="pgr-checkbox-wrap" onClick={e => e.stopPropagation()}>
           <input type="checkbox" checked={seleccionada || false} onChange={onToggle} className="pgr-checkbox" />
