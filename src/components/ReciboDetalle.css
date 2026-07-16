@@ -18,10 +18,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  margin-bottom: 8px;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 210;
+  background: rgba(15,23,42,0.92);
+  backdrop-filter: blur(6px);
+  border-radius: 0 0 12px 12px;
 }
 
 .rd-toolbar-titulo {
@@ -53,7 +57,7 @@
 .rd-paper-wrap {
   width: 100%;
   max-width: 640px;
-  padding: 0 20px;
+  padding: 74px 20px 0; /* espacio arriba para no quedar tapado por la barra fija */
 }
 
 .rd-paper {

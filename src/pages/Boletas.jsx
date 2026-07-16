@@ -455,9 +455,9 @@ function DirectivoRecibos() {
                     <td className="rb-td-monto">S/ {Number(b.monto).toFixed(2)}</td>
                     <td className="rb-td-comprobante">
                       {b.voucherUrl ? (
-                        <button className="rb-btn-comprobante" onClick={e => { e.stopPropagation(); setSelected(activa ? null : b) }} title="Ver comprobante">
-                          <IcoImg />
-                        </button>
+                        <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}>
+                          <IcoImg /> Ver voucher
+                        </a>
                       ) : <span className="rb-td-muted">—</span>}
                     </td>
                     <td className="rb-td-accion">
