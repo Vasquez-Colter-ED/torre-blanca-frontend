@@ -1,8 +1,20 @@
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import { BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts'
-import * as XLSX from 'xlsx'
 import api from '../services/api'
 import './Reportes.css'
+
+// Colores de marca — mismos que usa la UI, para que el Excel exportado
+// se vea consistente con lo que el directivo ve en pantalla
+const BRAND = {
+  azul:       'FF2563EB',
+  azulOscuro: 'FF0F172A',
+  verde:      'FF059669',
+  rojo:       'FFDC2626',
+  naranja:    'FFD97706',
+  grisFondo:  'FFF8FAFC',
+  grisBorde:  'FFE2E8F0',
+  blanco:     'FFFFFFFF',
+}
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const PIE_COLORS = ['#2563EB','#059669','#D97706','#7C3AED','#DB2777','#0D9488','#DC2626','#475569','#EA580C']
@@ -88,6 +100,19 @@ export default function Reportes() {
   const [loading,     setLoading]     = useState(false)
   const [error,       setError]       = useState('')
   const [separarCaja, setSepararCaja] = useState(false)
+  const [exportando,  setExportando]  = useState(false)
+
+  // Períodos que SÍ tienen configuración de mantenimiento real (mes/año con
+  // data). Se usan para poblar los selects — así nunca se puede elegir un
+  // período vacío que el backend rechazaría con "No hay configuración para X/Y"
+  const [configuraciones, setConfiguraciones] = useState([])
+  const [configsListas,   setConfigsListas]   = useState(false)
+
+  // Refs a las tarjetas de gráficas, para capturarlas como imagen al exportar a Excel
+  const refPie      = useRef(null)
+  const refBarraMes = useRef(null)
+  const refBarraAnio = useRef(null)
+  const refAreaAnio  = useRef(null)
 
   // Auditoría general — filtros
   const [agBusqueda, setAgBusqueda] = useState('')
@@ -95,7 +120,41 @@ export default function Reportes() {
   const [agTabla,    setAgTabla]    = useState('')
   const [agExpandId, setAgExpandId] = useState(null)
 
-  useEffect(() => { cargarDatos() }, [tab, mes, anio])
+  useEffect(() => { cargarConfiguraciones() }, [])
+  // Espera a que las configuraciones ya se hayan resuelto (para no disparar
+  // un fetch con el mes/año por defecto si ese período no tiene data)
+  useEffect(() => { if (configsListas) cargarDatos() }, [tab, mes, anio, configsListas])
+
+  // Trae todos los mes/año con configuración real y, si el mes/año actual
+  // (por defecto) no tiene data, salta automáticamente al período
+  // configurado más reciente — para no arrancar con un reporte vacío/error
+  const cargarConfiguraciones = async () => {
+    try {
+      const r = await api.get('/api/pagos/configuraciones')
+      const lista = r.data || []
+      setConfiguraciones(lista)
+      const hoyConfigurado = lista.some(c => c.mes === ahora.getMonth() + 1 && c.anio === ahora.getFullYear())
+      if (!hoyConfigurado && lista.length > 0) {
+        const masReciente = [...lista].sort((a, b) => (b.anio - a.anio) || (b.mes - a.mes))[0]
+        setAnio(masReciente.anio)
+        setMes(masReciente.mes)
+      }
+    } catch { /* si falla, se deja el mes/año actual por defecto */ }
+    finally { setConfigsListas(true) }
+  }
+
+  // Años que sí tienen al menos un mes configurado, más recientes primero
+  const aniosConfigurados = [...new Set(configuraciones.map(c => c.anio))].sort((a, b) => b - a)
+  // Meses configurados para el año actualmente seleccionado (para el tab mensual/auditoría)
+  const mesesConfigurados = configuraciones.filter(c => c.anio === anio).map(c => c.mes).sort((a, b) => a - b)
+
+  // Si al cambiar de año el mes que teníamos seleccionado ya no existe en
+  // ese año (no tiene configuración), salta automáticamente al más reciente
+  // disponible de ese año — evita quedarse en un mes sin data
+  useEffect(() => {
+    if (!configsListas || mesesConfigurados.length === 0) return
+    if (!mesesConfigurados.includes(mes)) setMes(mesesConfigurados[mesesConfigurados.length - 1])
+  }, [anio, configsListas])
 
   const cargarDatos = async () => {
     setLoading(true); setError('')
@@ -125,56 +184,248 @@ export default function Reportes() {
     } finally { setLoading(false) }
   }
 
-  const exportarMensual = () => {
-    if (!reporteMes) return
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['REPORTE MENSUAL - TORRE BLANCA'],
-      ['Período: ' + MESES[mes-1] + ' ' + anio],
-      [],
-      ['Concepto', 'Monto (S/)'],
-      ['Total esperado',  reporteMes.totalEsperado],
-      ['Total recaudado', reporteMes.totalRecaudado],
-      ['  · Efectivo',    reporteMes.recaudadoEfectivo],
-      ['  · Digital',     reporteMes.recaudadoDigital],
-      ['Total gastos',    reporteMes.totalGastos],
-      ['Balance',         reporteMes.balance],
-      [],
-      ['Deptos pagados', reporteMes.deptosPagados + ' / ' + reporteMes.deptosTotal],
-    ]), 'Resumen')
+  // ── Estilos reutilizables para las hojas de Excel — mismo lenguaje
+  // visual (azules, tipografia, bordes) que ya usa la web ──────────
+  const estiloTituloHoja = (cell, texto) => {
+    cell.value = texto
+    cell.font = { name: 'Calibri', size: 15, bold: true, color: { argb: BRAND.blanco } }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BRAND.azulOscuro } }
+    cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }
+  }
+  const estiloSubtitulo = (cell, texto) => {
+    cell.value = texto
+    cell.font = { name: 'Calibri', size: 10.5, italic: true, color: { argb: 'FF64748B' } }
+    cell.alignment = { indent: 1 }
+  }
+  const estiloHeaderTabla = (row) => {
+    row.eachCell(cell => {
+      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: BRAND.blanco } }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BRAND.azul } }
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+    })
+    row.height = 20
+  }
+  const bordeFino = { style: 'thin', color: { argb: BRAND.grisBorde } }
+  const bordeCelda = { top: bordeFino, left: bordeFino, bottom: bordeFino, right: bordeFino }
+  const zebra = (row, i) => row.eachCell(c => { c.border = bordeCelda; if (i % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BRAND.grisFondo } } })
+  const FMT_MONEDA = '"S/" #,##0.00'
 
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['DEPARTAMENTOS DEUDORES'],
-      [],
-      ['Departamento','Piso','Monto pendiente','Residente(s)'],
-      ...(reporteMes.deudores||[]).map(d => [d.numeroDepartamento, d.piso, Number(d.montoPendiente).toFixed(2), d.residentesNombres])
-    ]), 'Deudores')
-
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['GASTOS POR CATEGORÍA'],
-      [],
-      ['Categoría','Total (S/)'],
-      ...Object.entries(reporteMes.gastosPorCategoria||{}).map(([k,v]) => [k, Number(v).toFixed(2)])
-    ]), 'Gastos')
-
-    XLSX.writeFile(wb, 'Reporte_TorreBlanca_' + MESES[mes-1] + '_' + anio + '.xlsx')
+  // Captura un nodo del DOM (una tarjeta de gráfica ya renderizada) como
+  // imagen PNG, para insertarla tal cual se ve en pantalla dentro del Excel
+  const capturarGrafica = async (ref, html2canvas) => {
+    if (!ref?.current) return null
+    try {
+      const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false })
+      return { base64: canvas.toDataURL('image/png'), width: canvas.width / 2, height: canvas.height / 2 }
+    } catch { return null } // si falla la captura, el Excel se genera igual sin esa imagen
   }
 
-  const exportarAnual = () => {
+  const exportarMensual = async () => {
+    if (!reporteMes) return
+    setExportando(true); setError('')
+    try {
+      const [ExcelJSMod, { default: html2canvas }] = await Promise.all([import('exceljs'), import('html2canvas')])
+      const ExcelJS = ExcelJSMod.default || ExcelJSMod
+      const wb = new ExcelJS.Workbook()
+      wb.creator = 'Torre Blanca'; wb.created = new Date()
+
+      // ── Hoja 1: Resumen ──────────────────────────────────────
+      const ws = wb.addWorksheet('Resumen', { views: [{ state: 'frozen', ySplit: 4 }] })
+      ws.columns = [{ width: 32 }, { width: 20 }]
+      ws.mergeCells('A1:B1')
+      estiloTituloHoja(ws.getCell('A1'), 'REPORTE MENSUAL — RESIDENCIAL TORRE BLANCA')
+      ws.getRow(1).height = 28
+      ws.mergeCells('A2:B2')
+      estiloSubtitulo(ws.getCell('A2'), `Período: ${MESES[mes-1]} ${anio}  ·  Generado el ${new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})}`)
+      ws.addRow([])
+
+      estiloHeaderTabla(ws.addRow(['Concepto', 'Monto (S/)']))
+      const filasResumen = [
+        ['Total esperado',   Number(reporteMes.totalEsperado), false],
+        ['Total recaudado',   Number(reporteMes.totalRecaudado), true],
+        ['   · Efectivo',     Number(reporteMes.recaudadoEfectivo || 0), false],
+        ['   · Digital',      Number(reporteMes.recaudadoDigital || 0), false],
+        ['Total gastos',      Number(reporteMes.totalGastos), true],
+        ['Balance',           Number(reporteMes.balance), true],
+      ]
+      filasResumen.forEach(([concepto, monto, negrita], i) => {
+        const row = ws.addRow([concepto, monto])
+        row.getCell(1).font = { name: 'Calibri', size: 11, bold: negrita }
+        row.getCell(2).numFmt = FMT_MONEDA
+        row.getCell(2).font = { name: 'Calibri', size: 11, bold: negrita }
+        zebra(row, i)
+        if (concepto === 'Balance') {
+          const positivo = Number(reporteMes.balance) >= 0
+          row.getCell(2).font = { ...row.getCell(2).font, color: { argb: positivo ? BRAND.verde : BRAND.rojo } }
+        }
+      })
+      ws.addRow([])
+      const rowDeptos = ws.addRow(['Departamentos pagados', `${reporteMes.deptosPagados} / ${reporteMes.deptosTotal}`])
+      rowDeptos.getCell(1).font = { bold: true }
+      rowDeptos.getCell(2).alignment = { horizontal: 'center' }
+      rowDeptos.eachCell(c => c.border = bordeCelda)
+
+      // ── Hoja 2: Deudores ─────────────────────────────────────
+      const wsD = wb.addWorksheet('Deudores', { views: [{ state: 'frozen', ySplit: 4 }] })
+      wsD.columns = [{ width: 14 }, { width: 10 }, { width: 34 }, { width: 18 }]
+      wsD.mergeCells('A1:D1')
+      estiloTituloHoja(wsD.getCell('A1'), 'DEPARTAMENTOS PENDIENTES DE PAGO')
+      wsD.getRow(1).height = 28
+      wsD.mergeCells('A2:D2')
+      estiloSubtitulo(wsD.getCell('A2'), `${MESES[mes-1]} ${anio}  ·  ${(reporteMes.deudores||[]).length} departamento(s) con saldo pendiente`)
+      wsD.addRow([])
+      estiloHeaderTabla(wsD.addRow(['Departamento', 'Piso', 'Residente(s)', 'Monto pendiente']))
+      ;(reporteMes.deudores || []).forEach((d, i) => {
+        const row = wsD.addRow([d.numeroDepartamento, d.piso, d.residentesNombres, Number(d.montoPendiente)])
+        row.getCell(4).numFmt = FMT_MONEDA
+        row.getCell(4).font = { color: { argb: BRAND.rojo }, bold: true }
+        row.getCell(1).alignment = { horizontal: 'center' }
+        row.getCell(2).alignment = { horizontal: 'center' }
+        zebra(row, i)
+      })
+      if ((reporteMes.deudores || []).length === 0) {
+        wsD.mergeCells('A5:D5')
+        wsD.getCell('A5').value = 'No hay departamentos con saldo pendiente este mes.'
+        wsD.getCell('A5').font = { italic: true, color: { argb: 'FF64748B' } }
+      }
+
+      // ── Hoja 3: Gastos por categoría ─────────────────────────
+      const wsG = wb.addWorksheet('Gastos', { views: [{ state: 'frozen', ySplit: 4 }] })
+      wsG.columns = [{ width: 28 }, { width: 18 }]
+      wsG.mergeCells('A1:B1')
+      estiloTituloHoja(wsG.getCell('A1'), 'GASTOS POR CATEGORÍA')
+      wsG.getRow(1).height = 28
+      wsG.mergeCells('A2:B2')
+      estiloSubtitulo(wsG.getCell('A2'), `${MESES[mes-1]} ${anio}  ·  Total: S/ ${Number(reporteMes.totalGastos).toFixed(2)}`)
+      wsG.addRow([])
+      estiloHeaderTabla(wsG.addRow(['Categoría', 'Total (S/)']))
+      Object.entries(reporteMes.gastosPorCategoria || {}).forEach(([k, v], i) => {
+        const row = wsG.addRow([k, Number(v)])
+        row.getCell(2).numFmt = FMT_MONEDA
+        zebra(row, i)
+      })
+
+      // ── Hoja 4: Gráficos — las mismas gráficas que se ven en pantalla,
+      // capturadas como imagen e insertadas en el Excel ────────────
+      const [imgPie, imgBarra] = await Promise.all([
+        capturarGrafica(refPie, html2canvas),
+        capturarGrafica(refBarraMes, html2canvas),
+      ])
+      if (imgPie || imgBarra) {
+        const wsGr = wb.addWorksheet('Gráficos')
+        wsGr.mergeCells('A1:H1')
+        estiloTituloHoja(wsGr.getCell('A1'), `GRÁFICOS — ${MESES[mes-1].toUpperCase()} ${anio}`)
+        wsGr.getRow(1).height = 28
+        let col = 0
+        if (imgPie) {
+          const id = wb.addImage({ base64: imgPie.base64, extension: 'png' })
+          wsGr.addImage(id, { tl: { col, row: 2 }, ext: { width: imgPie.width, height: imgPie.height } })
+          col += imgPie.width / 64 + 1
+        }
+        if (imgBarra) {
+          const id = wb.addImage({ base64: imgBarra.base64, extension: 'png' })
+          wsGr.addImage(id, { tl: { col, row: 2 }, ext: { width: imgBarra.width, height: imgBarra.height } })
+        }
+      }
+
+      const buffer = await wb.xlsx.writeBuffer()
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `Reporte_TorreBlanca_${MESES[mes-1]}_${anio}.xlsx`
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('No se pudo generar el Excel. Intenta nuevamente.')
+    } finally { setExportando(false) }
+  }
+
+  const exportarAnual = async () => {
     if (!reporteAnio) return
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['REPORTE ANUAL - TORRE BLANCA'],
-      ['Año: ' + anio],
-      [],
-      ['Total recaudado año', reporteAnio.totalRecaudadoAnio],
-      ['Total gastos año',    reporteAnio.totalGastosAnio],
-      ['Balance año',         reporteAnio.balanceAnio],
-      [],
-      ['Mes','Recaudado (S/)','Efectivo (S/)','Digital (S/)','Gastos (S/)','Balance (S/)','Deptos pagados','Total deptos'],
-      ...(reporteAnio.datosMensuales||[]).map(d => [d.mes, Number(d.recaudado).toFixed(2), Number(d.recaudadoEfectivo||0).toFixed(2), Number(d.recaudadoDigital||0).toFixed(2), Number(d.gastos).toFixed(2), Number(d.balance).toFixed(2), d.pagados, d.total])
-    ]), 'Resumen anual')
-    XLSX.writeFile(wb, 'Reporte_TorreBlanca_' + anio + '.xlsx')
+    setExportando(true); setError('')
+    try {
+      const [ExcelJSMod, { default: html2canvas }] = await Promise.all([import('exceljs'), import('html2canvas')])
+      const ExcelJS = ExcelJSMod.default || ExcelJSMod
+      const wb = new ExcelJS.Workbook()
+      wb.creator = 'Torre Blanca'; wb.created = new Date()
+
+      // ── Hoja 1: Resumen anual ────────────────────────────────
+      const ws = wb.addWorksheet('Resumen anual', { views: [{ state: 'frozen', ySplit: 4 }] })
+      const separar = separarCaja
+      ws.columns = separar
+        ? [{ width: 12 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 12 }]
+        : [{ width: 12 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 12 }]
+      const totalCols = separar ? 8 : 6
+      ws.mergeCells(1, 1, 1, totalCols)
+      estiloTituloHoja(ws.getCell(1, 1), `REPORTE ANUAL — RESIDENCIAL TORRE BLANCA`)
+      ws.getRow(1).height = 28
+      ws.mergeCells(2, 1, 2, totalCols)
+      estiloSubtitulo(ws.getCell(2, 1), `Año ${anio}  ·  Generado el ${new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})}`)
+      ws.addRow([])
+
+      const totales = [
+        ['Total recaudado', Number(reporteAnio.totalRecaudadoAnio)],
+        ['Total gastos',     Number(reporteAnio.totalGastosAnio)],
+        ['Balance del año',  Number(reporteAnio.balanceAnio)],
+      ]
+      totales.forEach(([concepto, monto], i) => {
+        const row = ws.addRow([concepto, monto])
+        row.getCell(1).font = { bold: true }
+        row.getCell(2).numFmt = FMT_MONEDA
+        row.getCell(2).font = { bold: true, color: concepto.startsWith('Balance') ? { argb: monto >= 0 ? BRAND.verde : BRAND.rojo } : undefined }
+        zebra(row, i)
+      })
+      ws.addRow([])
+
+      const encabezados = separar
+        ? ['Mes','Efectivo (S/)','Digital (S/)','Gastos (S/)','Balance (S/)','Deptos pagados','Total deptos']
+        : ['Mes','Recaudado (S/)','Gastos (S/)','Balance (S/)','Deptos pagados','Total deptos']
+      estiloHeaderTabla(ws.addRow(encabezados))
+      ;(reporteAnio.datosMensuales || []).forEach((d, i) => {
+        const valores = separar
+          ? [d.mes, Number(d.recaudadoEfectivo||0), Number(d.recaudadoDigital||0), Number(d.gastos), Number(d.balance), d.pagados, d.total]
+          : [d.mes, Number(d.recaudado), Number(d.gastos), Number(d.balance), d.pagados, d.total]
+        const row = ws.addRow(valores)
+        const colBalance = separar ? 5 : 4
+        row.eachCell((cell, colNum) => {
+          if (colNum > 1 && colNum < (separar ? 6 : 5)) cell.numFmt = FMT_MONEDA
+          if (colNum === colBalance) cell.font = { color: { argb: Number(d.balance) >= 0 ? BRAND.verde : BRAND.rojo }, bold: true }
+        })
+        zebra(row, i)
+      })
+
+      // ── Hoja 2: Gráficos ─────────────────────────────────────
+      const [imgBarra, imgArea] = await Promise.all([
+        capturarGrafica(refBarraAnio, html2canvas),
+        capturarGrafica(refAreaAnio, html2canvas),
+      ])
+      if (imgBarra || imgArea) {
+        const wsGr = wb.addWorksheet('Gráficos')
+        wsGr.mergeCells('A1:H1')
+        estiloTituloHoja(wsGr.getCell('A1'), `GRÁFICOS — AÑO ${anio}`)
+        wsGr.getRow(1).height = 28
+        let filaCursor = 2
+        if (imgBarra) {
+          const id = wb.addImage({ base64: imgBarra.base64, extension: 'png' })
+          wsGr.addImage(id, { tl: { col: 0, row: filaCursor }, ext: { width: imgBarra.width, height: imgBarra.height } })
+          filaCursor += Math.ceil(imgBarra.height / 20) + 2
+        }
+        if (imgArea) {
+          const id = wb.addImage({ base64: imgArea.base64, extension: 'png' })
+          wsGr.addImage(id, { tl: { col: 0, row: filaCursor }, ext: { width: imgArea.width, height: imgArea.height } })
+        }
+      }
+
+      const buffer = await wb.xlsx.writeBuffer()
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `Reporte_TorreBlanca_${anio}.xlsx`
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('No se pudo generar el Excel. Intenta nuevamente.')
+    } finally { setExportando(false) }
   }
 
   const pieData = reporteMes ? Object.entries(reporteMes.gastosPorCategoria||{}).map(([name,value]) => ({ name, value: Number(value) })) : []
@@ -197,8 +448,8 @@ export default function Reportes() {
           <p className="rep-page-sub">Análisis financiero y actividad administrativa de Torre Blanca</p>
         </div>
         {(tab === 'mensual' || tab === 'anual') && (
-          <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading}>
-            <IcoDownload /> Exportar Excel
+          <button className="btn btn-export" onClick={tab==='mensual' ? exportarMensual : exportarAnual} disabled={loading || exportando}>
+            <IcoDownload /> {exportando ? 'Generando Excel...' : 'Exportar Excel'}
           </button>
         )}
       </div>
@@ -214,17 +465,17 @@ export default function Reportes() {
         {(tab === 'mensual' || tab === 'auditoria') && (
           <div className="mes-selector">
             <select className="mes-select" value={mes} onChange={e => setMes(Number(e.target.value))}>
-              {MESES.map((m,i) => <option key={i} value={i+1}>{m}</option>)}
+              {(mesesConfigurados.length > 0 ? mesesConfigurados : [mes]).map(m => <option key={m} value={m}>{MESES[m-1]}</option>)}
             </select>
             <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
-              {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
+              {(aniosConfigurados.length > 0 ? aniosConfigurados : [anio]).map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
         )}
         {tab === 'anual' && (
           <div className="mes-selector">
             <select className="mes-select" value={anio} onChange={e => setAnio(Number(e.target.value))}>
-              {[2024,2025,2026].map(a => <option key={a} value={a}>{a}</option>)}
+              {(aniosConfigurados.length > 0 ? aniosConfigurados : [anio]).map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
         )}
@@ -309,7 +560,7 @@ export default function Reportes() {
 
           <div className="charts-row">
             {pieData.length > 0 && (
-              <div className="chart-card">
+              <div className="chart-card" ref={refPie}>
                 <h3 className="chart-title">Gastos por categoría</h3>
                 <div className="pie-wrap">
                 <ResponsiveContainer width="100%" height={280}>
@@ -341,7 +592,7 @@ export default function Reportes() {
                 </div>
               </div>
             )}
-            <div className="chart-card">
+            <div className="chart-card" ref={refBarraMes}>
               <h3 className="chart-title">Resumen financiero</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart
@@ -441,7 +692,7 @@ export default function Reportes() {
             </div>
           </div>
 
-          <div className="chart-card chart-full">
+          <div className="chart-card chart-full" ref={refBarraAnio}>
             <h3 className="chart-title">{separarCaja ? 'Efectivo vs Digital vs Gastos por mes' : 'Recaudado vs Gastos por mes'} — {anio}</h3>
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}} barGap={6}>
@@ -472,7 +723,7 @@ export default function Reportes() {
             </ResponsiveContainer>
           </div>
 
-          <div className="chart-card chart-full">
+          <div className="chart-card chart-full" ref={refAreaAnio}>
             <h3 className="chart-title">Tendencia de balance — {anio}</h3>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={reporteAnio.datosMensuales} margin={{top:10,right:10,left:0,bottom:0}}>
