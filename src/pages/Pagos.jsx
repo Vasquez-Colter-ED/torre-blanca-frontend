@@ -870,7 +870,7 @@ function FilaCuota({ cuota, abierto, onToggle, residentes, cargandoResidentes, o
         <div className="drp-col-residentes">
           {cuota.residentesNombres?.length > 0
             ? cuota.residentesNombres.slice(0, 2).map((n, i) => <p key={i} className="drp-residente-nombre">{n}</p>)
-            : <p className="drp-residente-vacio">Sin residentes</p>}
+            : <p className="drp-residente-vacio">Nadie vivía aquí en este período</p>}
         </div>
         <div className="drp-col-monto">
           {esParcial
@@ -1330,12 +1330,13 @@ function DirectivoPagos({ user }) {
     if (expandedId === cuota.cuotaId) { setExpandedId(null); return }
     setExpandedId(cuota.cuotaId)
     const pagoPend = (cuota.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
-    if (!pagoPend && cuota.estadoCuota !== 'PAGADO' && !residentesPorDepto[cuota.departamentoId]) {
+    const claveCache = `${cuota.departamentoId}-${cuota.mes}-${cuota.anio}`
+    if (!pagoPend && cuota.estadoCuota !== 'PAGADO' && !residentesPorDepto[claveCache]) {
       setCargandoResidentes(true)
       try {
-        const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`)
-        setResidentesPorDepto(prev => ({ ...prev, [cuota.departamentoId]: r.data }))
-      } catch { setResidentesPorDepto(prev => ({ ...prev, [cuota.departamentoId]: [] })) }
+        const r = await api.get(`/api/pagos/departamento/${cuota.departamentoId}/residentes`, { params: { mes: cuota.mes, anio: cuota.anio } })
+        setResidentesPorDepto(prev => ({ ...prev, [claveCache]: r.data }))
+      } catch { setResidentesPorDepto(prev => ({ ...prev, [claveCache]: [] })) }
       finally { setCargandoResidentes(false) }
     }
   }
@@ -1484,7 +1485,7 @@ function DirectivoPagos({ user }) {
                     cuota={c}
                     abierto={expandedId === c.cuotaId}
                     onToggle={() => toggleFila(c)}
-                    residentes={residentesPorDepto[c.departamentoId] || []}
+                    residentes={residentesPorDepto[`${c.departamentoId}-${c.mes}-${c.anio}`] || []}
                     cargandoResidentes={cargandoResidentes && expandedId === c.cuotaId}
                     onExito={handleExitoFila}
                   />
