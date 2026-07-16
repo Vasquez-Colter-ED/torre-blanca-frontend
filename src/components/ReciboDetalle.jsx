@@ -34,8 +34,8 @@ export default function ReciboDetalle({ boleta, anio, onCerrar, puedeVerComproba
   }
 
   const numeroRecibo = boleta.numeroBoleta || String(boleta.id || 0).padStart(6, '0')
-  const fechaPago    = boleta.fechaPago ? new Date(boleta.fechaPago) : new Date()
-  const fechaStr     = fechaPago.toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' })
+  const fechaEmision  = boleta.fechaEmision ? new Date(boleta.fechaEmision) : new Date()
+  const fechaStr      = fechaEmision.toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' })
 
   return (
     <div className="rd-overlay">
@@ -136,6 +136,12 @@ export default function ReciboDetalle({ boleta, anio, onCerrar, puedeVerComproba
               <div className="rd-pago-item">
                 <span className="rd-pago-lbl">N° de operación</span>
                 <span className="rd-pago-val rd-codigo">{boleta.numeroOperacion}</span>
+              </div>
+            )}
+            {boleta.emitidaPorNombre && (
+              <div className="rd-pago-item">
+                <span className="rd-pago-lbl">Verificado por</span>
+                <span className="rd-pago-val">{boleta.emitidaPorNombre}</span>
               </div>
             )}
           </div>

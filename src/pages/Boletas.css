@@ -345,6 +345,7 @@
   white-space: nowrap;
 }
 .rb-th-monto { text-align: right; }
+.rb-th-comprobante { text-align: center; }
 .rb-th-accion { text-align: left; white-space: nowrap; }
 
 .rb-dir-tabla tbody tr {
@@ -371,6 +372,15 @@
   transition: all 0.15s ease; white-space: nowrap;
 }
 .rb-btn-ver-recibo-fila:hover { background: #0F172A; border-color: #0F172A; color: #fff; }
+
+.rb-td-comprobante { text-align: center; }
+.rb-btn-comprobante {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: #F5F3FF; border: 1px solid #DDD6FE; color: #7C3AED;
+  cursor: pointer; transition: all 0.15s ease;
+}
+.rb-btn-comprobante:hover { background: #7C3AED; border-color: #7C3AED; color: #fff; }
 
 .rb-metodo-chip {
   display: inline-flex; align-items: center; gap: 6px;

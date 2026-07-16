@@ -433,6 +433,7 @@ function DirectivoRecibos() {
                 <th>Residente</th>
                 <th>Método</th>
                 <th className="rb-th-monto">Monto</th>
+                <th className="rb-th-comprobante">Comprobante</th>
                 <th className="rb-th-accion">Recibo</th>
               </tr>
             </thead>
@@ -452,15 +453,17 @@ function DirectivoRecibos() {
                       </span>
                     </td>
                     <td className="rb-td-monto">S/ {Number(b.monto).toFixed(2)}</td>
+                    <td className="rb-td-comprobante">
+                      {b.voucherUrl ? (
+                        <button className="rb-btn-comprobante" onClick={e => { e.stopPropagation(); setSelected(activa ? null : b) }} title="Ver comprobante">
+                          <IcoImg />
+                        </button>
+                      ) : <span className="rb-td-muted">—</span>}
+                    </td>
                     <td className="rb-td-accion">
                       <button className="rb-btn-ver-recibo-fila" onClick={e => { e.stopPropagation(); setReciboOpen(b) }}>
                         <IcoDoc /> Ver recibo
                       </button>
-                      {b.voucherUrl && (
-                        <a href={b.voucherUrl} target="_blank" rel="noreferrer" className="rb-dir-voucher-link" onClick={e => e.stopPropagation()}>
-                          Voucher
-                        </a>
-                      )}
                     </td>
                   </tr>
                 )
