@@ -500,6 +500,12 @@
 .config-costo   { font-size: 0.85rem; color: #64748B; }
 .config-obs     { font-size: 0.82rem; color: #64748B; font-style: italic; }
 .config-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.config-bloqueada {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: 700; color: #94A3B8;
+  background: #F1F5F9; padding: 7px 12px; border-radius: 8px;
+  white-space: nowrap; cursor: default;
+}
 .pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 0.78rem; font-weight: 700; }
 .pill-success { background: #EAF3DE; color: #3B6D11; } .pill-danger { background: #FCEBEB; color: #A32D2D; }
 .pill-warning { background: #FAEEDA; color: #854F0B; } .pill-neutral { background: #F1EFE8; color: #5F5E5A; }

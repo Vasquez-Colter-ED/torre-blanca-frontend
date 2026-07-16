@@ -37,6 +37,7 @@ const IcoTarget   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const IcoWallet   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
 const IcoSplit    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M12 12v9"/><path d="M8 21h8"/></svg>
 const IcoSearch   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+const IcoLock     = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 
 function StatusBadge({ estado }) {
   const map = {
@@ -913,18 +914,33 @@ function FilaCuota({ cuota, abierto, onToggle, residentes, cargandoResidentes, o
 // ══════════════════════════════════════════════════════════════════
 //  PANEL INLINE — Configurar mes nuevo
 // ══════════════════════════════════════════════════════════════════
-function PanelConfigurarMes({ onExito, onCancelar }) {
+function PanelConfigurarMes({ configs, onExito, onCancelar }) {
   const ahora = new Date()
-  const [mes,           setMes]           = useState(ahora.getMonth() + 1)
-  const [anio,          setAnio]          = useState(ahora.getFullYear())
+  const anioActual = ahora.getFullYear()
+  const aniosDisp = Array.from({ length: 7 }, (_, i) => anioActual - 3 + i) // 3 atrás, actual, 3 adelante
+
+  const [anio, setAnio] = useState(anioActual)
+
+  // Solo se pueden configurar meses que aún no tienen configuración en el año elegido
+  const mesesDisponiblesIniciales = MESES.map((_, i) => i + 1).filter(n => !configs.some(c => c.anio === anioActual && c.mes === n))
+
+  const [mes, setMes] = useState(mesesDisponiblesIniciales.includes(ahora.getMonth() + 1) ? ahora.getMonth() + 1 : (mesesDisponiblesIniciales[0] || ''))
   const [tipoCalculo,   setTipoCalculo]   = useState('PORCENTAJE')
   const [costoPorM2,    setCostoPorM2]    = useState('')
   const [totalMensual,  setTotalMensual]  = useState('')
   const [montoFijo,     setMontoFijo]     = useState('')
-  const [gastosEst,     setGastosEst]     = useState('')
-  const [obs,           setObs]           = useState('')
   const [guardando,     setGuardando]     = useState(false)
   const [error,         setError]         = useState('')
+
+  const mesesDisponibles = MESES
+    .map((nombre, i) => ({ nombre, num: i + 1 }))
+    .filter(m => !configs.some(c => c.anio === anio && c.mes === m.num))
+
+  // Si cambias de año y el mes elegido ya no está disponible, se ajusta solo
+  useEffect(() => {
+    const disponibles = MESES.map((_, i) => i + 1).filter(n => !configs.some(c => c.anio === anio && c.mes === n))
+    if (!disponibles.includes(mes)) setMes(disponibles[0] || '')
+  }, [anio])
 
   // Solo dígitos y un punto decimal — nunca signos ni letras
   const soloMonto = (v) => {
@@ -936,6 +952,7 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
 
   const guardar = async () => {
     setError('')
+    if (!mes) { setError('No hay meses disponibles para configurar en ese año'); return }
     if (tipoCalculo === 'PORCENTAJE' && (!totalMensual || Number(totalMensual) <= 0)) {
       setError('Ingresa el monto total mensual a recaudar'); return
     }
@@ -952,8 +969,6 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
         costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
         totalMensual: totalMensual ? Number(totalMensual) : null,
         montoFijo: montoFijo ? Number(montoFijo) : null,
-        totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
-        observaciones: obs || null,
       })
       onExito(r.data.mensaje)
     } catch (e) { setError(e.response?.data || 'Error al configurar el mes') }
@@ -966,16 +981,20 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
 
       <div className="drp-form-grid">
         <div className="drp-field">
-          <label className="drp-label">Mes</label>
-          <select className="drp-input" value={mes} onChange={e => setMes(e.target.value)}>
-            {MESES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+          <label className="drp-label">Año</label>
+          <select className="drp-input" value={anio} onChange={e => setAnio(Number(e.target.value))}>
+            {aniosDisp.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
         <div className="drp-field">
-          <label className="drp-label">Año</label>
-          <select className="drp-input" value={anio} onChange={e => setAnio(e.target.value)}>
-            {[2024, 2025, 2026].map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
+          <label className="drp-label">Mes</label>
+          {mesesDisponibles.length === 0 ? (
+            <select className="drp-input" disabled><option>Todos los meses de {anio} ya están configurados</option></select>
+          ) : (
+            <select className="drp-input" value={mes} onChange={e => setMes(Number(e.target.value))}>
+              {mesesDisponibles.map(m => <option key={m.num} value={m.num}>{m.nombre}</option>)}
+            </select>
+          )}
         </div>
       </div>
 
@@ -1026,20 +1045,12 @@ function PanelConfigurarMes({ onExito, onCancelar }) {
             <input className="drp-input" inputMode="decimal" value={montoFijo} onChange={e => setMontoFijo(soloMonto(e.target.value))} placeholder="Ej: 150.00" />
           </div>
         )}
-        <div className="drp-field drp-field-full">
-          <label className="drp-label">Total de gastos estimados (opcional)</label>
-          <input className="drp-input" inputMode="decimal" value={gastosEst} onChange={e => setGastosEst(soloMonto(e.target.value))} />
-        </div>
-        <div className="drp-field drp-field-full">
-          <label className="drp-label">Observaciones (opcional)</label>
-          <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} placeholder="Ej: Incluye aumento de personal de mantenimiento" />
-        </div>
       </div>
 
       {error && <p className="pm-error">{error}</p>}
       <div className="drp-form-footer">
         <button className="pm-btn-cancelar" onClick={onCancelar} disabled={guardando}>Cancelar</button>
-        <button className="pm-btn-enviar" onClick={guardar} disabled={guardando}>
+        <button className="pm-btn-enviar" onClick={guardar} disabled={guardando || mesesDisponibles.length === 0}>
           {guardando ? 'Generando...' : 'Generar cuotas del mes'}
         </button>
       </div>
@@ -1055,8 +1066,6 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
   const [costoPorM2,   setCostoPorM2]   = useState(config.costoPorM2 || '')
   const [totalMensual, setTotalMensual] = useState(config.totalMensual || '')
   const [montoFijo,    setMontoFijo]    = useState(config.montoFijo || '')
-  const [gastosEst,    setGastosEst]    = useState(config.totalGastosEstimados || '')
-  const [obs,          setObs]          = useState(config.observaciones || '')
   const [guardando,    setGuardando]    = useState(false)
   const [error,        setError]        = useState('')
 
@@ -1085,8 +1094,6 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
         costoPorM2: costoPorM2 ? Number(costoPorM2) : null,
         totalMensual: totalMensual ? Number(totalMensual) : null,
         montoFijo: montoFijo ? Number(montoFijo) : null,
-        totalGastosEstimados: gastosEst ? Number(gastosEst) : null,
-        observaciones: obs || null,
       })
       onExito()
     } catch (e) { setError(e.response?.data || 'Error al actualizar') }
@@ -1144,14 +1151,6 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
             <input className="drp-input" inputMode="decimal" value={montoFijo} onChange={e => setMontoFijo(soloMonto(e.target.value))} />
           </div>
         )}
-        <div className="drp-field drp-field-full">
-          <label className="drp-label">Total de gastos estimados</label>
-          <input className="drp-input" inputMode="decimal" value={gastosEst} onChange={e => setGastosEst(soloMonto(e.target.value))} />
-        </div>
-        <div className="drp-field drp-field-full">
-          <label className="drp-label">Observaciones</label>
-          <input className="drp-input" value={obs} onChange={e => setObs(textoLibreEstricto(e.target.value))} />
-        </div>
       </div>
 
       <p className="drp-edit-aviso">Al guardar se recalcularán automáticamente los montos de todas las cuotas de este mes según la fórmula seleccionada.</p>
@@ -1396,7 +1395,7 @@ function DirectivoPagos({ user }) {
           <IcoUsers /> Mi cuenta
         </button>
         <button className={`drp-tab ${tab === 'configuracion' ? 'drp-tab-active' : ''}`} onClick={() => setTab('configuracion')}>
-          <IcoSliders /> Configuración
+          <IcoSliders /> Configuración mensual
         </button>
       </div>
 
@@ -1537,6 +1536,7 @@ function DirectivoPagos({ user }) {
 
           {crearConfigOpen && (
             <PanelConfigurarMes
+              configs={configs}
               onExito={(m) => { setCrearConfigOpen(false); setMsg(m); cargarDatos(); setTimeout(() => setMsg(''), 4000) }}
               onCancelar={() => setCrearConfigOpen(false)}
             />
@@ -1563,9 +1563,15 @@ function DirectivoPagos({ user }) {
                     {c.observaciones && <p className="config-obs">{c.observaciones}</p>}
                   </div>
                   <div className="config-actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => { setEditConfigId(editConfigId === c.id ? null : c.id); setCrearConfigOpen(false) }}>
-                      <IcoEdit /> Editar
-                    </button>
+                    {c.tienePagos ? (
+                      <span className="config-bloqueada" title={`${c.deptosConPago} departamento${c.deptosConPago > 1 ? 's' : ''} ya registró un pago`}>
+                        <IcoLock /> Bloqueada — ya hay pagos
+                      </span>
+                    ) : (
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditConfigId(editConfigId === c.id ? null : c.id); setCrearConfigOpen(false) }}>
+                        <IcoEdit /> Editar
+                      </button>
+                    )}
                   </div>
                 </div>
 
