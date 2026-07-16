@@ -254,6 +254,8 @@
   transition: all 0.18s ease; font-family: inherit;
 }
 .pp-metodo:hover { border-color: #2563EB; background: #EFF6FF; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.12); }
+.pp-metodo-active { border-color: #2563EB; background: #EFF6FF; box-shadow: 0 2px 8px rgba(37,99,235,0.12); }
+.pp-metodos-2 { grid-template-columns: repeat(2, 1fr); margin-bottom: 0; }
 
 .pp-metodo-icon {
   width: 40px; height: 40px; border-radius: 10px;
@@ -443,11 +445,27 @@
 .mes-selector { display: flex; gap: 10px; margin-bottom: 18px; }
 .mes-select { padding: 8px 14px; border-radius: 8px; border: 1.5px solid rgba(27,79,138,0.18); background: #fff; font-family: inherit; font-size: 0.95rem; color: #0F172A; }
 .resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.resumen-card { padding: 18px 20px; border-radius: 12px; }
+.resumen-card {
+  padding: 16px 18px; border-radius: 14px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  cursor: default;
+}
+.resumen-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,23,42,0.1); }
+.rc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rc-icon {
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rc-icon-blue      { background: rgba(37,99,235,0.14); color: #2563EB; }
+.rc-icon-green     { background: rgba(5,150,105,0.14); color: #059669; }
+.rc-icon-red       { background: rgba(220,38,38,0.14); color: #DC2626; }
+.rc-icon-neutral   { background: rgba(71,85,105,0.14); color: #475569; }
+.rc-icon-amber     { background: rgba(217,119,6,0.14); color: #D97706; }
+.rc-icon-blue-soft { background: rgba(37,99,235,0.16); color: #1D4ED8; }
 .rc-blue    { background: #E6F1FB; } .rc-green { background: #EAF3DE; }
 .rc-red     { background: #FCEBEB; } .rc-neutral { background: #F1EFE8; }
-.rc-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
-.rc-label { font-size: 0.82rem; color: #64748B; font-weight: 600; margin-top: 2px; }
+.rc-value { font-size: 1.4rem; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; margin: 0; }
+.rc-label { font-size: 0.78rem; color: #64748B; font-weight: 700; margin: 0; }
 .cuotas-lista { display: flex; flex-direction: column; gap: 8px; }
 .cuota-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; flex-wrap: wrap; }
 .cuota-depto { min-width: 60px; }
@@ -545,6 +563,9 @@
   font-size: 0.74rem; color: #B45309; margin: 3px 0 0 0;
 }
 .pgr-cuota-saldo strong { color: #92400E; }
+.pgr-cuota-otro {
+  font-size: 0.72rem; color: #7C3AED; font-weight: 600; margin: 3px 0 0 0;
+}
 
 /* ── Campo de monto editable en pago manual ── */
 .pm-monto-wrap {
@@ -640,6 +661,23 @@
 
 /* ── Tabla de cuotas ── */
 .drp-tabla-wrap { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; margin-top: 18px; }
+
+.drp-buscar-wrap {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border-bottom: 1px solid #E2E8F0;
+  color: #94A3B8;
+}
+.drp-buscar-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 0.85rem; color: #0F172A;
+}
+.drp-buscar-clear {
+  background: #F1F5F9; border: none; color: #64748B; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease;
+}
+.drp-buscar-clear:hover { background: #E2E8F0; }
 
 .drp-tabla-head {
   display: grid; grid-template-columns: 1.6fr 1.8fr 1.2fr 1fr 36px;

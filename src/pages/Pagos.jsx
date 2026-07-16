@@ -31,6 +31,10 @@ const IcoChev     = ({ open }) => <svg width="14" height="14" viewBox="0 0 24 24
 const IcoSliders  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
 const IcoClipboard= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
 const IcoPlus     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+const IcoTarget   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+const IcoWallet   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+const IcoSplit    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M12 12v9"/><path d="M8 21h8"/></svg>
+const IcoSearch   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 
 function StatusBadge({ estado }) {
   const map = {
@@ -482,17 +486,19 @@ function ResidentePagos({ user }) {
                 <p className="pgr-sec-lbl pgr-sec-lbl-info" style={{marginTop: deudas.length > 0 ? 20 : 8}}>En verificación</p>
                 {enVerif.map(c => {
                   const pagoPend = (c.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+                  const esMiPago = pagoPend?.pagadorNombre === `${user?.nombre} ${user?.apellido}`
                   return (
                     <div key={c.cuotaId} className="pgr-cuota pgr-cuota-verif">
                       <div className="pgr-cuota-fila">
                         <div className="pgr-cuota-info">
                           <p className="pgr-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
                           <p className="pgr-cuota-depto">Depto {c.numeroDepartamento} · Piso {c.piso}</p>
+                          {!esMiPago && pagoPend && <p className="pgr-cuota-otro">Pagado por {pagoPend.pagadorNombre}</p>}
                         </div>
                         <div className="pgr-cuota-der">
                           <span className="pgr-cuota-monto">S/ {Number(pagoPend?.monto ?? c.montoCalculado).toFixed(2)}</span>
                           <StatusBadge estado="PENDIENTE_VERIFICACION" />
-                          {pagoPend?.voucherUrl && (
+                          {esMiPago && pagoPend?.voucherUrl && (
                             <a href={pagoPend.voucherUrl} target="_blank" rel="noreferrer" className="pgr-btn-voucher">
                               <IcoImg /> Voucher
                             </a>
@@ -502,7 +508,11 @@ function ResidentePagos({ user }) {
                     </div>
                   )
                 })}
-                <p className="pgr-verif-hint">El directivo aprobará tu pago en breve y recibirás tu recibo automáticamente.</p>
+                <p className="pgr-verif-hint">
+                  {enVerif.every(c => (c.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')?.pagadorNombre === `${user?.nombre} ${user?.apellido}`)
+                    ? 'El directivo aprobará tu pago en breve y recibirás tu recibo automáticamente.'
+                    : 'Estos pagos están pendientes de aprobación del directivo. Solo quien realizó cada pago puede ver su comprobante.'}
+                </p>
               </>
             )}
           </div>
@@ -543,16 +553,23 @@ function ResidentePagos({ user }) {
                     <p className="pgr-sec-lbl pgr-sec-lbl-info" style={{marginTop: todasFuturas.length > 0 ? 20 : 8}}>En verificación</p>
                     {enVerifFuturas.map(c => {
                       const pagoPend = (c.pagos || []).find(p => p.estado === 'PENDIENTE_VERIFICACION')
+                      const esMiPago = pagoPend?.pagadorNombre === `${user?.nombre} ${user?.apellido}`
                       return (
                         <div key={c.cuotaId} className="pgr-cuota pgr-cuota-verif">
                           <div className="pgr-cuota-fila">
                             <div className="pgr-cuota-info">
                               <p className="pgr-cuota-mes">{etiquetaMes(c.mes, c.anio)}</p>
                               <p className="pgr-cuota-depto">Depto {c.numeroDepartamento} · Piso {c.piso}</p>
+                              {!esMiPago && pagoPend && <p className="pgr-cuota-otro">Pagado por {pagoPend.pagadorNombre}</p>}
                             </div>
                             <div className="pgr-cuota-der">
                               <span className="pgr-cuota-monto">S/ {Number(pagoPend?.monto ?? c.montoCalculado).toFixed(2)}</span>
                               <StatusBadge estado="PENDIENTE_VERIFICACION" />
+                              {esMiPago && pagoPend?.voucherUrl && (
+                                <a href={pagoPend.voucherUrl} target="_blank" rel="noreferrer" className="pgr-btn-voucher">
+                                  <IcoImg /> Voucher
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -692,6 +709,7 @@ function PanelRegistrarPagoDirectivo({ cuota, residentes, onExito, onCancelar })
     if (!pagadorId) { setError('Selecciona quién realizó el pago'); return }
     if (!montoNum || montoNum <= 0) { setError('Ingresa un monto válido mayor a cero'); return }
     if (montoNum > saldoPendiente) { setError(`El monto no puede superar el saldo pendiente de S/ ${saldoPendiente.toFixed(2)}`); return }
+    if (metodo === 'TRANSFERENCIA' && !voucher) { setError('La foto del comprobante es obligatoria para transferencia'); return }
     setGuardando(true); setError('')
     try {
       await api.post('/api/pagos/registrar', {
@@ -725,10 +743,17 @@ function PanelRegistrarPagoDirectivo({ cuota, residentes, onExito, onCancelar })
         </div>
         <div className="drp-field drp-field-full">
           <label className="drp-label">Método de pago</label>
-          <div className="metodos-grid">
-            {METODOS_PAGO_DIRECTIVO.map(m => (
-              <button key={m} type="button" className={`metodo-btn ${metodo === m ? 'metodo-active' : ''}`} onClick={() => setMetodo(m)}>{m}</button>
-            ))}
+          <div className="pp-metodos pp-metodos-2">
+            <button type="button" className={`pp-metodo ${metodo === 'TRANSFERENCIA' ? 'pp-metodo-active' : ''}`} onClick={() => setMetodo('TRANSFERENCIA')}>
+              <div className="pp-metodo-icon pp-icon-green"><IcoBank /></div>
+              <span className="pp-metodo-nombre">Transferencia</span>
+              <span className="pp-metodo-sub">Requiere voucher</span>
+            </button>
+            <button type="button" className={`pp-metodo ${metodo === 'EFECTIVO' ? 'pp-metodo-active' : ''}`} onClick={() => setMetodo('EFECTIVO')}>
+              <div className="pp-metodo-icon pp-icon-amber"><IcoCash /></div>
+              <span className="pp-metodo-nombre">Efectivo</span>
+              <span className="pp-metodo-sub">Voucher opcional</span>
+            </button>
           </div>
         </div>
         <div className="drp-field">
@@ -736,7 +761,7 @@ function PanelRegistrarPagoDirectivo({ cuota, residentes, onExito, onCancelar })
           <input className="drp-input" value={numOp} onChange={e => setNumOp(textoLibreEstricto(e.target.value))} />
         </div>
         <div className="drp-field drp-field-full">
-          <SubirFoto onSubida={url => setVoucher(url)} obligatorio={false} label="Foto del comprobante (opcional)" />
+          <SubirFoto onSubida={url => setVoucher(url)} obligatorio={metodo === 'TRANSFERENCIA'} label={metodo === 'EFECTIVO' ? 'Foto del comprobante (opcional)' : 'Foto del comprobante'} />
         </div>
         <div className="drp-field drp-field-full">
           <label className="drp-label">Observaciones (opcional)</label>
@@ -1145,6 +1170,7 @@ function DirectivoPagos({ user }) {
 
   const [crearConfigOpen, setCrearConfigOpen] = useState(false)
   const [editConfigId,    setEditConfigId]    = useState(null)
+  const [buscarDepto,     setBuscarDepto]     = useState('')
 
   useEffect(() => { cargarDatos() }, [mes, anio, tab])
 
@@ -1213,6 +1239,12 @@ function DirectivoPagos({ user }) {
   const estadoColor = e => ({ PAGADO:'pill-success', VERIFICADO:'pill-success', PARCIAL:'pill-warning', VENCIDO:'pill-danger', RECHAZADO:'pill-danger', PENDIENTE_VERIFICACION:'pill-warning' }[e] || 'pill-neutral')
   const estadoLabel = e => ({ PENDIENTE:'Pendiente', PARCIAL:'Parcial', PAGADO:'Pagado', VENCIDO:'Vencido', EXONERADO:'Exonerado', PENDIENTE_VERIFICACION:'En verificación', VERIFICADO:'Verificado', RECHAZADO:'Rechazado' }[e] || e)
 
+  const cuotasFiltradas = (resumen?.cuotas || []).filter(c => {
+    if (!buscarDepto.trim()) return true
+    const texto = `${c.numeroDepartamento} ${(c.residentesNombres || []).join(' ')}`.toLowerCase()
+    return texto.includes(buscarDepto.toLowerCase())
+  })
+
   return (
     <div className="drp-page">
       <div className="drp-header">
@@ -1258,19 +1290,49 @@ function DirectivoPagos({ user }) {
           {resumen && !loading && (
             <>
               <div className="resumen-grid">
-                <div className="resumen-card rc-blue"><p className="rc-value">S/ {resumen.totalEsperado?.toFixed(2)}</p><p className="rc-label">Total esperado</p></div>
-                <div className="resumen-card rc-green"><p className="rc-value">S/ {resumen.totalRecaudado?.toFixed(2)}</p><p className="rc-label">Recaudado</p></div>
-                <div className="resumen-card rc-red"><p className="rc-value">S/ {resumen.totalPendiente?.toFixed(2)}</p><p className="rc-label">Por cobrar</p></div>
-                <div className="resumen-card rc-neutral"><p className="rc-value">{resumen.pagados} / {resumen.totalDepartamentos}</p><p className="rc-label">Deptos pagados</p></div>
+                <div className="resumen-card rc-blue">
+                  <div className="rc-top"><span className="rc-icon rc-icon-blue"><IcoTarget /></span><p className="rc-label">Total esperado</p></div>
+                  <p className="rc-value">S/ {resumen.totalEsperado?.toFixed(2)}</p>
+                </div>
+                <div className="resumen-card rc-green">
+                  <div className="rc-top"><span className="rc-icon rc-icon-green"><IcoWallet /></span><p className="rc-label">Recaudado</p></div>
+                  <p className="rc-value">S/ {resumen.totalRecaudado?.toFixed(2)}</p>
+                </div>
+                <div className="resumen-card rc-red">
+                  <div className="rc-top"><span className="rc-icon rc-icon-red"><IcoAlert /></span><p className="rc-label">Por cobrar</p></div>
+                  <p className="rc-value">S/ {resumen.totalPendiente?.toFixed(2)}</p>
+                </div>
+                <div className="resumen-card rc-neutral">
+                  <div className="rc-top"><span className="rc-icon rc-icon-neutral"><IcoBuilding /></span><p className="rc-label">Deptos pagados</p></div>
+                  <p className="rc-value">{resumen.pagados} / {resumen.totalDepartamentos}</p>
+                </div>
                 {resumen.parciales > 0 && (
-                  <div className="resumen-card rc-amber"><p className="rc-value">{resumen.parciales}</p><p className="rc-label">Pagos parciales</p></div>
+                  <div className="resumen-card rc-amber">
+                    <div className="rc-top"><span className="rc-icon rc-icon-amber"><IcoSplit /></span><p className="rc-label">Pagos parciales</p></div>
+                    <p className="rc-value">{resumen.parciales}</p>
+                  </div>
                 )}
                 {resumen.enVerificacion > 0 && (
-                  <div className="resumen-card rc-blue-soft"><p className="rc-value">{resumen.enVerificacion}</p><p className="rc-label">En verificación</p></div>
+                  <div className="resumen-card rc-blue-soft">
+                    <div className="rc-top"><span className="rc-icon rc-icon-blue-soft"><IcoClipboard /></span><p className="rc-label">En verificación</p></div>
+                    <p className="rc-value">{resumen.enVerificacion}</p>
+                  </div>
                 )}
               </div>
 
               <div className="drp-tabla-wrap">
+                <div className="drp-buscar-wrap">
+                  <IcoSearch />
+                  <input
+                    className="drp-buscar-input"
+                    placeholder="Buscar por depto o residente..."
+                    value={buscarDepto}
+                    onChange={e => setBuscarDepto(e.target.value)}
+                  />
+                  {buscarDepto && (
+                    <button className="drp-buscar-clear" onClick={() => setBuscarDepto('')}><IcoX /></button>
+                  )}
+                </div>
                 <div className="drp-tabla-head">
                   <span>Departamento</span>
                   <span>Residentes</span>
@@ -1279,7 +1341,10 @@ function DirectivoPagos({ user }) {
                   <span></span>
                 </div>
                 {resumen.cuotas?.length === 0 && <div className="us-empty">No hay cuotas configuradas para este mes.</div>}
-                {resumen.cuotas?.map(c => (
+                {resumen.cuotas?.length > 0 && cuotasFiltradas.length === 0 && (
+                  <div className="us-empty">Ningún departamento coincide con “{buscarDepto}”.</div>
+                )}
+                {cuotasFiltradas.map(c => (
                   <FilaCuota
                     key={c.cuotaId}
                     cuota={c}
