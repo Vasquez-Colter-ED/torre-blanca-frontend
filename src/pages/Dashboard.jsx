@@ -53,7 +53,6 @@ function DirectivoDashboard({ user }) {
   const [misCuotas,   setMisCuotas]  = useState([])
   const [gastos,      setGastos]      = useState([])
   const [loading,     setLoading]     = useState(true)
-  const [msgVerif,    setMsgVerif]    = useState({})
 
   useEffect(() => { cargarTodo() }, [])
 
@@ -73,17 +72,22 @@ function DirectivoDashboard({ user }) {
     } finally { setLoading(false) }
   }
 
-  const verificar = async (pagoId, accion) => {
-    try {
-      await api.patch(`/api/pagos/${pagoId}/verificar`, { accion, observaciones: '' })
-      setMsgVerif(prev => ({ ...prev, [pagoId]: accion === 'APROBAR' ? 'aprobado' : 'rechazado' }))
-      setTimeout(() => {
-        setPendientes(prev => prev.filter(p => p.pagoId !== pagoId))
-        setMsgVerif(prev => { const n = {...prev}; delete n[pagoId]; return n })
-        cargarTodo()
-      }, 1200)
-    } catch { alert('No se pudo procesar la acción') }
-  }
+  // Agrupa por loteId (pagos múltiples) para no mostrar la misma
+  // transferencia repetida como si fueran varios pagos sueltos
+  const gruposPendientes = (() => {
+    const grupos = []
+    const vistos = new Set()
+    pendientes.forEach(p => {
+      if (p.loteId) {
+        if (vistos.has(p.loteId)) return
+        vistos.add(p.loteId)
+        grupos.push({ loteId: p.loteId, items: pendientes.filter(x => x.loteId === p.loteId) })
+      } else {
+        grupos.push({ loteId: null, items: [p] })
+      }
+    })
+    return grupos
+  })()
 
   // Stats derivadas
   const pctRecaudado = resumen
@@ -173,7 +177,7 @@ function DirectivoDashboard({ user }) {
 
       {/* ── 4 KPIs ── */}
       <div className="dbd-kpis">
-        <div className={`dbd-kpi ${pendientes.length > 0 ? 'dbd-kpi-urgente' : ''}`} onClick={() => navigate('/pagos')}>
+        <div className={`dbd-kpi ${pendientes.length > 0 ? 'dbd-kpi-urgente' : ''}`} onClick={() => navigate('/pagos?tab=verificaciones')}>
           <div className="dbd-kpi-icon-wrap dbd-ico-warn"><IcoClock /></div>
           <div>
             <p className="dbd-kpi-val">{pendientes.length}</p>
@@ -210,7 +214,7 @@ function DirectivoDashboard({ user }) {
       {/* ── Grid dos columnas ── */}
       <div className="dbd-grid-2">
 
-        {/* Pendientes de verificación */}
+        {/* Pendientes de verificación — resumen, la acción real se hace en Pagos > Verificaciones */}
         <div className="dbd-card">
           <div className="dbd-card-header">
             <h3 className="dbd-card-titulo">
@@ -218,7 +222,7 @@ function DirectivoDashboard({ user }) {
               Pendientes de verificación
               {pendientes.length > 0 && <span className="dbd-card-cnt">{pendientes.length}</span>}
             </h3>
-            <button className="dbd-link" onClick={() => navigate('/pagos')}>Ver todos</button>
+            <button className="dbd-link" onClick={() => navigate('/pagos?tab=verificaciones')}>Ver todos</button>
           </div>
 
           {pendientes.length === 0 ? (
@@ -228,41 +232,27 @@ function DirectivoDashboard({ user }) {
             </div>
           ) : (
             <div className="dbd-pend-lista">
-              {pendientes.slice(0, 4).map(p => (
-                <div key={p.pagoId} className={`dbd-pend-item ${msgVerif[p.pagoId] ? 'dbd-pend-done' : ''}`}>
-                  {msgVerif[p.pagoId] ? (
-                    <p className={`dbd-pend-msg ${msgVerif[p.pagoId] === 'aprobado' ? 'dbd-msg-ok' : 'dbd-msg-err'}`}>
-                      {msgVerif[p.pagoId] === 'aprobado' ? 'Aprobado correctamente' : 'Rechazado'}
-                    </p>
-                  ) : (
-                    <>
-                      <div className="dbd-pend-info">
-                        <p className="dbd-pend-nombre">{p.pagadorNombre}</p>
-                        <p className="dbd-pend-sub">Depto {p.numeroDepartamento} · {p.metodoPago}</p>
-                        {p.voucherUrl && (
-                          <a href={p.voucherUrl} target="_blank" rel="noreferrer" className="dbd-pend-voucher">
-                            Ver comprobante
-                          </a>
-                        )}
-                      </div>
-                      <div className="dbd-pend-der">
-                        <span className="dbd-pend-monto">S/ {Number(p.monto).toFixed(2)}</span>
-                        <div className="dbd-pend-btns">
-                          <button className="dbd-btn-aprobar" onClick={() => verificar(p.pagoId, 'APROBAR')}>
-                            <IcoCheck /> Aprobar
-                          </button>
-                          <button className="dbd-btn-rechazar" onClick={() => verificar(p.pagoId, 'RECHAZAR')}>
-                            Rechazar
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-              {pendientes.length > 4 && (
-                <button className="dbd-link-more" onClick={() => navigate('/pagos')}>
-                  Ver {pendientes.length - 4} más
+              {gruposPendientes.slice(0, 4).map(grupo => {
+                const primero = grupo.items[0]
+                const totalGrupo = grupo.items.reduce((s, x) => s + Number(x.monto), 0)
+                return (
+                  <button key={grupo.loteId || primero.pagoId} className="dbd-pend-item dbd-pend-item-click" onClick={() => navigate('/pagos?tab=verificaciones')}>
+                    <div className="dbd-pend-info">
+                      <p className="dbd-pend-nombre">{primero.pagadorNombre}</p>
+                      <p className="dbd-pend-sub">
+                        Depto {primero.numeroDepartamento} · {grupo.loteId ? `${grupo.items.length} cuotas` : etiquetaMes(primero.mes, primero.anio)} · {primero.metodoPago}
+                      </p>
+                    </div>
+                    <div className="dbd-pend-der">
+                      <span className="dbd-pend-monto">S/ {totalGrupo.toFixed(2)}</span>
+                      <span className="dbd-pend-revisar">Revisar <IcoArrow /></span>
+                    </div>
+                  </button>
+                )
+              })}
+              {gruposPendientes.length > 4 && (
+                <button className="dbd-link-more" onClick={() => navigate('/pagos?tab=verificaciones')}>
+                  Ver {gruposPendientes.length - 4} más
                 </button>
               )}
             </div>

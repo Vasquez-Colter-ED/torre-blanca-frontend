@@ -544,6 +544,14 @@
 .dbd-pend-lista { display: flex; flex-direction: column; gap: 10px; }
 .dbd-pend-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; transition: background 0.15s ease; }
 .dbd-pend-item:hover { background: #F1F5F9; }
+.dbd-pend-item-click {
+  width: 100%; font-family: inherit; text-align: left; cursor: pointer;
+}
+.dbd-pend-item-click:hover { background: #EFF6FF; border-color: #BFDBFE; }
+.dbd-pend-revisar {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; font-weight: 700; color: #2563EB; white-space: nowrap;
+}
 .dbd-pend-done { opacity: 0.7; }
 .dbd-pend-info { flex: 1; min-width: 0; }
 .dbd-pend-nombre { font-size: 0.875rem; font-weight: 700; color: #0F172A; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

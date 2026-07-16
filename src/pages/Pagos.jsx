@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import { textoLibreEstricto, sinNegativos } from '../utils/validaciones'
@@ -1287,13 +1288,14 @@ function FilaPendiente({ grupo, onResuelto }) {
 
 function DirectivoPagos({ user }) {
   const ahora = new Date()
+  const [searchParams] = useSearchParams()
   const [mes,        setMes]        = useState(ahora.getMonth() + 1)
   const [anio,       setAnio]       = useState(ahora.getFullYear())
   const [resumen,    setResumen]    = useState(null)
   const [pendientes, setPendientes] = useState([])
   const [configs,    setConfigs]    = useState([])
   const [loading,    setLoading]    = useState(false)
-  const [tab,        setTab]        = useState('resumen')
+  const [tab,        setTab]        = useState(searchParams.get('tab') === 'verificaciones' ? 'verificaciones' : 'resumen')
   const [msg,        setMsg]        = useState('')
   const [error,      setError]      = useState('')
 
