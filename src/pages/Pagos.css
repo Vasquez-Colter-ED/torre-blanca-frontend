@@ -757,6 +757,25 @@
 }
 .btn-rechazar-inline:hover { background: #DC2626; color: #fff; }
 
+.btn-rechazar-confirmar {
+  padding: 9px 18px; background: #DC2626; border: none;
+  color: #fff; font-size: 0.875rem; font-weight: 700; font-family: inherit;
+  border-radius: 8px; cursor: pointer; transition: background 0.18s ease;
+}
+.btn-rechazar-confirmar:hover:not(:disabled) { background: #B91C1C; }
+.btn-rechazar-confirmar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.drp-pend-fecha-mini { font-size: 0.72rem; color: #94A3B8; margin: 2px 0 0 0; }
+
+.drp-confirm-accion {
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;
+  padding: 14px 16px; margin-top: 14px;
+}
+.drp-confirm-accion p { font-size: 0.875rem; color: #334155; margin: 0 0 12px 0; line-height: 1.5; }
+.drp-confirm-accion .drp-label { display: block; margin-bottom: 6px; }
+.drp-confirm-accion .drp-input { margin-bottom: 12px; }
+.drp-confirm-accion .drp-form-footer { margin-top: 0; padding-top: 0; border-top: none; }
+
 /* Historial de pagos (cuota pagada) */
 .drp-historial { display: flex; flex-direction: column; gap: 8px; }
 .drp-historial-titulo { font-size: 0.72rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 4px 0; }

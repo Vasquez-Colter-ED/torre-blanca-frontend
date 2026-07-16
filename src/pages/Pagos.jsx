@@ -11,6 +11,7 @@ const ROLES_DIRECTIVOS = ['PRESIDENTE','SECRETARIO','TESORERO']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const METODOS_PAGO = ['TRANSFERENCIA','DEPOSITO','PLIN','EFECTIVO','OTRO']
 const METODOS_PAGO_DIRECTIVO = ['TRANSFERENCIA','EFECTIVO']
+const CARGO_LABEL = { PRESIDENTE: 'Presidente', SECRETARIO: 'Secretario', TESORERO: 'Tesorero' }
 
 const etiquetaMes = (mes, anio) =>
   mes && anio ? `${MESES[mes - 1]} ${anio}` : '—'
@@ -1153,6 +1154,122 @@ function PanelEditarConfig({ config, onExito, onCancelar }) {
 // ══════════════════════════════════════════════════════════════════
 //  VISTA DIRECTIVO
 // ══════════════════════════════════════════════════════════════════
+function FilaPendiente({ grupo, onResuelto }) {
+  const [abierto,    setAbierto]    = useState(false)
+  const [modoAccion, setModoAccion] = useState(null) // null | 'APROBAR' | 'RECHAZAR'
+  const [motivo,     setMotivo]     = useState('')
+  const [procesando, setProcesando] = useState(false)
+  const [error,      setError]      = useState('')
+
+  const primero    = grupo.items[0]
+  const esLote     = !!grupo.loteId
+  const totalMonto = grupo.items.reduce((s, x) => s + Number(x.monto), 0)
+  const periodos    = grupo.items.map(x => etiquetaMes(x.mes, x.anio))
+
+  const fecha    = primero.fechaPago ? new Date(primero.fechaPago) : null
+  const fechaTxt = fecha ? fecha.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+  const horaTxt  = fecha ? fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : ''
+
+  const toggle = () => {
+    setAbierto(!abierto); setModoAccion(null); setMotivo(''); setError('')
+  }
+
+  const ejecutar = async (accion) => {
+    if (accion === 'RECHAZAR' && !motivo.trim()) { setError('Debes indicar el motivo del rechazo'); return }
+    setProcesando(true); setError('')
+    try {
+      const url = esLote ? `/api/pagos/lote/${grupo.loteId}/verificar` : `/api/pagos/${primero.pagoId}/verificar`
+      await api.patch(url, { accion, observaciones: motivo || '' })
+      onResuelto()
+    } catch (e) { setError(e.response?.data || 'Error al procesar'); setProcesando(false) }
+  }
+
+  return (
+    <div className={`drp-fila-wrap ${abierto ? 'drp-fila-wrap-open' : ''}`}>
+      <button className={`drp-fila ${abierto ? 'drp-fila-active' : ''}`} onClick={toggle}>
+        <div className="drp-col-depto">
+          <div className="drp-depto-avatar"><IcoBuilding /></div>
+          <div>
+            <p className="drp-depto-num">Depto {primero.numeroDepartamento}</p>
+            <p className="drp-depto-piso">{esLote ? `${grupo.items.length} cuotas` : periodos[0]}</p>
+          </div>
+        </div>
+        <div className="drp-col-residentes">
+          <p className="drp-residente-nombre">{primero.pagadorNombre}</p>
+          <p className="drp-pend-fecha-mini">{fechaTxt} · {horaTxt}</p>
+        </div>
+        <div className="drp-col-monto">
+          <span className="drp-monto-principal">S/ {totalMonto.toFixed(2)}</span>
+          <span className="drp-monto-sub">{primero.metodoPago}</span>
+        </div>
+        <div className="drp-col-estado"><StatusBadge estado="PENDIENTE_VERIFICACION" /></div>
+        <div className="drp-col-chev"><IcoChev open={abierto} /></div>
+      </button>
+
+      <div className={`drp-panel ${abierto ? 'drp-panel-open' : ''}`}>
+        {abierto && (
+          <div className="drp-panel-body">
+            <div className="drp-bloqueo-info">
+              <div className="drp-bloqueo-fila"><span>Período</span><strong>{esLote ? periodos.join(' · ') : periodos[0]}</strong></div>
+              <div className="drp-bloqueo-fila"><span>Registrado</span><strong>{fechaTxt} a las {horaTxt}</strong></div>
+              <div className="drp-bloqueo-fila">
+                <span>Origen</span>
+                <strong>
+                  {primero.registradoPorNombre
+                    ? `${primero.registradoPorNombre} (${CARGO_LABEL[primero.registradoPorCargo] || primero.registradoPorCargo || 'Directivo'})`
+                    : 'Autorregistrado por el residente'}
+                </strong>
+              </div>
+              {primero.numeroOperacion && (
+                <div className="drp-bloqueo-fila"><span>N° operación</span><strong>{primero.numeroOperacion}</strong></div>
+              )}
+              {primero.observaciones && (
+                <div className="drp-bloqueo-fila"><span>Nota</span><strong>{primero.observaciones}</strong></div>
+              )}
+              {primero.voucherUrl && (
+                <a href={primero.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
+              )}
+            </div>
+
+            {error && <p className="pm-error">{error}</p>}
+
+            {!modoAccion && (
+              <div className="drp-form-footer">
+                <button className="btn-rechazar-inline" onClick={() => setModoAccion('RECHAZAR')}>Rechazar</button>
+                <button className="pm-btn-enviar" onClick={() => setModoAccion('APROBAR')}>Aprobar</button>
+              </div>
+            )}
+
+            {modoAccion === 'APROBAR' && (
+              <div className="drp-confirm-accion">
+                <p>¿Confirmas aprobar {esLote ? `este pago múltiple` : 'este pago'} de <strong>S/ {totalMonto.toFixed(2)}</strong> de {primero.pagadorNombre}?</p>
+                <div className="drp-form-footer">
+                  <button className="pm-btn-cancelar" onClick={() => setModoAccion(null)} disabled={procesando}>Cancelar</button>
+                  <button className="pm-btn-enviar" onClick={() => ejecutar('APROBAR')} disabled={procesando}>{procesando ? 'Procesando...' : 'Sí, aprobar'}</button>
+                </div>
+              </div>
+            )}
+
+            {modoAccion === 'RECHAZAR' && (
+              <div className="drp-confirm-accion">
+                <label className="drp-label">Motivo del rechazo (obligatorio)</label>
+                <input className="drp-input" value={motivo} onChange={e => setMotivo(textoLibreEstricto(e.target.value))}
+                  placeholder="Ej: El voucher no corresponde al monto" maxLength={200} autoFocus />
+                <div className="drp-form-footer">
+                  <button className="pm-btn-cancelar" onClick={() => setModoAccion(null)} disabled={procesando}>Cancelar</button>
+                  <button className="btn-rechazar-confirmar" onClick={() => ejecutar('RECHAZAR')} disabled={procesando || !motivo.trim()}>
+                    {procesando ? 'Procesando...' : 'Confirmar rechazo'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function DirectivoPagos({ user }) {
   const ahora = new Date()
   const [mes,        setMes]        = useState(ahora.getMonth() + 1)
@@ -1212,20 +1329,6 @@ function DirectivoPagos({ user }) {
     setMsg('Operación realizada correctamente.')
     cargarDatos()
     setTimeout(() => setMsg(''), 4000)
-  }
-
-  const verificarPendiente = async (pagoId, accion) => {
-    try {
-      await api.patch(`/api/pagos/${pagoId}/verificar`, { accion, observaciones: '' })
-      cargarDatos()
-    } catch (e) { alert(e.response?.data || 'Error') }
-  }
-
-  const verificarLotePendiente = async (loteId, accion) => {
-    try {
-      await api.patch(`/api/pagos/lote/${loteId}/verificar`, { accion, observaciones: '' })
-      cargarDatos()
-    } catch (e) { alert(e.response?.data || 'Error') }
   }
 
   // Agrupa la lista plana de pendientes por loteId (pagos múltiples),
@@ -1381,64 +1484,20 @@ function DirectivoPagos({ user }) {
               <p className="pgr-empty-s">Todos los pagos han sido revisados.</p>
             </div>
           )}
-          <div className="pendientes-lista">
-            {gruposPendientes.map(grupo => {
-              if (!grupo.loteId) {
-                const p = grupo.items[0]
-                return (
-                  <div key={p.pagoId} className="pendiente-card">
-                    <div className="pendiente-depto"><span className="depto-num">{p.numeroDepartamento}</span><span className="depto-piso">Piso {p.piso}</span></div>
-                    <div className="pendiente-info">
-                      <p className="pendiente-pagador">{p.pagadorNombre}</p>
-                      <p className="pendiente-meta">{p.metodoPago}{p.numeroOperacion ? ' · Op: ' + p.numeroOperacion : ''}</p>
-                      {p.observaciones && <p className="pendiente-obs">{p.observaciones}</p>}
-                      {p.voucherUrl && (
-                        <div className="pendiente-voucher">
-                          <a href={p.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
-                          <img src={p.voucherUrl} alt="Comprobante" className="pendiente-voucher-thumb" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="pendiente-monto">S/ {p.monto?.toFixed(2)}</div>
-                    <div className="pendiente-actions">
-                      <button className="btn-rechazar-inline" onClick={() => verificarPendiente(p.pagoId, 'RECHAZAR')}>Rechazar</button>
-                      <button className="btn btn-primary btn-sm" onClick={() => verificarPendiente(p.pagoId, 'APROBAR')}>Aprobar</button>
-                    </div>
-                  </div>
-                )
-              }
-
-              // Grupo de pago múltiple: una tarjeta con el total y los meses cubiertos
-              const primero = grupo.items[0]
-              const totalLote = grupo.items.reduce((s, x) => s + Number(x.monto), 0)
-              return (
-                <div key={grupo.loteId} className="pendiente-card pendiente-card-lote">
-                  <div className="pendiente-depto"><span className="depto-num">{primero.numeroDepartamento}</span><span className="depto-piso">Piso {primero.piso}</span></div>
-                  <div className="pendiente-info">
-                    <p className="pendiente-pagador">{primero.pagadorNombre}</p>
-                    <p className="pendiente-meta">
-                      Pago múltiple · {grupo.items.length} cuotas · {primero.metodoPago}{primero.numeroOperacion ? ' · Op: ' + primero.numeroOperacion : ''}
-                    </p>
-                    <p className="pendiente-lote-meses">
-                      Cubre: {grupo.items.map(x => etiquetaMes(x.mes, x.anio)).join(' · ')}
-                    </p>
-                    {primero.observaciones && <p className="pendiente-obs">{primero.observaciones}</p>}
-                    {primero.voucherUrl && (
-                      <div className="pendiente-voucher">
-                        <a href={primero.voucherUrl} target="_blank" rel="noreferrer" className="voucher-link">Ver comprobante</a>
-                        <img src={primero.voucherUrl} alt="Comprobante" className="pendiente-voucher-thumb" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="pendiente-monto">S/ {totalLote.toFixed(2)}</div>
-                  <div className="pendiente-actions">
-                    <button className="btn-rechazar-inline" onClick={() => verificarLotePendiente(grupo.loteId, 'RECHAZAR')}>Rechazar todo</button>
-                    <button className="btn btn-primary btn-sm" onClick={() => verificarLotePendiente(grupo.loteId, 'APROBAR')}>Aprobar todo</button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          {pendientes.length > 0 && (
+            <div className="drp-tabla-wrap">
+              <div className="drp-tabla-head">
+                <span>Departamento / Período</span>
+                <span>Pagador / Fecha</span>
+                <span>Monto / Método</span>
+                <span>Estado</span>
+                <span></span>
+              </div>
+              {gruposPendientes.map(grupo => (
+                <FilaPendiente key={grupo.loteId || grupo.items[0].pagoId} grupo={grupo} onResuelto={handleExitoFila} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
