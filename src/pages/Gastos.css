@@ -422,6 +422,23 @@
   text-align: right;
 }
 
+/* Fila de confirmación completa (ocupa todo el ancho de la tabla) */
+.gst-confirm-row td { padding: 0; background: #FFFBEB; }
+.gst-confirm-full {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 18px;
+}
+.gst-confirm-full-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: #FEF3C7; color: #B45309;
+  display: flex; align-items: center; justify-content: center;
+}
+.gst-confirm-full-texto { flex: 1; min-width: 0; }
+.gst-confirm-full-t { font-size: 0.88rem; font-weight: 700; color: #78350F; margin: 0 0 4px 0; }
+.gst-confirm-full-t strong { color: #451A03; }
+.gst-confirm-full-s { font-size: 0.8rem; color: #92400E; margin: 0; line-height: 1.5; }
+.gst-confirm-full-btns { display: flex; gap: 8px; flex-shrink: 0; align-self: center; }
+
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .gst-header        { flex-direction: column; }
@@ -432,4 +449,7 @@
   .gst-total-cnt     { margin-left: 0; }
   .gst-tabla         { font-size: 0.8rem; }
   .gst-tabla td, .gst-tabla th { padding: 11px 12px; }
+  .gst-confirm-full  { flex-direction: column; }
+  .gst-confirm-full-btns { align-self: stretch; }
+  .gst-confirm-full-btns button { flex: 1; }
 }

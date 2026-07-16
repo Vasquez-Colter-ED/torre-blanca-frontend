@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import SubirFoto from '../components/SubirFoto'
@@ -128,6 +128,10 @@ export default function Gastos() {
 
   const totalFiltrado = filtrados.reduce((s, g) => s + Number(g.monto), 0)
 
+  // Años con al menos un gasto, más el año actual siempre visible aunque
+  // todavía no tenga ninguno registrado
+  const aniosDisp = [...new Set([ahora.getFullYear(), ...gastos.map(g => g.anio)])].sort((a, b) => b - a)
+
   // Resumen por categoría (sobre lo filtrado → respeta mes/año actuales por defecto)
   const resumenCategorias = categorias
     .map(c => ({ ...c, total: filtrados.filter(g => g.categoria === c.nombre).reduce((s, g) => s + Number(g.monto), 0) }))
@@ -231,7 +235,7 @@ export default function Gastos() {
         </select>
         <select className="gst-select-filtro" value={filtroAnio} onChange={e => setFiltroAnio(e.target.value)}>
           <option value="">Todos los años</option>
-          {[2024, 2025, 2026].map(a => <option key={a} value={a}>{a}</option>)}
+          {aniosDisp.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
 
@@ -249,8 +253,10 @@ export default function Gastos() {
 
       {filtrados.length === 0 && (
         <div className="gst-empty">
-          <IcoWallet />
-          <p>No hay gastos para el período seleccionado.</p>
+          {busqueda ? <IcoSearch /> : <IcoWallet />}
+          {busqueda
+            ? <p>Sin resultados para “{busqueda}”. Prueba con otro término o quita la búsqueda.</p>
+            : <p>No hay gastos para el período seleccionado.</p>}
         </div>
       )}
 
@@ -275,7 +281,8 @@ export default function Gastos() {
                 const fechaStr = fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })
 
                 return (
-                  <tr key={g.id}>
+                  <Fragment key={g.id}>
+                  <tr>
                     <td>
                       <span className="gst-cat-cell">
                         <span className="gst-cat-icon" style={{ background: bg, color }}><Icon /></span>
@@ -294,21 +301,35 @@ export default function Gastos() {
                     <td className="gst-td-monto">S/ {Number(g.monto).toFixed(2)}</td>
                     {esDirectivo && (
                       <td className="gst-td-accion">
-                        {confirmId === g.id ? (
-                          <div className="gst-confirm-inline">
-                            <span>¿Eliminar?</span>
-                            <button className="gst-btn-mini-cancelar" onClick={() => setConfirmId(null)}>No</button>
-                            <button className="gst-btn-mini-eliminar" onClick={() => eliminar(g.id)}>Sí</button>
-                          </div>
-                        ) : (
-                          <button className="gst-btn-eliminar-fila" onClick={() => { setConfirmId(g.id); setMsgFila(null) }}>
-                            <IcoTrash /> Eliminar
-                          </button>
-                        )}
-                        {msgFila?.id === g.id && <p className="gst-fila-err">{msgFila.err}</p>}
+                        <button className="gst-btn-eliminar-fila" onClick={() => { setConfirmId(confirmId === g.id ? null : g.id); setMsgFila(null) }}>
+                          <IcoTrash /> Eliminar
+                        </button>
                       </td>
                     )}
                   </tr>
+                  {esDirectivo && confirmId === g.id && (
+                    <tr className="gst-confirm-row">
+                      <td colSpan={6}>
+                        <div className="gst-confirm-full">
+                          <span className="gst-confirm-full-icon"><IcoAlert /></span>
+                          <div className="gst-confirm-full-texto">
+                            <p className="gst-confirm-full-t">
+                              ¿Eliminar el gasto de <strong>{g.categoria}</strong> por <strong>S/ {Number(g.monto).toFixed(2)}</strong> del {fechaStr}?
+                            </p>
+                            <p className="gst-confirm-full-s">
+                              Esta acción no se puede deshacer. Quedará registrado en Auditoría quién lo eliminó y cuándo, junto con los datos originales del gasto.
+                            </p>
+                            {msgFila?.id === g.id && <p className="gst-fila-err">{msgFila.err}</p>}
+                          </div>
+                          <div className="gst-confirm-full-btns">
+                            <button className="gst-btn-mini-cancelar" onClick={() => setConfirmId(null)}>Cancelar</button>
+                            <button className="gst-btn-mini-eliminar" onClick={() => eliminar(g.id)}>Sí, eliminar</button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 )
               })}
             </tbody>
