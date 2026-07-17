@@ -439,6 +439,12 @@
 .gst-confirm-full-s { font-size: 0.8rem; color: #92400E; margin: 0; line-height: 1.5; }
 .gst-confirm-full-btns { display: flex; gap: 8px; flex-shrink: 0; align-self: center; }
 
+.gst-bloqueado {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.76rem; font-weight: 600; color: #94A3B8;
+  cursor: help; white-space: nowrap;
+}
+
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .gst-header        { flex-direction: column; }

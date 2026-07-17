@@ -24,6 +24,7 @@ const IcoBox     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="n
 const IcoAlert   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
 const IcoDots    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
 const IcoSearch  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+const IcoLock    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 
 // Categoría → { icono, color }
 const CAT_META = {
@@ -301,9 +302,15 @@ export default function Gastos() {
                     <td className="gst-td-monto">S/ {Number(g.monto).toFixed(2)}</td>
                     {esDirectivo && (
                       <td className="gst-td-accion">
-                        <button className="gst-btn-eliminar-fila" onClick={() => { setConfirmId(confirmId === g.id ? null : g.id); setMsgFila(null) }}>
-                          <IcoTrash /> Eliminar
-                        </button>
+                        {g.puedeEliminar ? (
+                          <button className="gst-btn-eliminar-fila" onClick={() => { setConfirmId(confirmId === g.id ? null : g.id); setMsgFila(null) }}>
+                            <IcoTrash /> Eliminar
+                          </button>
+                        ) : (
+                          <span className="gst-bloqueado" title="Este gasto ya no se puede eliminar: o pertenece a un retiro del Fondo de Contingencia, o pasaron más de 7 días desde que se registró">
+                            <IcoLock /> Bloqueado
+                          </span>
+                        )}
                       </td>
                     )}
                   </tr>
