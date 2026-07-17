@@ -20,6 +20,7 @@ const IcoTrendDown= () => <svg width="13" height="13" viewBox="0 0 24 24" fill="
 const IcoFolder   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
 const IcoFlag     = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
 const IcoTarget   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+const IcoLock     = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 
 const ESTADO_META = {
   ACTIVO:    { label: 'Activo',    color: '#2563EB', bg: '#EFF6FF' },
@@ -132,7 +133,11 @@ function TablaMovimientos({ movimientos, onEliminar }) {
                 {m.tipo === 'INGRESO' ? '+' : '−'} S/ {Number(m.monto).toFixed(2)}
               </td>
               <td className="fc-td-accion">
-                {confirmId === m.id ? (
+                {!m.puedeEliminar ? (
+                  <span className="fc-bloqueado" title="Ya no se puede eliminar: o el proyecto ya no está activo, o pasaron más de 7 días desde que se registró">
+                    <IcoLock />
+                  </span>
+                ) : confirmId === m.id ? (
                   <div className="fc-confirm-inline">
                     <button className="fc-btn-mini-cancelar" onClick={() => setConfirmId(null)}>No</button>
                     <button className="fc-btn-mini-eliminar" onClick={() => { onEliminar(m.id); setConfirmId(null) }}>Sí</button>

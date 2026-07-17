@@ -274,6 +274,11 @@
 }
 .fc-btn-eliminar-fila:hover { color: #DC2626; background: #FEF2F2; }
 
+.fc-bloqueado {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #CBD5E1; padding: 5px; cursor: help;
+}
+
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .fc-header { flex-direction: column; }
