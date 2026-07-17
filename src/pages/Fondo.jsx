@@ -43,13 +43,13 @@ function FormMovimiento({ proyectoId, tipo, onExito, onCancelar }) {
 
   const guardar = async () => {
     if (!monto || Number(monto) <= 0) { setError('Ingresa un monto válido mayor a cero'); return }
-    if (!concepto.trim()) { setError('Ingresa un concepto'); return }
+    if (!comprobante) { setError('La foto del comprobante es obligatoria'); return }
     setGuardando(true); setError('')
     try {
       await api.post('/api/fondo/movimientos', {
         proyectoId: proyectoId || null,
-        tipo, monto: Number(monto), concepto, fecha,
-        comprobanteUrl: comprobante || null,
+        tipo, monto: Number(monto), concepto: concepto || null, fecha,
+        comprobanteUrl: comprobante,
       })
       onExito()
     } catch (e) { setError(e.response?.data || 'Error al registrar el movimiento') }
@@ -69,14 +69,14 @@ function FormMovimiento({ proyectoId, tipo, onExito, onCancelar }) {
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
         </div>
         <div className="fc-campo fc-campo-full">
-          <label>Concepto</label>
+          <label>Concepto <span className="fc-hint-opt">(opcional)</span></label>
           <input value={concepto} placeholder={tipo === 'INGRESO' ? 'Ej: Recaudación pollada' : 'Ej: Pago a proveedor de faja'}
             onChange={e => setConcepto(textoLibreEstricto(e.target.value))} />
         </div>
       </div>
       <div className="fc-foto-wrap">
-        <SubirFoto onSubida={url => setComprobante(url)} obligatorio={false}
-          label={tipo === 'RETIRO' ? 'Foto del comprobante de pago (opcional)' : 'Foto del voucher (opcional)'} />
+        <SubirFoto onSubida={url => setComprobante(url)} obligatorio={true}
+          label={tipo === 'RETIRO' ? 'Foto del comprobante de pago (obligatorio)' : 'Foto del voucher (obligatorio)'} />
       </div>
       {tipo === 'RETIRO' && (
         <p className="fc-hint">Este retiro también se registrará automáticamente como Gasto (categoría Contingencia).</p>
@@ -183,8 +183,8 @@ function ProyectoCard({ proyecto, abierto, onToggle, movimientos, onCambiarEstad
           )}
         </div>
         <div className="fc-card-right">
-          <span className="fc-card-saldo">S/ {saldo.toFixed(2)}</span>
-          <span className="fc-card-saldo-lbl">disponible</span>
+          <span className={`fc-card-saldo ${saldo < 0 ? 'fc-card-saldo-neg' : ''}`}>S/ {saldo.toFixed(2)}</span>
+          <span className="fc-card-saldo-lbl">{saldo < 0 ? 'debe al fondo' : 'disponible'}</span>
           <IcoChev open={abierto} />
         </div>
       </button>

@@ -172,6 +172,7 @@
 
 .fc-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; color: #94A3B8; }
 .fc-card-saldo { font-size: 1rem; font-weight: 800; color: #0F172A; white-space: nowrap; }
+.fc-card-saldo-neg { color: #DC2626; }
 .fc-card-saldo-lbl { font-size: 0.68rem; color: #94A3B8; margin-right: 4px; }
 
 /* Panel expandible */
