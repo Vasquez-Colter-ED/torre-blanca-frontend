@@ -18,9 +18,10 @@ api.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
+      const mensaje = typeof err.response?.data === 'string' ? err.response.data : ''
       localStorage.removeItem('tb_token')
       localStorage.removeItem('tb_user')
-      window.dispatchEvent(new Event('tb:sesion-invalida'))
+      window.dispatchEvent(new CustomEvent('tb:sesion-invalida', { detail: { mensaje } }))
       window.location.href = '/login'
     }
     return Promise.reject(err)

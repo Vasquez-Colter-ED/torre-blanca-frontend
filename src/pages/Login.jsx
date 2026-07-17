@@ -40,7 +40,7 @@ export default function Login() {
   const [showConfirma, setShowConfirma] = useState(false)
   const [msgExito,     setMsgExito]     = useState('')
   const digitRefs     = useRef([])
-  const { login, sesionExpirada } = useAuth()
+  const { login, sesionExpirada, sesionExpiradaMsg } = useAuth()
   const navigate = useNavigate()
 
   // Al montar: si había credenciales guardadas por "Recuérdame", las precarga
@@ -213,7 +213,7 @@ export default function Login() {
 
           {sesionExpirada && paso === 0 && (
             <div className="login-alert login-alert-warning">
-              Tu sesión fue cerrada porque iniciaste sesión desde otro dispositivo.
+              {sesionExpiradaMsg || 'Tu sesión fue cerrada porque iniciaste sesión desde otro dispositivo.'}
             </div>
           )}
 

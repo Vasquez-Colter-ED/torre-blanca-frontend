@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [user,          setUser]          = useState(JSON.parse(localStorage.getItem('tb_user') || 'null'))
   const [permisosExtra, setPermisosExtra] = useState([])
   const [sesionExpirada, setSesionExpirada] = useState(false)
+  const [sesionExpiradaMsg, setSesionExpiradaMsg] = useState('')
 
   useEffect(() => {
     if (token) cargarPerfil()
@@ -15,10 +16,12 @@ export function AuthProvider({ children }) {
   }, [token])
 
   // Escucha el evento global que dispara api.js cuando recibe un 401.
-  // Muestra el aviso de sesión cerrada para que el usuario sepa qué pasó.
+  // Muestra el aviso de sesión cerrada (con el motivo real que mandó el
+  // backend: otro dispositivo, inactividad, etc.) para que el usuario sepa qué pasó.
   useEffect(() => {
-    const handleSesionInvalida = () => {
+    const handleSesionInvalida = (e) => {
       setSesionExpirada(true)
+      setSesionExpiradaMsg(e.detail?.mensaje || '')
       cerrarSesion()
     }
     window.addEventListener('tb:sesion-invalida', handleSesionInvalida)
@@ -36,6 +39,7 @@ export function AuthProvider({ children }) {
 
   const login = (data) => {
     setSesionExpirada(false)
+    setSesionExpiradaMsg('')
     localStorage.setItem('tb_token', data.token)
     localStorage.setItem('tb_user', JSON.stringify(data))
     setToken(data.token)
@@ -52,11 +56,12 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setSesionExpirada(false)
+    setSesionExpiradaMsg('')
     cerrarSesion()
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, permisosExtra, sesionExpirada }}>
+    <AuthContext.Provider value={{ token, user, login, logout, permisosExtra, sesionExpirada, sesionExpiradaMsg }}>
       {children}
     </AuthContext.Provider>
   )
