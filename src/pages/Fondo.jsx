@@ -152,15 +152,18 @@ function TablaMovimientos({ movimientos, onEliminar }) {
 // ══════════════════════════════════════════════════════════════════
 //  Tarjeta de proyecto (expandible, sin modal)
 // ══════════════════════════════════════════════════════════════════
-function ProyectoCard({ proyecto, abierto, onToggle, movimientos, onCambiarEstado, onExitoMovimiento, onEliminarMovimiento }) {
+function ProyectoCard({ proyecto, abierto, onToggle, movimientos, onCambiarEstado, onExitoMovimiento, onEliminarMovimiento, onEliminarProyecto }) {
   const [formTipo, setFormTipo] = useState(null) // 'INGRESO' | 'RETIRO' | null
   const [confirmEstado, setConfirmEstado] = useState(null)
+  const [confirmEliminar, setConfirmEliminar] = useState(false)
 
   const meta = ESTADO_META[proyecto.estado] || ESTADO_META.ACTIVO
   const ingresado = Number(proyecto.totalIngresado || 0)
   const saldo = Number(proyecto.saldo || 0)
   const metaMonto = proyecto.metaMonto ? Number(proyecto.metaMonto) : null
   const pct = metaMonto ? Math.min(100, Math.round((ingresado / metaMonto) * 100)) : null
+  const activo = proyecto.estado === 'ACTIVO'
+  const puedeEliminar = !proyecto.tieneMovimientos
 
   return (
     <div className={`fc-card ${abierto ? 'fc-card-open' : ''}`}>
@@ -171,13 +174,12 @@ function ProyectoCard({ proyecto, abierto, onToggle, movimientos, onCambiarEstad
             <p className="fc-card-nombre">{proyecto.nombre}</p>
             <span className="fc-estado-chip" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span>
           </div>
-          {metaMonto ? (
+          <p className="fc-card-fecha">Iniciado el {fechaCorta(proyecto.fechaInicio)}</p>
+          {metaMonto && (
             <div className="fc-progreso-wrap">
               <div className="fc-progreso-bar"><div className="fc-progreso-fill" style={{ width: `${pct}%` }} /></div>
               <span className="fc-progreso-txt">S/ {ingresado.toFixed(0)} de S/ {metaMonto.toFixed(0)} recaudados ({pct}%)</span>
             </div>
-          ) : (
-            <p className="fc-card-fecha">Iniciado el {fechaCorta(proyecto.fechaInicio)}</p>
           )}
         </div>
         <div className="fc-card-right">
@@ -194,26 +196,43 @@ function ProyectoCard({ proyecto, abierto, onToggle, movimientos, onCambiarEstad
 
             <div className="fc-panel-toolbar">
               <div className="fc-panel-btns-izq">
-                <button className="fc-btn-add-ingreso" onClick={() => setFormTipo(formTipo === 'INGRESO' ? null : 'INGRESO')}>
-                  <IcoPlus /> Ingreso
-                </button>
-                <button className="fc-btn-add-retiro" onClick={() => setFormTipo(formTipo === 'RETIRO' ? null : 'RETIRO')}>
-                  <IcoPlus /> Retiro
-                </button>
+                {activo && (
+                  <>
+                    <button className="fc-btn-add-ingreso" onClick={() => setFormTipo(formTipo === 'INGRESO' ? null : 'INGRESO')}>
+                      <IcoPlus /> Ingreso
+                    </button>
+                    <button className="fc-btn-add-retiro" onClick={() => setFormTipo(formTipo === 'RETIRO' ? null : 'RETIRO')}>
+                      <IcoPlus /> Retiro
+                    </button>
+                  </>
+                )}
+                {!activo && <p className="fc-hint">Este proyecto está {meta.label.toLowerCase()} y ya no admite nuevos movimientos.</p>}
               </div>
-              {proyecto.estado === 'ACTIVO' && (
-                confirmEstado ? (
-                  <div className="fc-confirm-inline">
-                    <span className="fc-confirm-txt">¿{confirmEstado === 'CERRADO' ? 'Marcar como completado' : 'Cancelar proyecto'}?</span>
-                    <button className="fc-btn-mini-cancelar" onClick={() => setConfirmEstado(null)}>No</button>
-                    <button className="fc-btn-mini-eliminar" onClick={() => { onCambiarEstado(proyecto.id, confirmEstado); setConfirmEstado(null) }}>Sí</button>
-                  </div>
-                ) : (
-                  <div className="fc-panel-btns-der">
-                    <button className="fc-btn-cerrar-proyecto" onClick={() => setConfirmEstado('CERRADO')}><IcoFlag /> Completado</button>
-                    <button className="fc-btn-cancelar-proyecto" onClick={() => setConfirmEstado('CANCELADO')}>Cancelar proyecto</button>
-                  </div>
-                )
+
+              {confirmEstado ? (
+                <div className="fc-confirm-inline">
+                  <span className="fc-confirm-txt">¿{confirmEstado === 'CERRADO' ? 'Marcar como completado' : 'Cancelar proyecto'}?</span>
+                  <button className="fc-btn-mini-cancelar" onClick={() => setConfirmEstado(null)}>No</button>
+                  <button className="fc-btn-mini-eliminar" onClick={() => { onCambiarEstado(proyecto.id, confirmEstado); setConfirmEstado(null) }}>Sí</button>
+                </div>
+              ) : confirmEliminar ? (
+                <div className="fc-confirm-inline">
+                  <span className="fc-confirm-txt">¿Eliminar este proyecto? No se puede deshacer.</span>
+                  <button className="fc-btn-mini-cancelar" onClick={() => setConfirmEliminar(false)}>No</button>
+                  <button className="fc-btn-mini-eliminar" onClick={() => onEliminarProyecto(proyecto.id)}>Sí, eliminar</button>
+                </div>
+              ) : (
+                <div className="fc-panel-btns-der">
+                  {activo && (
+                    <>
+                      <button className="fc-btn-cerrar-proyecto" onClick={() => setConfirmEstado('CERRADO')}><IcoFlag /> Completado</button>
+                      <button className="fc-btn-cancelar-proyecto" onClick={() => setConfirmEstado('CANCELADO')}>Cancelar proyecto</button>
+                    </>
+                  )}
+                  {puedeEliminar && (
+                    <button className="fc-btn-cancelar-proyecto" onClick={() => setConfirmEliminar(true)}><IcoTrash /> Eliminar</button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -298,6 +317,8 @@ export default function Fondo() {
   const { user } = useAuth()
   const esDirectivo = ROLES_DIRECTIVOS.includes(user?.rol)
 
+  const [tab, setTab] = useState('fondo') // 'fondo' | 'proyectos'
+
   const [resumen, setResumen] = useState(null)
   const [proyectos, setProyectos] = useState([])
   const [movimientosPorProyecto, setMovimientosPorProyecto] = useState({})
@@ -309,6 +330,7 @@ export default function Fondo() {
   const [expandId, setExpandId] = useState(null)
   const [generalesAbierto, setGeneralesAbierto] = useState(false)
   const [formGeneralTipo, setFormGeneralTipo] = useState(null)
+  const [filtroAnioProyecto, setFiltroAnioProyecto] = useState('TODOS')
 
   useEffect(() => { cargarTodo() }, [])
 
@@ -373,6 +395,14 @@ export default function Fondo() {
     } catch (e) { alert(e.response?.data || 'Error al eliminar') }
   }
 
+  const handleEliminarProyecto = async (id) => {
+    try {
+      await api.delete(`/api/fondo/proyectos/${id}`)
+      if (expandId === id) setExpandId(null)
+      cargarTodo()
+    } catch (e) { alert(e.response?.data || 'Error al eliminar el proyecto') }
+  }
+
   if (!esDirectivo) {
     return (
       <div className="fc-page">
@@ -388,6 +418,13 @@ export default function Fondo() {
     </div>
   )
 
+  // Años que sí tienen al menos un proyecto iniciado, más recientes primero —
+  // así el filtro no se llena de años sin ningún proyecto
+  const aniosProyectos = [...new Set(proyectos.map(p => new Date(p.fechaInicio + 'T00:00:00').getFullYear()))].sort((a, b) => b - a)
+  const proyectosFiltrados = filtroAnioProyecto === 'TODOS'
+    ? proyectos
+    : proyectos.filter(p => new Date(p.fechaInicio + 'T00:00:00').getFullYear() === filtroAnioProyecto)
+
   return (
     <div className="fc-page">
       <div className="fc-header">
@@ -395,100 +432,150 @@ export default function Fondo() {
           <h1 className="fc-titulo">Fondo de contingencia</h1>
           <p className="fc-sub">Proyectos y reservas de la Residencial Torre Blanca</p>
         </div>
-        <button className="fc-btn-nuevo" onClick={() => setCrearOpen(!crearOpen)}>
-          {crearOpen ? <IcoX /> : <IcoPlus />} {crearOpen ? 'Cancelar' : 'Nuevo proyecto'}
-        </button>
+        {tab === 'proyectos' && (
+          <button className="fc-btn-nuevo" onClick={() => setCrearOpen(!crearOpen)}>
+            {crearOpen ? <IcoX /> : <IcoPlus />} {crearOpen ? 'Cancelar' : 'Nuevo proyecto'}
+          </button>
+        )}
       </div>
 
       {error && <div className="fc-alert-err">{error}</div>}
 
-      {resumen && (
-        <div className="fc-resumen-bar">
-          <div className="fc-resumen-item">
-            <span className="fc-resumen-icon"><IcoWallet /></span>
-            <div>
-              <p className="fc-resumen-lbl">Saldo total del fondo</p>
-              <p className="fc-resumen-val">S/ {Number(resumen.saldoTotal).toFixed(2)}</p>
-            </div>
-          </div>
-          <div className="fc-resumen-sep" />
-          <div className="fc-resumen-sub">
-            <p className="fc-resumen-sub-lbl">Ingresado</p>
-            <p className="fc-resumen-sub-val fc-verde">+ S/ {Number(resumen.totalIngresado).toFixed(2)}</p>
-          </div>
-          <div className="fc-resumen-sub">
-            <p className="fc-resumen-sub-lbl">Retirado</p>
-            <p className="fc-resumen-sub-val fc-rojo">− S/ {Number(resumen.totalRetirado).toFixed(2)}</p>
-          </div>
-          <span className="fc-resumen-badge">{resumen.proyectosActivos} proyecto{resumen.proyectosActivos !== 1 ? 's' : ''} activo{resumen.proyectosActivos !== 1 ? 's' : ''}</span>
-        </div>
-      )}
-
-      {crearOpen && (
-        <FormNuevoProyecto
-          onExito={() => { setCrearOpen(false); cargarTodo() }}
-          onCancelar={() => setCrearOpen(false)}
-        />
-      )}
-
-      {proyectos.length === 0 && !crearOpen && (
-        <div className="fc-empty">
-          <IcoFolder />
-          <p className="fc-empty-t">Aún no hay proyectos</p>
-          <p className="fc-empty-s">Crea uno para empezar a registrar ingresos y retiros, como una pollada u otra actividad.</p>
-        </div>
-      )}
-
-      <div className="fc-lista-proyectos">
-        {proyectos.map(p => (
-          <ProyectoCard
-            key={p.id}
-            proyecto={p}
-            abierto={expandId === p.id}
-            onToggle={() => toggleProyecto(p.id)}
-            movimientos={movimientosPorProyecto[p.id]}
-            onCambiarEstado={handleCambiarEstado}
-            onExitoMovimiento={() => handleExitoMovimientoProyecto(p.id)}
-            onEliminarMovimiento={(movId) => handleEliminarMovimientoProyecto(movId, p.id)}
-          />
-        ))}
+      <div className="fc-tabs">
+        <button className={`fc-tab ${tab === 'fondo' ? 'fc-tab-active' : ''}`} onClick={() => setTab('fondo')}>
+          <IcoWallet /> Fondo
+        </button>
+        <button className={`fc-tab ${tab === 'proyectos' ? 'fc-tab-active' : ''}`} onClick={() => setTab('proyectos')}>
+          <IcoFolder /> Proyectos
+          {proyectos.length > 0 && <span className="fc-tab-badge">{proyectos.length}</span>}
+        </button>
       </div>
 
-      {/* Movimientos generales — no ligados a ningún proyecto puntual */}
-      <div className={`fc-card fc-card-general ${generalesAbierto ? 'fc-card-open' : ''}`}>
-        <button className="fc-card-head" onClick={toggleGenerales}>
-          <span className="fc-card-icon fc-card-icon-general"><IcoWallet /></span>
-          <div className="fc-card-mid">
-            <p className="fc-card-nombre">Movimientos generales del fondo</p>
-            <p className="fc-card-fecha">Aportes o gastos que no pertenecen a un proyecto específico</p>
-          </div>
-          <div className="fc-card-right">
-            <IcoChev open={generalesAbierto} />
-          </div>
-        </button>
-        <div className={`fc-panel ${generalesAbierto ? 'fc-panel-open' : ''}`}>
-          {generalesAbierto && (
-            <div className="fc-panel-body">
-              <div className="fc-panel-toolbar">
-                <div className="fc-panel-btns-izq">
-                  <button className="fc-btn-add-ingreso" onClick={() => setFormGeneralTipo(formGeneralTipo === 'INGRESO' ? null : 'INGRESO')}>
-                    <IcoPlus /> Ingreso
-                  </button>
-                  <button className="fc-btn-add-retiro" onClick={() => setFormGeneralTipo(formGeneralTipo === 'RETIRO' ? null : 'RETIRO')}>
-                    <IcoPlus /> Retiro
-                  </button>
+      {/* ── Pestaña Fondo: saldo real + movimientos generales ── */}
+      {tab === 'fondo' && (
+        <div className="fc-tab-content">
+          {resumen && (
+            <div className="fc-resumen-bar">
+              <div className="fc-resumen-item">
+                <span className="fc-resumen-icon"><IcoWallet /></span>
+                <div>
+                  <p className="fc-resumen-lbl">Saldo real del fondo</p>
+                  <p className="fc-resumen-val">S/ {Number(resumen.saldoTotal).toFixed(2)}</p>
                 </div>
               </div>
-              {formGeneralTipo && (
-                <FormMovimiento proyectoId={null} tipo={formGeneralTipo}
-                  onExito={() => { setFormGeneralTipo(null); cargarTodo(); cargarGenerales() }}
-                  onCancelar={() => setFormGeneralTipo(null)} />
-              )}
-              <TablaMovimientos movimientos={generales} onEliminar={handleEliminarGeneral} />
+              <div className="fc-resumen-sep" />
+              <div className="fc-resumen-sub">
+                <p className="fc-resumen-sub-lbl">Mantenimiento cobrado</p>
+                <p className="fc-resumen-sub-val fc-verde">+ S/ {Number(resumen.totalPagosMantenimiento).toFixed(2)}</p>
+              </div>
+              <div className="fc-resumen-sub">
+                <p className="fc-resumen-sub-lbl">Ingresos extra al fondo</p>
+                <p className="fc-resumen-sub-val fc-verde">+ S/ {Number(resumen.totalIngresosFondo).toFixed(2)}</p>
+              </div>
+              <div className="fc-resumen-sub">
+                <p className="fc-resumen-sub-lbl">Gastos totales</p>
+                <p className="fc-resumen-sub-val fc-rojo">− S/ {Number(resumen.totalGastos).toFixed(2)}</p>
+              </div>
+              <span className="fc-resumen-badge">{resumen.proyectosActivos} proyecto{resumen.proyectosActivos !== 1 ? 's' : ''} activo{resumen.proyectosActivos !== 1 ? 's' : ''}</span>
             </div>
           )}
+          <p className="fc-resumen-nota">
+            Este saldo representa el efectivo real de la residencial: todo lo cobrado en mantenimiento más los ingresos
+            extra del fondo (polladas, donaciones, o el ajuste de apertura si recién estás empezando a usar el sistema),
+            menos todos los gastos registrados. Si no coincide con tu cuenta bancaria, registra aquí abajo un "Ingreso"
+            con el concepto "Ajuste de saldo" para cuadrarlo.
+          </p>
+
+          {/* Movimientos generales — no ligados a ningún proyecto puntual */}
+          <div className={`fc-card fc-card-general ${generalesAbierto ? 'fc-card-open' : ''}`}>
+            <button className="fc-card-head" onClick={toggleGenerales}>
+              <span className="fc-card-icon fc-card-icon-general"><IcoWallet /></span>
+              <div className="fc-card-mid">
+                <p className="fc-card-nombre">Movimientos generales del fondo</p>
+                <p className="fc-card-fecha">Aportes o gastos que no pertenecen a un proyecto específico</p>
+              </div>
+              <div className="fc-card-right">
+                <IcoChev open={generalesAbierto} />
+              </div>
+            </button>
+            <div className={`fc-panel ${generalesAbierto ? 'fc-panel-open' : ''}`}>
+              {generalesAbierto && (
+                <div className="fc-panel-body">
+                  <div className="fc-panel-toolbar">
+                    <div className="fc-panel-btns-izq">
+                      <button className="fc-btn-add-ingreso" onClick={() => setFormGeneralTipo(formGeneralTipo === 'INGRESO' ? null : 'INGRESO')}>
+                        <IcoPlus /> Ingreso
+                      </button>
+                      <button className="fc-btn-add-retiro" onClick={() => setFormGeneralTipo(formGeneralTipo === 'RETIRO' ? null : 'RETIRO')}>
+                        <IcoPlus /> Retiro
+                      </button>
+                    </div>
+                  </div>
+                  {formGeneralTipo && (
+                    <FormMovimiento proyectoId={null} tipo={formGeneralTipo}
+                      onExito={() => { setFormGeneralTipo(null); cargarTodo(); cargarGenerales() }}
+                      onCancelar={() => setFormGeneralTipo(null)} />
+                  )}
+                  <TablaMovimientos movimientos={generales} onEliminar={handleEliminarGeneral} />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Pestaña Proyectos ── */}
+      {tab === 'proyectos' && (
+        <div className="fc-tab-content">
+          {crearOpen && (
+            <FormNuevoProyecto
+              onExito={() => { setCrearOpen(false); cargarTodo() }}
+              onCancelar={() => setCrearOpen(false)}
+            />
+          )}
+
+          {proyectos.length === 0 && !crearOpen && (
+            <div className="fc-empty">
+              <IcoFolder />
+              <p className="fc-empty-t">Aún no hay proyectos</p>
+              <p className="fc-empty-s">Crea uno para empezar a registrar ingresos y retiros, como una pollada u otra actividad.</p>
+            </div>
+          )}
+
+          {proyectos.length > 0 && (
+            <div className="fc-proyectos-toolbar">
+              <p className="fc-sub-lbl">{proyectosFiltrados.length} proyecto{proyectosFiltrados.length !== 1 ? 's' : ''}{filtroAnioProyecto !== 'TODOS' ? ` en ${filtroAnioProyecto}` : ''}</p>
+              <select className="fc-anio-select" value={filtroAnioProyecto} onChange={e => setFiltroAnioProyecto(e.target.value === 'TODOS' ? 'TODOS' : Number(e.target.value))}>
+                <option value="TODOS">Todos los años</option>
+                {aniosProyectos.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          )}
+
+          {proyectos.length > 0 && proyectosFiltrados.length === 0 && (
+            <div className="fc-empty">
+              <IcoFolder />
+              <p className="fc-empty-t">Ningún proyecto en {filtroAnioProyecto}</p>
+            </div>
+          )}
+
+          <div className="fc-lista-proyectos">
+            {proyectosFiltrados.map(p => (
+              <ProyectoCard
+                key={p.id}
+                proyecto={p}
+                abierto={expandId === p.id}
+                onToggle={() => toggleProyecto(p.id)}
+                movimientos={movimientosPorProyecto[p.id]}
+                onCambiarEstado={handleCambiarEstado}
+                onExitoMovimiento={() => handleExitoMovimientoProyecto(p.id)}
+                onEliminarMovimiento={(movId) => handleEliminarMovimientoProyecto(movId, p.id)}
+                onEliminarProyecto={handleEliminarProyecto}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

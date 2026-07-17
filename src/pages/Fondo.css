@@ -1,5 +1,40 @@
 .fc-page { max-width: 980px; margin: 0 auto; padding-bottom: 60px; }
 
+/* ── Pestañas Fondo / Proyectos (mismo lenguaje visual que Pagos) ── */
+.fc-tabs {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  border-bottom: 1px solid #E2E8F0; overflow-x: auto;
+}
+.fc-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 11px 16px; background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600; color: #64748B;
+  font-family: inherit; white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.fc-tab:hover { color: #0F172A; }
+.fc-tab-active { color: #2563EB; border-bottom-color: #2563EB; }
+.fc-tab-badge {
+  background: #EFF6FF; color: #2563EB; font-size: 0.68rem; font-weight: 800;
+  padding: 1px 7px; border-radius: 20px; margin-left: 2px;
+}
+
+.fc-resumen-nota {
+  font-size: 0.78rem; color: #94A3B8; line-height: 1.6;
+  background: #F8FAFC; border: 1px solid #F1F5F9; border-radius: 10px;
+  padding: 12px 16px; margin: -8px 0 20px 0;
+}
+
+.fc-proyectos-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.fc-sub-lbl { font-size: 0.82rem; color: #64748B; font-weight: 600; margin: 0; }
+.fc-anio-select {
+  padding: 8px 12px; border-radius: 9px; border: 1.5px solid #E2E8F0;
+  background: #fff; font-family: inherit; font-size: 0.82rem; color: #334155;
+  cursor: pointer; outline: none; transition: border-color 0.15s ease;
+}
+.fc-anio-select:focus { border-color: #2563EB; }
+
 /* Skeleton */
 .fc-skeleton { display: flex; flex-direction: column; gap: 14px; }
 .fc-skeleton-item { height: 90px; background: #F1F5F9; border-radius: 14px; animation: fc-pulse 1.4s ease infinite; }
